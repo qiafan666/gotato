@@ -1,0 +1,34 @@
+dataSource:
+  -
+   db_file_path: device.db
+   name: device
+   type: sqlite
+   slow_sql: 100 #ms
+  -
+   addr: 127.0.0.1
+   port: 3389
+   username: root
+   password: 1234567
+   idle_conn: 10
+   max_conn: 20
+   max_idle_time: 20
+   max_life_time: 20
+   charset: utf8mb4
+   db_name: test_db
+   name: mysql
+   type: mysql
+   slow_sql: 100 #ms
+kafka :
+  host: 218.0.49.239
+  port: 9092
+redis:
+  -
+    host: 127.0.0.1:6379
+    password:
+    db: 10
+    name: test1
+  -
+    host: 127.0.0.1:6379
+    password:
+    db: 10
+    name: test2

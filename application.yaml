@@ -1,0 +1,8 @@
+server:
+  addr : 0.0.0.0
+  port: 8080
+  # debug info warn error
+  loglevel: warn
+  profile: dev
+  logPath: .\log
+  logName:  iris
