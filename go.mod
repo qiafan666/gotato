@@ -1,4 +1,4 @@
-module github.com/qiafan666/quickweb
+module github.com/qiafan666/gotato
 
 go 1.19
 
