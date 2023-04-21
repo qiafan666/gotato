@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	slog "github.com/qiafan666/quickweb/commons/log"
+	slog "github.com/qiafan666/gotato/commons/log"
 	"github.com/valyala/fasthttp"
 )
 
@@ -46,7 +46,7 @@ func ProxyRequest(ctx context.Context, method string, header http.Header, url st
 
 }
 
-//append request url
+// append request url
 func getRequestURL(url string, params map[string]string) string {
 	var urlAddress = ""
 	lastCharctor := url[len(url)-1:]

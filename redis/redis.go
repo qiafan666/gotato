@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	redisv8 "github.com/go-redis/redis/v8"
-	"github.com/qiafan666/quickweb/config"
+	"github.com/qiafan666/gotato/config"
 	"time"
 )
 

@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kataras/iris/v12"
-	"github.com/qiafan666/quickweb/commons"
-	"github.com/qiafan666/quickweb/commons/log"
+	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/log"
 	uuid "github.com/satori/go.uuid"
 	"strings"
 )

@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 	"github.com/Shopify/sarama"
-	"github.com/qiafan666/quickweb/config"
+	"github.com/qiafan666/gotato/config"
 	"strconv"
 	"sync"
 )

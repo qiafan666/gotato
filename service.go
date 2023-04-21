@@ -2,7 +2,7 @@ package gotato
 
 import (
 	"context"
-	"github.com/qiafan666/quickweb/oss"
+	"github.com/qiafan666/gotato/oss"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,13 +10,13 @@ import (
 
 	redisv8 "github.com/go-redis/redis/v8"
 	irisv12 "github.com/kataras/iris/v12"
-	"github.com/qiafan666/quickweb/commons"
-	slog "github.com/qiafan666/quickweb/commons/log"
-	"github.com/qiafan666/quickweb/config"
-	"github.com/qiafan666/quickweb/gotatodb"
-	"github.com/qiafan666/quickweb/iris"
-	"github.com/qiafan666/quickweb/kafka"
-	"github.com/qiafan666/quickweb/redis"
+	"github.com/qiafan666/gotato/commons"
+	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gotatodb"
+	"github.com/qiafan666/gotato/iris"
+	"github.com/qiafan666/gotato/kafka"
+	"github.com/qiafan666/gotato/redis"
 )
 
 // Instance we need create the single object but thread safe

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/kataras/iris/v12"
-	slog "github.com/qiafan666/quickweb/commons/log"
-	"github.com/qiafan666/quickweb/commons/utils"
+	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/utils"
 	"runtime"
 	"time"
 )

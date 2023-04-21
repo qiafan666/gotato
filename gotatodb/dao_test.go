@@ -2,7 +2,7 @@ package gotatodb
 
 import (
 	"context"
-	gotato "github.com/qiafan666/quickweb"
+	gotato "github.com/qiafan666/gotato"
 	"gorm.io/gorm"
 	"sync"
 )

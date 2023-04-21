@@ -3,7 +3,7 @@ package oss
 import (
 	"context"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	slog "github.com/qiafan666/quickweb/commons/log"
+	slog "github.com/qiafan666/gotato/commons/log"
 	"io"
 	"io/ioutil"
 	"time"

@@ -3,7 +3,7 @@ package log
 import (
 	"context"
 	"errors"
-	"github.com/qiafan666/quickweb/commons"
+	"github.com/qiafan666/gotato/commons"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"time"

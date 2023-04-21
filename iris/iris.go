@@ -8,9 +8,9 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/middleware/pprof"
-	"github.com/qiafan666/quickweb/commons"
-	"github.com/qiafan666/quickweb/config"
-	"github.com/qiafan666/quickweb/middleware"
+	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/middleware"
 	"os"
 )
 

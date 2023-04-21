@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
-	slog "github.com/qiafan666/quickweb/commons/log"
+	slog "github.com/qiafan666/gotato/commons/log"
 )
 
 func KafkaSend(topic string, key string, data []byte, host string, port uint) error {

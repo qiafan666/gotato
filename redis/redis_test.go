@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"github.com/qiafan666/quickweb"
+	"github.com/qiafan666/gotato"
 	"gorm.io/gorm"
 	"sync"
 )

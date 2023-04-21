@@ -3,8 +3,8 @@ package log
 import (
 	"context"
 	"fmt"
-	"github.com/qiafan666/quickweb/commons"
-	"github.com/qiafan666/quickweb/config"
+	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
