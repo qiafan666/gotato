@@ -10,6 +10,7 @@ import (
 )
 
 type Client interface {
+	HealthCheck(ctx context.Context) (health bool, err error)
 	UploadAndSignUrl(ctx context.Context, fileReader io.Reader, objectName string, expiredInSec int64) (string, error)
 	DeleteByObjectName(ctx context.Context, objectName string)
 	UploadByReader(ctx context.Context, fileReader io.Reader, fileName string) (err error)
@@ -25,6 +26,15 @@ type ClientImp struct {
 	ossEndPoint     string
 }
 
+func (slf *ClientImp) HealthCheck(ctx context.Context) (health bool, err error) {
+	_, err = oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Slog.ErrorF(ctx, "ClientImp HealthCheck Error:%s", err)
+		return false, err
+	}
+	health = true
+	return
+}
 func (slf *ClientImp) GetFileURL(ctx context.Context, fileName string, expireTime time.Duration) (url string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
