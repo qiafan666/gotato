@@ -17,6 +17,7 @@ type Client interface {
 	DownloadFile(ctx context.Context, fileName string) (data []byte, err error)
 	IsFileExist(ctx context.Context, fileName string) (isExist bool, err error)
 	GetFileURL(ctx context.Context, fileName string, expireTime time.Duration) (url string, err error)
+	MemoryParameter(ctx context.Context) (memoryParameters MemoryParameter, err error)
 }
 
 type ClientImp struct {
@@ -169,5 +170,36 @@ func (slf *ClientImp) DownloadFile(ctx context.Context, fileName string) (data [
 		slog.Slog.ErrorF(ctx, "Error:%s", err)
 		return
 	}
+	return
+}
+func (slf *ClientImp) MemoryParameter(ctx context.Context) (memoryParameters MemoryParameter, err error) {
+
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Slog.ErrorF(ctx, "Error:%s", err)
+		return
+	}
+
+	stat, err := client.GetBucketStat(slf.ossBucket)
+	if err != nil {
+		slog.Slog.ErrorF(ctx, "Error:%s", err)
+		return
+	}
+	memoryParameters.Storage = stat.Storage
+	memoryParameters.ObjectCount = stat.ObjectCount
+	memoryParameters.MultipartUploadCount = stat.MultipartUploadCount
+	memoryParameters.LiveChannelCount = stat.LiveChannelCount
+	memoryParameters.LastModifiedTime = stat.LastModifiedTime
+	memoryParameters.StandardStorage = stat.StandardStorage
+	memoryParameters.StandardObjectCount = stat.StandardObjectCount
+	memoryParameters.InfrequentAccessStorage = stat.InfrequentAccessStorage
+	memoryParameters.InfrequentAccessRealStorage = stat.InfrequentAccessRealStorage
+	memoryParameters.InfrequentAccessObjectCount = stat.InfrequentAccessObjectCount
+	memoryParameters.ArchiveStorage = stat.ArchiveStorage
+	memoryParameters.ArchiveRealStorage = stat.ArchiveRealStorage
+	memoryParameters.ArchiveObjectCount = stat.ArchiveObjectCount
+	memoryParameters.ColdArchiveStorage = stat.ColdArchiveStorage
+	memoryParameters.ColdArchiveRealStorage = stat.ColdArchiveRealStorage
+	memoryParameters.ColdArchiveObjectCount = stat.ColdArchiveObjectCount
 	return
 }
