@@ -1,4 +1,4 @@
-package CSCrypto
+package encrypt
 
 //func Sign2(cxt *Context, msg []byte, seckey *UmbralFieldElement) (*UmbralFieldElement, *UmbralFieldElement) {
 //	h:=GenPrivateKeyFromMsg(cxt,msg)

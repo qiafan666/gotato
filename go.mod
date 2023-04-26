@@ -9,6 +9,7 @@ require (
 	github.com/iris-contrib/swagger/v12 v12.0.1
 	github.com/kataras/iris/v12 v12.2.0
 	github.com/satori/go.uuid v1.2.0
+	github.com/tjfoc/gmsm v1.4.1
 	github.com/valyala/fasthttp v1.45.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.8.0
