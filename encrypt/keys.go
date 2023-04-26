@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+
+	"github.com/tjfoc/gmsm/sm2"
 )
 
 type UmbralFieldElement struct {
@@ -191,4 +193,56 @@ func StringToStruct(s string, obj interface{}) {
 		fmt.Println("字符转结构体解码出错" + err.Error())
 	}
 	Bytes2Struct(b, obj)
+}
+
+func SM2PrivateToString(p *UmbralFieldElement) string {
+	return p.GetValue().Text(16)
+}
+
+func SM2StringToPrivate(s string) *UmbralFieldElement {
+	v, ok := new(big.Int).SetString(s, 16)
+	if !ok {
+		return nil
+	}
+	e := MakeSM2Context().targetField.NewElement(v)
+	return &UmbralFieldElement{*e}
+}
+
+func SM2PublicToString(p *UmbralCurveElement) string {
+	var buf []byte
+	yp := getLastBit(p.DataY.GetValue())
+	buf = append(buf, p.DataX.GetValue().Bytes()...)
+	if n := len(p.DataX.GetValue().Bytes()); n < 32 {
+		buf = append(zeroByteSlice()[:(32-n)], buf...)
+	}
+	buf = append([]byte{byte(yp)}, buf...)
+	return hex.EncodeToString(buf)
+}
+
+func SM2StringToPublic(s string) *UmbralCurveElement {
+	byt, err := hex.DecodeString(s)
+	if err != nil {
+		return nil
+	}
+	pub := sm2.Decompress(byt)
+	curElement := MakeSM2Context().curveField.MakeElement(pub.X, pub.Y)
+	return &UmbralCurveElement{*curElement}
+}
+
+func getLastBit(a *big.Int) uint {
+	return a.Bit(0)
+}
+
+// 32byte
+func zeroByteSlice() []byte {
+	return []byte{
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+	}
 }

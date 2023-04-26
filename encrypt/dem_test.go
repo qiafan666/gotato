@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"golang.org/x/crypto/chacha20poly1305"

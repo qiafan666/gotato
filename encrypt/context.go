@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"fmt"
@@ -36,6 +36,7 @@ func getMinValSha512(curve *CurveField) *big.Int {
 }
 
 const SECRET_BOX_KEY_SIZE = 32
+const SECRET_SM4_KEY_SIZE = 16
 
 func MakeDefaultContext() *Context {
 	curveField := MakeSecp256k1()
@@ -44,6 +45,15 @@ func MakeDefaultContext() *Context {
 	uY, _ := big.NewInt(0).SetString("27576123183859453704384360727380224739834659634660871190236925621255961659778", 10)
 	U := curveField.MakeElement(uX, uY) // TODO: I cheat here and just construct U directly with values cribbed from pyUmbral
 	return &Context{curveField, targetField, getMinValSha512(curveField), U, SECRET_BOX_KEY_SIZE}
+}
+
+func MakeSM2Context() *Context {
+	curveField := MakeSM2()
+	targetField := MakeZField(curveField.FieldOrder)
+	uX, _ := big.NewInt(0).SetString("21988818426344374455592705741884136131748000592119723665854584937774395241572", 10)
+	uY, _ := big.NewInt(0).SetString("31511737151452315797500599923801180801680237233295617230109528048179423546071", 10)
+	U := curveField.MakeElement(uX, uY)
+	return &Context{curveField, targetField, getMinValSha512(curveField), U, SECRET_SM4_KEY_SIZE}
 }
 
 func Aaaa() {

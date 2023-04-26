@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"fmt"
@@ -6,20 +6,26 @@ import (
 	"testing"
 )
 
-func TestAPIBasics(t *testing.T) {
+func TestSM2APIBasics(t *testing.T) {
 
-	cxt := MakeDefaultContext()
+	cxt := MakeSM2Context()
 
 	//Alice
 	privKeyAlice := GenPrivateKey(cxt)
 	pubKeyAlice := privKeyAlice.GetPublicKey(cxt)
 
-	//a=StructToString(pubKeyAlice2))
-	//fmt.Println(len(StructToString(privKeyAlice)))
-	var obj = new(UmbralCurveElement)
-	StringToStruct(StructToString(pubKeyAlice), obj)
-	fmt.Println(obj.String())
-	fmt.Println(pubKeyAlice.String())
+	strPriv := SM2PrivateToString(privKeyAlice)
+
+	fmt.Println(strPriv, len(strPriv))
+	privKeyAlice = SM2StringToPrivate(strPriv)
+
+	strPub := SM2PublicToString(pubKeyAlice)
+	fmt.Println(strPub, len(strPub))
+	pubKeyAlice = SM2StringToPublic(strPub)
+
+	fmt.Println(pubKeyAlice.DataX.String(), pubKeyAlice.DataY.String())
+
+	//fmt.Println(obj.String())
 	//fmt.Println(obj.GetPublicKey(cxt))
 	//fmt.Println(cxt.curveField.GetGen())
 	//fmt.Println(pubKeyAlice.MulScalar(privKeyAlice.Invert().GetValue()))
@@ -35,11 +41,11 @@ func TestAPIBasics(t *testing.T) {
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice
 	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := Encrypt(cxt, pubKeyAlice, plainText)
+	cipherText, capsule := EncryptSM4(cxt, pubKeyAlice, plainText)
 
 	//Alice
 
-	testDecrypt := DecryptDirect(cxt, capsule, privKeyAlice, cipherText)
+	testDecrypt := DecryptDirectSM4(cxt, capsule, privKeyAlice, cipherText)
 
 	if !reflect.DeepEqual(plainText, testDecrypt) {
 		t.Errorf("Direct decryption failed")
@@ -86,7 +92,7 @@ func TestAPIBasics(t *testing.T) {
 
 	//Proxy[i] sends cFrags[i] to Bob
 	//Bob
-	testDecryptFrags := DecryptFragments(cxt, capsule, cFrags, privKeyBob, pubKeyAlice, cipherText)
+	testDecryptFrags := DecryptFragmentsSM4(cxt, capsule, cFrags, privKeyBob, pubKeyAlice, cipherText)
 	if !reflect.DeepEqual(plainText, testDecryptFrags) {
 		t.Errorf("Re-encapsulated fragment decryption failed")
 	}

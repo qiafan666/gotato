@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"encoding/base64"

@@ -1,8 +1,9 @@
-package encrypt
+package CSCrypto
 
 import (
 	"crypto/sha512"
 	"fmt"
+	"github.com/tjfoc/gmsm/sm4"
 	"golang.org/x/crypto/hkdf"
 	"hash"
 	"log"
@@ -43,6 +44,15 @@ func Encrypt(cxt *Context, pubKey *UmbralCurveElement, plainText []byte) ([]byte
 	return cypher, capsule
 }
 
+func EncryptSM4(cxt *Context, pubKey *UmbralCurveElement, plainText []byte) ([]byte, *Capsule) {
+	key, capsule := encapsulate(cxt, pubKey)
+	dst, err := sm4.Sm4Ecb(key, plainText, true)
+	if err != nil {
+		return nil, nil
+	}
+	return dst, capsule
+}
+
 func DecryptDirect(cxt *Context, capsule *Capsule, privKey *UmbralFieldElement, cipherText []byte) []byte {
 
 	key := decapDirect(cxt, privKey, capsule)
@@ -53,14 +63,31 @@ func DecryptDirect(cxt *Context, capsule *Capsule, privKey *UmbralFieldElement, 
 	return dem.decrypt(cipherText, capsuleBytes)
 }
 
-func DecryptFragments(cxt *Context, capsule *Capsule, reKeyFrags []*CFrag, privKey *UmbralFieldElement, origPubKey *UmbralCurveElement, cipherText []byte) []byte {
+func DecryptDirectSM4(cxt *Context, capsule *Capsule, privKey *UmbralFieldElement, cipherText []byte) []byte {
+	key := decapDirect(cxt, privKey, capsule)
+	dst, err := sm4.Sm4Ecb(key, cipherText, false)
+	if err != nil {
+		return nil
+	}
+	return dst
+}
 
+func DecryptFragments(cxt *Context, capsule *Capsule, reKeyFrags []*CFrag, privKey *UmbralFieldElement, origPubKey *UmbralCurveElement, cipherText []byte) []byte {
 	key := openCapsule(cxt, privKey, origPubKey, capsule, reKeyFrags)
 	dem := MakeDEM(key)
 
 	capsuleBytes := capsule.toBytes()
 
 	return dem.decrypt(cipherText, capsuleBytes)
+}
+
+func DecryptFragmentsSM4(cxt *Context, capsule *Capsule, reKeyFrags []*CFrag, privKey *UmbralFieldElement, origPubKey *UmbralCurveElement, cipherText []byte) []byte {
+	key := openCapsule(cxt, privKey, origPubKey, capsule, reKeyFrags)
+	dst, err := sm4.Sm4Ecb(key, cipherText, false)
+	if err != nil {
+		return nil
+	}
+	return dst
 }
 
 func hornerPolyEval(poly []*ModInt, x *ModInt) *ModInt {
