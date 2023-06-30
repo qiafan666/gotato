@@ -15,9 +15,11 @@ type Dao interface {
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
-	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
+	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB, map[string]interface{}) (int64, error)
 	Delete(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Count(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
+	Save(interface{}) error
+	Raw(string, interface{}) error
 }
 
 type Imp struct {
@@ -26,6 +28,9 @@ type Imp struct {
 
 func (s Imp) Create(input interface{}) error {
 	return s.db.Create(input).Error
+}
+func (s Imp) Save(input interface{}) error {
+	return s.db.Save(input).Error
 }
 func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
 	if scope != nil {
@@ -47,13 +52,19 @@ func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*
 
 	return s.db.Model(output).Where(where).Find(output).Error
 }
-func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
+func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, maps map[string]interface{}) (rows int64, err error) {
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
 	}
-	db := s.db.Model(info).Where(where).Updates(info)
-	err = db.Error
-	rows = db.RowsAffected
+	var dbs *gorm.DB
+	if len(maps) > 0 {
+		dbs = s.db.Model(info).Where(where).Updates(info)
+	} else {
+		dbs = s.db.Model(info).Where(where).Updates(maps)
+	}
+
+	err = dbs.Error
+	rows = dbs.RowsAffected
 	return
 }
 func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
@@ -86,13 +97,16 @@ func (s Imp) Rollback() {
 func (s Imp) Commit() error {
 	return s.db.Commit().Error
 }
+func (s Imp) Raw(sql string, output interface{}) error {
+	return s.db.Raw(sql).Scan(output).Error
+}
 
 var db *gorm.DB
 var once sync.Once
 
 func Instance() Dao {
 	once.Do(func() {
-		db = gotato.GetGotatoInstance().FeatureDB("metaspace").GormDB()
+		db = gotato.GetGotatoInstance().FeatureDB("test").GormDB()
 	})
 	return &Imp{db: db}
 }
