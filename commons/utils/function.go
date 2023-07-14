@@ -24,6 +24,20 @@ func StringToMd5(str string) string {
 	return md5str
 }
 
+func StringsToString(stringArray []string) string {
+	if len(stringArray) <= 0 {
+		return ""
+	}
+	return strings.Join(stringArray, ",")
+}
+
+func StringToStrings(param string) []string {
+	if len(param) <= 0 {
+		return []string{}
+	}
+	return strings.Split(param, ",")
+}
+
 func StringToSha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
 }
