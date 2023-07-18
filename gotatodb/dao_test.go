@@ -100,6 +100,9 @@ func (s Imp) Commit() error {
 func (s Imp) Raw(sql string, output interface{}) error {
 	return s.db.Raw(sql).Scan(output).Error
 }
+func (s Imp) DB() *gorm.DB {
+	return s.db
+}
 
 var db *gorm.DB
 var once sync.Once
