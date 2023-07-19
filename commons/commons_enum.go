@@ -86,3 +86,7 @@ var DefualtLanguage = MsgLanguageEnglish
 const (
 	MsgLanguageEnglish = "english"
 )
+
+const (
+	Table = "table"
+)

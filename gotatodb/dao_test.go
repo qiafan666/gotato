@@ -3,6 +3,7 @@ package gotatodb
 import (
 	"context"
 	gotato "github.com/qiafan666/gotato"
+	"github.com/qiafan666/gotato/commons"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -15,7 +16,7 @@ type Dao interface {
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
-	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB, map[string]interface{}) (int64, error)
+	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Delete(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Count(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Save(interface{}) error
@@ -52,19 +53,21 @@ func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*
 
 	return s.db.Model(output).Where(where).Find(output).Error
 }
-func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, maps map[string]interface{}) (rows int64, err error) {
+func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
 	}
-	var dbs *gorm.DB
-	if len(maps) > 0 {
-		dbs = s.db.Model(info).Where(where).Updates(info)
+	if value, ok := info.(map[string]interface{}); ok {
+		table := value[commons.Table].(string)
+		delete(value, commons.Table)
+		dbs := s.db.Table(table).Where(where).Updates(info)
+		err = dbs.Error
+		rows = dbs.RowsAffected
 	} else {
-		dbs = s.db.Model(info).Where(where).Updates(maps)
+		dbs := s.db.Model(info).Where(where).Updates(info)
+		err = dbs.Error
+		rows = dbs.RowsAffected
 	}
-
-	err = dbs.Error
-	rows = dbs.RowsAffected
 	return
 }
 func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
