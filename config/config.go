@@ -113,5 +113,15 @@ type ServerBaseConfig struct {
 	LogName  string `yaml:"logName"`
 }
 type ServerConfig struct {
-	SConfigure ServerBaseConfig `yaml:"server"`
+	SConfigure    ServerBaseConfig `yaml:"server"`
+	SwaggerConfig SwaggerConfig    `yaml:"swagger"`
+	PProfConfig   PProfConfig      `yaml:"pprof"`
+}
+type SwaggerConfig struct {
+	Enable   bool   `yaml:"enable"`
+	UiPath   string `yaml:"ui_path"`
+	JsonPath string `yaml:"json_path"`
+}
+type PProfConfig struct {
+	Enable bool `yaml:"enable"`
 }

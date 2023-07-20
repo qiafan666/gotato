@@ -6,3 +6,9 @@ server:
   profile: dev
   logPath: .\log
   logName:  iris
+swagger:
+  enable: true
+  ui_path: /swagger/
+  json_path: /swagger/doc.json
+pprof:
+  enable: true

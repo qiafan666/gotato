@@ -3,8 +3,6 @@ package iris
 import (
 	"errors"
 	"fmt"
-	"github.com/iris-contrib/swagger/v12"
-	"github.com/iris-contrib/swagger/v12/swaggerFiles"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/middleware/pprof"
@@ -79,14 +77,18 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	if slf.app == nil {
 		return errors.New("Server not init")
 	}
-	//go slf.app.Run(iris.Addr(server))
-	swaggerConfig := &swagger.Config{
-		URL: fmt.Sprintf("./swagger/doc.json"), //The url pointing to API definition
+	//开启swagger
+	if config.SC.SwaggerConfig.Enable == true {
+		slf.app.Get("/swagger", SwaggerUI)
+		slf.app.Get("/docs/swagger.json", SwaggerJson)
 	}
-	slf.app.Get("/swagger/{any:path}", swagger.CustomWrapHandler(swaggerConfig, swaggerFiles.Handler))
-	p := pprof.New()
-	slf.app.Get("/debug/pprof", p)
-	slf.app.Get("/debug/pprof/{action:path}", p)
+	//开启pprof
+	if config.SC.PProfConfig.Enable == true {
+		p := pprof.New()
+		slf.app.Get("/debug/pprof", p)
+		slf.app.Get("/debug/pprof/{action:path}", p)
+	}
+
 	params = append(params, iris.WithoutStartupLog)
 
 	return slf.app.Run(iris.Addr(server), params...)
