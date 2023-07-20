@@ -79,6 +79,13 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	}
 	//开启swagger
 	if config.SC.SwaggerConfig.Enable == true {
+		slf.app.Use(func(c *context.Context) {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Methods", "GET, POST") // 根据你的需求添加其他允许的方法
+			c.Header("Access-Control-Allow-Headers", "*")         // 根据你的需求设置允许的请求头
+			c.Header("Access-Control-Allow-Credentials", "true")
+			c.Next()
+		})
 		slf.app.Get("/swagger", SwaggerUI)
 		slf.app.Get("/docs/swagger.json", SwaggerJson)
 	}
