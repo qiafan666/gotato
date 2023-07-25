@@ -8,7 +8,8 @@ import (
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/config"
 	"github.com/qiafan666/gotato/middleware"
-	"net/http/pprof"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 )
 
@@ -91,11 +92,9 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	}
 	//开启pprof
 	if config.SC.PProfConfig.Enable == true {
-		slf.app.Get("/debug/pprof/", iris.FromStd(pprof.Index))
-		slf.app.Get("/debug/pprof/cmdline", iris.FromStd(pprof.Cmdline))
-		slf.app.Get("/debug/pprof/profile", iris.FromStd(pprof.Profile))
-		slf.app.Get("/debug/pprof/symbol", iris.FromStd(pprof.Symbol))
-		slf.app.Get("/debug/pprof/trace", iris.FromStd(pprof.Trace))
+		go func() {
+			http.ListenAndServe(":6060", nil)
+		}()
 	}
 
 	params = append(params, iris.WithoutStartupLog)
