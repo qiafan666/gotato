@@ -91,7 +91,7 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	}
 	//开启pprof
 	if config.SC.PProfConfig.Enable == true {
-		slf.app.Get("/debug/pprof", iris.FromStd(pprof.Index))
+		slf.app.Get("/debug/pprof/", iris.FromStd(pprof.Index))
 		slf.app.Get("/debug/pprof/cmdline", iris.FromStd(pprof.Cmdline))
 		slf.app.Get("/debug/pprof/profile", iris.FromStd(pprof.Profile))
 		slf.app.Get("/debug/pprof/symbol", iris.FromStd(pprof.Symbol))
