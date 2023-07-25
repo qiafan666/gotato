@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
-	"github.com/kataras/iris/v12/middleware/pprof"
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/config"
 	"github.com/qiafan666/gotato/middleware"
+	"net/http/pprof"
 	"os"
 )
 
@@ -91,9 +91,11 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	}
 	//开启pprof
 	if config.SC.PProfConfig.Enable == true {
-		p := pprof.New()
-		slf.app.Get("/debug/pprof", p)
-		slf.app.Get("/debug/pprof/{action:path}", p)
+		slf.app.Get("/debug/pprof", iris.FromStd(pprof.Index))
+		slf.app.Get("/debug/pprof/cmdline", iris.FromStd(pprof.Cmdline))
+		slf.app.Get("/debug/pprof/profile", iris.FromStd(pprof.Profile))
+		slf.app.Get("/debug/pprof/symbol", iris.FromStd(pprof.Symbol))
+		slf.app.Get("/debug/pprof/trace", iris.FromStd(pprof.Trace))
 	}
 
 	params = append(params, iris.WithoutStartupLog)
