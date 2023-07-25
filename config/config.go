@@ -123,5 +123,6 @@ type SwaggerConfig struct {
 	JsonPath string `yaml:"json_path"`
 }
 type PProfConfig struct {
-	Enable bool `yaml:"enable"`
+	Enable bool   `yaml:"enable"`
+	Port   string `yaml:"port"`
 }

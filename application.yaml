@@ -12,3 +12,4 @@ swagger:
   json_path: /swagger/doc.json
 pprof:
   enable: true
+  port: 6060

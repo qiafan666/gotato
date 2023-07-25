@@ -93,7 +93,7 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	//开启pprof
 	if config.SC.PProfConfig.Enable == true {
 		go func() {
-			http.ListenAndServe(":6060", nil)
+			http.ListenAndServe(":"+config.SC.PProfConfig.Port, nil)
 		}()
 	}
 
