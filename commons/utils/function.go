@@ -10,6 +10,7 @@ import (
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/log"
 	uuid "github.com/satori/go.uuid"
+	"sort"
 	"strings"
 )
 
@@ -75,4 +76,99 @@ func ValidateAndBindCtxParameters(entity interface{}, ctx iris.Context, info str
 	}
 
 	return commons.OK, ""
+}
+
+// DifferenceInt64 找出两个数组不存在的元素
+func DifferenceInt64(a, b []int64) []int64 {
+	sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
+	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
+	var diff []int64
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
+		if a[i] < b[j] {
+			diff = append(diff, a[i])
+			i++
+		} else if a[i] > b[j] {
+			diff = append(diff, b[j])
+			j++
+		} else {
+			i++
+			j++
+		}
+	}
+	for ; i < len(a); i++ {
+		diff = append(diff, a[i])
+	}
+	for ; j < len(b); j++ {
+		diff = append(diff, b[j])
+	}
+	return diff
+}
+
+// CommonInt64 找出两个数组相同的元素
+func CommonInt64(a, b []int64) []int64 {
+	sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
+	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
+	var common []int64
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
+		if a[i] < b[j] {
+			i++
+		} else if a[i] > b[j] {
+			j++
+		} else {
+			common = append(common, a[i])
+			i++
+			j++
+		}
+	}
+	return common
+}
+
+// DifferenceStrings 找出两个数组不存在的元素
+func DifferenceStrings(a, b []string) []string {
+	sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
+	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
+	var diff []string
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
+		switch {
+		case a[i] < b[j]:
+			diff = append(diff, a[i])
+			i++
+		case a[i] > b[j]:
+			diff = append(diff, b[j])
+			j++
+		default:
+			i++
+			j++
+		}
+	}
+	for ; i < len(a); i++ {
+		diff = append(diff, a[i])
+	}
+	for ; j < len(b); j++ {
+		diff = append(diff, b[j])
+	}
+	return diff
+}
+
+// CommonStrings 找出两个数组相同的元素
+func CommonStrings(a, b []string) []string {
+	sort.Strings(a)
+	sort.Strings(b)
+	var common []string
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
+		if a[i] < b[j] {
+			i++
+		} else if a[i] > b[j] {
+			j++
+		} else {
+			common = append(common, a[i])
+			i++
+			j++
+		}
+	}
+	return common
 }
