@@ -10,8 +10,10 @@ import (
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/log"
 	uuid "github.com/satori/go.uuid"
+	"math/rand"
 	"sort"
 	"strings"
+	"time"
 )
 
 func GenerateUUID() string {
@@ -171,4 +173,17 @@ func CommonStrings(a, b []string) []string {
 		}
 	}
 	return common
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func RandomString(stringSize int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]byte, stringSize)
+	for i := 0; i < stringSize; i++ {
+		for i := range b {
+			b[i] = letterBytes[rand.Intn(len(letterBytes))]
+		}
+	}
+	return strings.ToUpper(string(b))
 }
