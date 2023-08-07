@@ -39,6 +39,8 @@ func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(
 	}
 	if len(selectStr) > 0 {
 		s.db = s.db.Select(selectStr)
+	} else {
+		s.db = s.db.Select("*")
 	}
 
 	return s.db.Model(output).Where(where).First(output).Error
@@ -49,6 +51,8 @@ func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*
 	}
 	if len(selectStr) > 0 {
 		s.db = s.db.Select(selectStr)
+	} else {
+		s.db = s.db.Select("*")
 	}
 
 	return s.db.Model(output).Where(where).Find(output).Error
