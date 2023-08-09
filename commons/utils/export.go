@@ -15,7 +15,7 @@ func ExportToExcel(data map[string][]interface{}, srcPath string) error {
 	for sheetName, sheetData := range data {
 		// 创建sheet
 		file.NewSheet(sheetName)
-
+		file.DeleteSheet("Sheet1")
 		// 写入数据到表格
 		for row, rowData := range sheetData {
 			if rowSlice, ok := rowData.([]interface{}); ok {
