@@ -11,6 +11,7 @@ import (
 	"github.com/qiafan666/gotato/commons/log"
 	uuid "github.com/satori/go.uuid"
 	"math/rand"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -186,4 +187,14 @@ func RandomString(stringSize int) string {
 		}
 	}
 	return strings.ToUpper(string(b))
+}
+
+func Contains[T string | int64](ts []T, t T) bool {
+	for _, v := range ts {
+		if reflect.DeepEqual(v, t) {
+			return true
+		}
+	}
+
+	return false
 }
