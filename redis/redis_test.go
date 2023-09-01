@@ -12,6 +12,7 @@ import (
 var Nil = errors.New("redis: nil")
 
 type Dao interface {
+	Client() *redis.Client
 	Get(ctx context.Context, k string) (out string, err error)
 	Set(ctx context.Context, k string, x interface{}, d time.Duration) (err error)
 	Delete(ctx context.Context, k string) (err error)
@@ -23,6 +24,10 @@ type Imp struct {
 
 func Instance() Dao {
 	return &Imp{redis: gotato.GetGotatoInstance().Redis("test")}
+}
+
+func (i Imp) Client() *redis.Client {
+	return i.redis
 }
 
 func (i Imp) Get(ctx context.Context, k string) (out string, err error) {
