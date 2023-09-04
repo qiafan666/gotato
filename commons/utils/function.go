@@ -189,6 +189,7 @@ func RandomString(stringSize int) string {
 	return strings.ToUpper(string(b))
 }
 
+// 数组中是否包含某个元素
 func Contains[T string | int64](ts []T, t T) bool {
 	for _, v := range ts {
 		if reflect.DeepEqual(v, t) {
@@ -197,4 +198,14 @@ func Contains[T string | int64](ts []T, t T) bool {
 	}
 
 	return false
+}
+
+// 使用泛型函数来删除切片中的某个元素
+func Remove[T any](ts []T, t T) []T {
+	for i, v := range ts {
+		if reflect.DeepEqual(v, t) {
+			return append(ts[:i], ts[i+1:]...)
+		}
+	}
+	return ts // 如果未找到匹配的元素，则返回原始切片
 }
