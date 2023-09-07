@@ -209,3 +209,51 @@ func Remove[T any](ts []T, t T) []T {
 	}
 	return ts // 如果未找到匹配的元素，则返回原始切片
 }
+
+// 合并两个切片，去除重复元素
+func MergeString(a []string, b []string) []string {
+	// 创建一个map用于存储所有元素的唯一值
+	uniqueElements := make(map[string]bool)
+
+	// 遍历数组a，将其中的元素添加到map中
+	for _, element := range a {
+		uniqueElements[element] = true
+	}
+
+	// 遍历数组b，将其中的元素添加到map中
+	for _, element := range b {
+		uniqueElements[element] = true
+	}
+
+	// 将map中的唯一值提取到一个新的切片中
+	merged := []string{}
+	for element := range uniqueElements {
+		merged = append(merged, element)
+	}
+
+	return merged
+}
+
+// 合并两个切片，去除重复元素
+func MergeInt64(a []int64, b []int64) []int64 {
+	// 创建一个map用于存储所有元素的唯一值
+	uniqueElements := make(map[int64]bool)
+
+	// 遍历数组a，将其中的元素添加到map中
+	for _, element := range a {
+		uniqueElements[element] = true
+	}
+
+	// 遍历数组b，将其中的元素添加到map中
+	for _, element := range b {
+		uniqueElements[element] = true
+	}
+
+	// 将map中的唯一值提取到一个新的切片中
+	merged := []int64{}
+	for element := range uniqueElements {
+		merged = append(merged, element)
+	}
+
+	return merged
+}
