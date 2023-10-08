@@ -61,7 +61,11 @@ func getTraceId(ctx context.Context) string {
 
 }
 func (l *Logger) InfoF(ctx context.Context, template string, args ...interface{}) {
-	ZapLog.Infof(getTraceId(ctx)+template, args...)
+	if ctx != nil {
+		ZapLog.Infof(getTraceId(ctx)+template, args...)
+	} else {
+		ZapLog.Infof(template, args...)
+	}
 }
 
 func (l *Logger) DebugF(ctx context.Context, template string, args ...interface{}) {
@@ -69,7 +73,11 @@ func (l *Logger) DebugF(ctx context.Context, template string, args ...interface{
 }
 
 func (l *Logger) ErrorF(ctx context.Context, template string, args ...interface{}) {
-	ZapLog.Errorf(getTraceId(ctx)+template, args...)
+	if ctx != nil {
+		ZapLog.Errorf(getTraceId(ctx)+template, args...)
+	} else {
+		ZapLog.Errorf(template, args...)
+	}
 }
 
 func (l *Logger) Printf(format string, v ...interface{}) {
