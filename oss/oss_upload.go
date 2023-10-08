@@ -18,7 +18,6 @@ type Client interface {
 	IsFileExist(ctx context.Context, fileName string) (isExist bool, err error)
 	GetFileURL(ctx context.Context, fileName string, expireTime time.Duration) (url string, err error)
 	MemoryParameter(ctx context.Context) (memoryParameters MemoryParameter, err error)
-	GetBucket(ctx context.Context) (bucket *oss.Bucket, err error)
 	GetClient(ctx context.Context) (client *oss.Client, err error)
 }
 
@@ -205,22 +204,7 @@ func (slf *ClientImp) MemoryParameter(ctx context.Context) (memoryParameters Mem
 	memoryParameters.ColdArchiveObjectCount = stat.ColdArchiveObjectCount
 	return
 }
-func (slf *ClientImp) GetBucket(ctx context.Context) (bucket *oss.Bucket, err error) {
 
-	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
-	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
-	}
-
-	bucket, err = client.Bucket(slf.ossBucket)
-	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
-	}
-
-	return
-}
 func (slf *ClientImp) GetClient(ctx context.Context) (client *oss.Client, err error) {
 
 	client, err = oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
