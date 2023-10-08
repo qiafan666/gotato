@@ -1,108 +1,95 @@
-package gotato
+package v2
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/oss"
+	"errors"
+	"fmt"
+	"github.com/qiafan666/gotato/commons"
+	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gotatodb"
+	"github.com/qiafan666/gotato/redis"
+	"github.com/qiafan666/gotato/v2/middleware"
+	"go.uber.org/zap"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	redisv8 "github.com/go-redis/redis/v8"
-	irisV12 "github.com/kataras/iris/v12"
-	"github.com/qiafan666/gotato/commons"
-	slog "github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/config"
-	"github.com/qiafan666/gotato/gotatodb"
-	"github.com/qiafan666/gotato/iris"
-	"github.com/qiafan666/gotato/redis"
+	"github.com/gin-gonic/gin"
+	redisV8 "github.com/go-redis/redis/v8"
 )
 
 // Instance we need create the single object but thread safe
 var Instance *Server
 
 type Server struct {
-	app   iris.App
-	redis []redis.Redis
-	db    []gotatodb.GotatoDB
-	oss   oss.Client
+	app        *gin.Engine
+	redis      []redis.Redis
+	db         []gotatodb.GotatoDB
+	ctx        context.Context
+	httpServer *http.Server
 }
 type ServerOption int
 
 const (
 	DatabaseService = iota + 1
 	RedisService
-	OssService
+	HttpService
 )
 
 func init() {
 	Instance = &Server{}
 }
 
-// GetGotatoInstance create the single object
+// GetCornusInstance create the single object
 func GetGotatoInstance() *Server {
 	return Instance
 }
-
-func (slf *Server) Default() {
-	slf.app.Default()
-}
-
-func GetOSS() oss.Client {
-	return Instance.oss
-}
-
-func (slf *Server) RegisterController(f func(app *irisV12.Application)) {
-	f(slf.app.GetIrisApp())
-}
-
 func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.ResponseCode]string) {
-	if len(arr) == 0 {
-		return
-	}
-	for k, v := range arr {
-		commons.CodeMsg[language][k] = v
-	}
+	commons.RegisterCodeAndMsg(language, arr)
 }
 
-func (slf *Server) WaitClose(params ...irisV12.Configurator) {
-	defer slog.ZapLog.Sync()
-	go func() {
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch,
-			// kill -SIGINT XXXX 或 Ctrl+c
-			os.Interrupt,
-			syscall.SIGINT, // register that too, it should be ok
-			// os.Kill等同于syscall.Kill
-			os.Kill,
-			syscall.SIGKILL, // register that too, it should be ok
-			// kill -SIGTERM XXXXD
-			//^
-			syscall.SIGTERM,
-		)
-		select {
-		case <-ch:
-			slog.Slog.InfoF(context.Background(), "wait for close server")
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			for _, db := range slf.db {
-				db.StopDb()
-			}
-			slf.app.GetIrisApp().Shutdown(ctx)
-		}
-	}()
-	err := slf.app.Start(params...)
-	if err != nil {
-		panic(err)
+func (slf *Server) WaitClose() {
+	defer func(ZapLog *zap.SugaredLogger) {
+		_ = ZapLog.Sync()
+	}(slog.ZapLog)
+	//创建HTTP服务器
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
+		Handler: slf.app,
 	}
-}
-func (slf *Server) New() {
-	slf.app.New()
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch,
+		// kill -SIGINT XXL 或 Ctrl+c
+		os.Interrupt,
+		syscall.SIGINT, // register that too, it should be ok
+		// os.Kill等同于syscall.Kill
+		os.Kill,
+		syscall.SIGKILL, // register that too, it should be ok
+		// kill -SIGTERM XXE
+		//^
+		syscall.SIGTERM,
+	)
+	select {
+	case <-ch:
+		slog.Slog.InfoF(context.Background(), "wait for close server")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		for _, db := range slf.db {
+			_ = db.StopDb()
+		}
+		err := server.Shutdown(ctx)
+		if err != nil {
+			slog.Slog.ErrorF(context.Background(), err.Error())
+		}
+	}
 }
 
 // App return app
-func (slf *Server) App() *iris.App {
-	return &slf.app
+func (slf *Server) App() *gin.Engine {
+	return slf.app
 }
 func (slf *Server) FeatureDB(name string) *gotatodb.GotatoDB {
 	for _, v := range slf.db {
@@ -112,7 +99,7 @@ func (slf *Server) FeatureDB(name string) *gotatodb.GotatoDB {
 	}
 	return nil
 }
-func (slf *Server) Redis(name string) *redisv8.Client {
+func (slf *Server) Redis(name string) *redisV8.Client {
 	for _, v := range slf.redis {
 		if v.Name() == name {
 			return v.Redis()
@@ -126,12 +113,38 @@ func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
 		panic(err)
 	}
 }
+func (slf *Server) http() {
+	//设置模式
+	if config.SC.SConfigure.Profile == "prod" {
+		gin.SetMode(gin.ReleaseMode)
+	} else if config.SC.SConfigure.Profile == "test" {
+		gin.SetMode(gin.TestMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+	gin.ForceConsoleColor()
+	slf.app = gin.New()
+	//插入中间件
+	slf.app.Use(middleware.Default)
+
+	slf.httpServer = &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
+		Handler: slf.App(),
+	}
+	go func() {
+		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Slog.ErrorF(context.Background(), err.Error())
+		}
+	}()
+}
 
 // StartServer need call this function after Option, if Dependent service is not started return panic.
 func (slf *Server) StartServer(opt ...ServerOption) {
 	var err error
 	for _, v := range opt {
 		switch v {
+		case HttpService:
+			slf.http()
 		case DatabaseService:
 			slf.db = make([]gotatodb.GotatoDB, 0)
 			for _, v := range config.Configs.DataBase {
@@ -168,8 +181,6 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 					panic(err)
 				}
 			}
-		case OssService:
-			slf.oss = oss.ClientInstance(config.Configs.Oss.OssBucket, config.Configs.Oss.AccessKeyID, config.Configs.Oss.AccessKeySecret, config.Configs.Oss.OssEndPoint)
 		}
 	}
 }

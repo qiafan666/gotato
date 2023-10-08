@@ -2,21 +2,19 @@ package kafka
 
 import (
 	"context"
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
+	slog "github.com/qiafan666/gotato/commons/log"
 	"github.com/qiafan666/gotato/config"
 	"strconv"
 	"sync"
 )
 
-type Kafka struct {
-}
-
-func (slf *Kafka) KafkaReceiver(ctx context.Context, topic string, callBackChan chan []byte) {
+func Receiver(ctx context.Context, topic string, callBackChan chan []byte) {
 
 	go func() {
 		wg := sync.WaitGroup{}
 		// 根据给定的代理地址和配置创建一个消费者
-		consumer, err := sarama.NewConsumer([]string{config.Configs.Kafka.Host + ":" + strconv.Itoa(int(config.Configs.Kafka.Port))}, nil)
+		consumer, err := sarama.NewConsumer([]string{config.Configs.Kafka.Host + ":" + strconv.Itoa(config.Configs.Kafka.Port)}, nil)
 
 		if err != nil {
 			return
@@ -55,4 +53,40 @@ func (slf *Kafka) KafkaReceiver(ctx context.Context, topic string, callBackChan 
 		wg.Wait()
 		consumer.Close().Error()
 	}()
+}
+
+func GroupReceiver(ctx context.Context, brokers []string, group string, topics []string, handler sarama.ConsumerGroupHandler) error {
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	configK := sarama.NewConfig()
+	configK.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.BalanceStrategyRange}
+	configK.Consumer.Offsets.Initial = sarama.OffsetOldest
+	slog.Slog.InfoF(ctx, "Error creating consumer group client connecting brokers %+v", brokers)
+	consumer, err := sarama.NewConsumerGroup(brokers, group, configK)
+	if err != nil {
+		slog.Slog.InfoF(ctx, "Error creating consumer group client: %+v", err)
+		return err
+	}
+	slog.Slog.InfoF(ctx, "Error creating consumer group client connected")
+	defer func() {
+		if err := consumer.Close(); err != nil {
+			slog.Slog.InfoF(ctx, "Error creating consumer group client: %+v", err)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for {
+			if err := consumer.Consume(ctx, topics, handler); err != nil {
+				slog.Slog.InfoF(ctx, "Error creating consumer group client: %+v", err)
+			}
+
+			if ctx.Done() != nil {
+				return
+			}
+		}
+	}()
+
+	wg.Wait()
+	return nil
 }

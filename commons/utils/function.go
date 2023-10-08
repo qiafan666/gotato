@@ -10,6 +10,7 @@ import (
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/log"
 	uuid "github.com/satori/go.uuid"
+	"gorm.io/gorm/utils"
 	"math/rand"
 	"reflect"
 	"sort"
@@ -256,4 +257,31 @@ func MergeInt64(a []int64, b []int64) []int64 {
 	}
 
 	return merged
+}
+
+// 筛选出非nil的字段，转换成map,用于更新数据库
+func StructToStringMapWithNilFilter(inputStruct interface{}, table string, JumpString ...string) map[string]interface{} {
+	resultMap := make(map[string]interface{})
+	resultMap[commons.Table] = table
+
+	structValue := reflect.ValueOf(inputStruct)
+	structType := structValue.Type()
+
+	for i := 0; i < structValue.NumField(); i++ {
+		fieldValue := structValue.Field(i)
+		fieldName := structType.Field(i).Name
+		if len(JumpString) > 0 {
+			if utils.Contains(JumpString, fieldName) {
+				continue
+			}
+		}
+
+		if fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
+			continue // 跳过 nil 值的字段
+		}
+
+		resultMap[fieldName] = fieldValue.Interface()
+	}
+
+	return resultMap
 }

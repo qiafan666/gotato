@@ -85,6 +85,7 @@ var DefualtLanguage = MsgLanguageEnglish
 // msg language
 const (
 	MsgLanguageEnglish = "english"
+	MsgLanguageChinese = "chinese"
 )
 
 const (

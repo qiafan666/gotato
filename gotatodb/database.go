@@ -8,6 +8,7 @@ import (
 	slog "github.com/qiafan666/gotato/commons/log"
 	serveries "github.com/qiafan666/gotato/config"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"time"
@@ -25,6 +26,30 @@ func (slf *GotatoDB) GormDB() *gorm.DB {
 
 func (slf *GotatoDB) Name() string {
 	return slf.name
+}
+func (slf *GotatoDB) StartPgsql(dbConfig serveries.DataBaseConfig) (err error) {
+	if slf.db != nil {
+		return errors.New("db already open")
+	}
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s", dbConfig.Addr, dbConfig.Username, dbConfig.Password, dbConfig.DbName, dbConfig.Port, dbConfig.Loc)
+	slf.db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{NamingStrategy: schema.NamingStrategy{
+		SingularTable: true,
+	}, Logger: &slog.Gorm})
+	if err != nil {
+		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		return err
+	}
+	slf.name = dbConfig.Name
+	db, err := slf.db.DB()
+	if err != nil {
+		slog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
+		return err
+	}
+	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)
+	db.SetConnMaxIdleTime(dbConfig.MaxIdleTime * time.Millisecond)
+	db.SetMaxOpenConns(dbConfig.MaxConn)
+	db.SetMaxIdleConns(dbConfig.IdleConn)
+	return nil
 }
 func (slf *GotatoDB) StartSqlite(dbConfig serveries.DataBaseConfig) error {
 	if slf.db != nil {

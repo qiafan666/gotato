@@ -44,6 +44,7 @@ type DataBaseConfig struct {
 	Port        string        `yaml:"port"`
 	Username    string        `yaml:"username"`
 	DbName      string        `yaml:"db_name"`
+	Loc         string        `json:"loc"`
 	Password    string        `yaml:"password"`
 	IdleConn    int           `yaml:"idle_conn"`
 	MaxConn     int           `yaml:"max_conn"`
