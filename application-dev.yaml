@@ -32,3 +32,14 @@ redis:
     password:
     db: 10
     name: test2
+oss:
+  - name: test1
+    ossBucket: test1
+    ossEndpoint: test1
+    accessKeyID: test1
+    accessKeySecret: test1
+  - name: test2
+    ossBucket: test2
+    ossEndpoint: test2
+    accessKeyID: test2
+    accessKeySecret: test2

@@ -2,6 +2,7 @@ package gotato
 
 import (
 	"context"
+	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/qiafan666/gotato/oss"
 	"os"
 	"os/signal"
@@ -25,7 +26,7 @@ type Server struct {
 	app   iris.App
 	redis []redis.Redis
 	db    []gotatodb.GotatoDB
-	oss   oss.Client
+	oss   []oss.Oss
 }
 type ServerOption int
 
@@ -46,10 +47,6 @@ func GetGotatoInstance() *Server {
 
 func (slf *Server) Default() {
 	slf.app.Default()
-}
-
-func GetOSS() oss.Client {
-	return Instance.oss
 }
 
 func (slf *Server) RegisterController(f func(app *irisV12.Application)) {
@@ -120,6 +117,24 @@ func (slf *Server) Redis(name string) *redisv8.Client {
 	}
 	return nil
 }
+func (slf *Server) OssClient(name string) *alioss.Client {
+	for _, v := range slf.oss {
+		if v.Name() == name {
+			return v.Client()
+		}
+	}
+	return nil
+}
+
+func (slf *Server) OssBucket(name string) *alioss.Bucket {
+	for _, v := range slf.oss {
+		if v.Name() == name {
+			return v.Bucket()
+		}
+	}
+	return nil
+}
+
 func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
 	err := config.LoadCustomizeConfig(slfConfig)
 	if err != nil {
@@ -169,7 +184,13 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 				}
 			}
 		case OssService:
-			slf.oss = oss.ClientInstance(config.Configs.Oss.OssBucket, config.Configs.Oss.AccessKeyID, config.Configs.Oss.AccessKeySecret, config.Configs.Oss.OssEndPoint)
+			slf.oss = make([]oss.Oss, len(config.Configs.Oss))
+			for i, v := range config.Configs.Oss {
+				err = slf.oss[i].StartOss(v)
+				if err != nil {
+					panic(err)
+				}
+			}
 		}
 	}
 }

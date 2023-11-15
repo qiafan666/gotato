@@ -67,7 +67,7 @@ type Config struct {
 	DataBase []DataBaseConfig `yaml:"dataSource"`
 	Redis    []RedisConfig    `yaml:"redis"`
 	Kafka    kafkaConfig      `yaml:"kafka"`
-	Oss      OssConfig        `yaml:"oss"`
+	Oss      []OssConfig      `yaml:"oss"`
 	Mongo    []MongoConfig    `yaml:"mongo"`
 }
 
@@ -76,6 +76,7 @@ type OssConfig struct {
 	AccessKeyID     string `yaml:"accessKeyID"`
 	AccessKeySecret string `yaml:"accessKeySecret"`
 	OssEndPoint     string `yaml:"ossEndPoint"`
+	Name            string `yaml:"name"`
 }
 
 type MongoConfig struct {

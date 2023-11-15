@@ -1,6 +1,6 @@
 module github.com/qiafan666/gotato
 
-go 1.19
+go 1.21
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
