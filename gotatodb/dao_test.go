@@ -12,6 +12,7 @@ type Dao interface {
 	Tx() Dao
 	Rollback()
 	Commit() error
+	Db() *gorm.DB
 	WithContext(ctx context.Context) Dao
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
@@ -27,6 +28,9 @@ type Imp struct {
 	db *gorm.DB
 }
 
+func (s Imp) Db() *gorm.DB {
+	return s.db
+}
 func (s Imp) Create(input interface{}) error {
 	return s.db.Create(input).Error
 }
