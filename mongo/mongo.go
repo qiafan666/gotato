@@ -14,10 +14,6 @@ type Mongo struct {
 	name string
 }
 
-func (slf *Mongo) Mongo() *DialContext {
-	return slf.c
-}
-
 func (slf *Mongo) Name() string {
 	return slf.name
 }
@@ -42,15 +38,6 @@ func (slf *Mongo) StartMongo(config config.MongoConfig) (err error) {
 	if err != nil {
 		panic(fmt.Sprintf("mongo connetc error %s", err.Error()))
 	}
-
-	return nil
-}
-
-func (slf *Mongo) Stopongo() error {
-	if slf.c == nil {
-		return errors.New("redis not opened")
-	}
-	slf.c.Close()
 
 	return nil
 }

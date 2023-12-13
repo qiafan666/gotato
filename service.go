@@ -120,13 +120,13 @@ func (slf *Server) Redis(name string) *redisv8.Client {
 	}
 	return nil
 }
-func (slf *Server) Mongo(name string) mongo.Mongo {
+func (slf *Server) Mongo(name string) *mongo.Mongo {
 	for _, v := range slf.mongo {
 		if v.Name() == name {
-			return v
+			return &v
 		}
 	}
-	return mongo.Mongo{}
+	return &mongo.Mongo{}
 }
 func (slf *Server) OssClient(name string) *alioss.Client {
 	for _, v := range slf.oss {
