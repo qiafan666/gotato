@@ -80,7 +80,9 @@ type OssConfig struct {
 }
 
 type MongoConfig struct {
-	Url string `yaml:"url"`
+	Url  string `yaml:"url"`
+	Name string `json:"name"`
+	Tls  string `json:"tls"`
 }
 
 func InitAllConfig(fileName string) Config {

@@ -43,3 +43,10 @@ oss:
     ossEndpoint: test2
     accessKeyID: test2
     accessKeySecret: test2
+mongo:
+  - url: test1
+    name: test1
+    tls:
+  - url: test2
+    name: test2
+    tls: test2

@@ -3,6 +3,7 @@ package gotato
 import (
 	"context"
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/qiafan666/gotato/mongo"
 	"github.com/qiafan666/gotato/oss"
 	"os"
 	"os/signal"
@@ -27,6 +28,7 @@ type Server struct {
 	redis []redis.Redis
 	db    []gotatodb.GotatoDB
 	oss   []oss.Oss
+	mongo []mongo.Mongo
 }
 type ServerOption int
 
@@ -34,6 +36,7 @@ const (
 	DatabaseService = iota + 1
 	RedisService
 	OssService
+	MongoService
 )
 
 func init() {
@@ -117,6 +120,14 @@ func (slf *Server) Redis(name string) *redisv8.Client {
 	}
 	return nil
 }
+func (slf *Server) Mongo(name string) mongo.Mongo {
+	for _, v := range slf.mongo {
+		if v.Name() == name {
+			return v
+		}
+	}
+	return mongo.Mongo{}
+}
 func (slf *Server) OssClient(name string) *alioss.Client {
 	for _, v := range slf.oss {
 		if v.Name() == name {
@@ -191,6 +202,15 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 					panic(err)
 				}
 			}
+		case MongoService:
+			slf.mongo = make([]mongo.Mongo, len(config.Configs.Mongo))
+			for i, mongoConfig := range config.Configs.Mongo {
+				err = slf.mongo[i].StartMongo(mongoConfig)
+				if err != nil {
+					panic(err)
+				}
+			}
 		}
+
 	}
 }

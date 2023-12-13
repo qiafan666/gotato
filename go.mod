@@ -19,6 +19,7 @@ require (
 	go.uber.org/zap v1.25.0
 	golang.org/x/crypto v0.13.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
+	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.5.1

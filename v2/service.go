@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/qiafan666/gotato/commons"
 	slog "github.com/qiafan666/gotato/commons/log"
 	"github.com/qiafan666/gotato/config"
 	"github.com/qiafan666/gotato/gotatodb"
+	"github.com/qiafan666/gotato/mongo"
+	"github.com/qiafan666/gotato/oss"
 	"github.com/qiafan666/gotato/redis"
 	"github.com/qiafan666/gotato/v2/middleware"
 	"go.uber.org/zap"
@@ -30,6 +33,8 @@ type Server struct {
 	db         []gotatodb.GotatoDB
 	ctx        context.Context
 	httpServer *http.Server
+	oss        []oss.Oss
+	mongo      []mongo.Mongo
 }
 type ServerOption int
 
@@ -37,6 +42,8 @@ const (
 	DatabaseService = iota + 1
 	RedisService
 	HttpService
+	OssService
+	MongoService
 )
 
 func init() {
@@ -107,6 +114,32 @@ func (slf *Server) Redis(name string) *redisV8.Client {
 	}
 	return nil
 }
+func (slf *Server) Mongo(name string) mongo.Mongo {
+	for _, v := range slf.mongo {
+		if v.Name() == name {
+			return v
+		}
+	}
+	return mongo.Mongo{}
+}
+func (slf *Server) OssClient(name string) *alioss.Client {
+	for _, v := range slf.oss {
+		if v.Name() == name {
+			return v.Client()
+		}
+	}
+	return nil
+}
+
+func (slf *Server) OssBucket(name string) *alioss.Bucket {
+	for _, v := range slf.oss {
+		if v.Name() == name {
+			return v.Bucket()
+		}
+	}
+	return nil
+}
+
 func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
 	err := config.LoadCustomizeConfig(slfConfig)
 	if err != nil {
@@ -177,6 +210,22 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 			slf.redis = make([]redis.Redis, len(config.Configs.Redis))
 			for i, v := range config.Configs.Redis {
 				err = slf.redis[i].StartRedis(v)
+				if err != nil {
+					panic(err)
+				}
+			}
+		case OssService:
+			slf.oss = make([]oss.Oss, len(config.Configs.Oss))
+			for i, v := range config.Configs.Oss {
+				err = slf.oss[i].StartOss(v)
+				if err != nil {
+					panic(err)
+				}
+			}
+		case MongoService:
+			slf.mongo = make([]mongo.Mongo, len(config.Configs.Mongo))
+			for i, mongoConfig := range config.Configs.Mongo {
+				err = slf.mongo[i].StartMongo(mongoConfig)
 				if err != nil {
 					panic(err)
 				}
