@@ -25,7 +25,7 @@ type Dao interface {
 	Aggregate(collection string, bs []bson.M, value any) error
 	AggregateOne(collection string, bs []bson.M, value any) error
 	CreateIndex(collection string, unique bool, timeLimit bool, value []string) error
-	CloseMongDb()
+	CloseMongoDb()
 }
 
 type Imp struct {
@@ -161,6 +161,6 @@ func (i *Imp) CreateIndex(collection string, unique bool, timeLimit bool, value 
 	return s.DB(i.mongo.DB).C(collection).EnsureIndex(index)
 }
 
-func (i *Imp) CloseMongDb() {
+func (i *Imp) CloseMongoDb() {
 	i.mongo.c.Close()
 }
