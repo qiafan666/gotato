@@ -291,7 +291,11 @@ func StructToStringMapWithNilFilter(inputStruct interface{}, table string, JumpS
 			continue // 跳过 nil 值的字段
 		}
 
-		resultMap[fieldName] = fieldValue.Interface()
+		if len(structType.Field(i).Tag) == 0 || len(structType.Field(i).Tag.Get("json")) == 0 {
+			continue
+		}
+
+		resultMap[structType.Field(i).Tag.Get("json")] = fieldValue.Interface()
 	}
 
 	return resultMap
