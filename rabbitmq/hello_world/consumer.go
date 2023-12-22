@@ -7,54 +7,45 @@ import (
 	"time"
 )
 
-func CreateConsumer() (*consumer, error) {
+func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 	// 获取配置信息
-
-	conn, err := amqp.Dial(RabbitMqAddr)
+	conn, err := amqp.Dial(config.Addr)
 
 	if err != nil {
 		log.Slog.ErrorF(context.Background(), "rabbitmq consumer connect error:%v", err)
 		return nil, err
 	}
-	cons := &consumer{
-		connect:                     conn,
-		queueName:                   RabbitMqAddr,
-		durable:                     RabbitMqDurable,
-		chanNumber:                  RabbitMqChanNumber,
-		connErr:                     conn.NotifyClose(make(chan *amqp.Error, 1)),
-		offLineReconnectIntervalSec: RabbitMqReconnectInterval,
-		retryTimes:                  RabbitMqRetryTimes,
-		receivedMsgBlocking:         make(chan struct{}),
-		status:                      1,
+	cons := &Consumer{
+		config:              config,
+		connect:             conn,
+		connErr:             conn.NotifyClose(make(chan *amqp.Error, 1)),
+		receivedMsgBlocking: make(chan struct{}),
+		status:              1,
 	}
 	return cons, nil
 }
 
 // 定义一个消息队列结构体：helloworld 模型
-type consumer struct {
-	connect                     *amqp.Connection
-	queueName                   string
-	durable                     bool
-	chanNumber                  int
-	occurError                  error
-	connErr                     chan *amqp.Error
-	callbackForReceived         func(receivedData string) //   断线重连，结构体内部使用
-	offLineReconnectIntervalSec time.Duration
-	retryTimes                  int
-	callbackOffLine             func(err *amqp.Error) //   断线重连，结构体内部使用
-	receivedMsgBlocking         chan struct{}         // 接受消息时用于阻塞消息处理函数
-	status                      byte                  // 客户端状态：1=正常；0=异常
+type Consumer struct {
+	config              ConsumerConfig
+	connect             *amqp.Connection
+	occurError          error
+	connErr             chan *amqp.Error
+	callbackForReceived func(receivedData []byte) //   断线重连，结构体内部使用
+	callbackOffLine     func(err *amqp.Error)     //   断线重连，结构体内部使用
+	receivedMsgBlocking chan struct{}             // 接受消息时用于阻塞消息处理函数
+	status              byte                      // 客户端状态：1=正常；0=异常
 }
 
 // Received 接收、处理消息
-func (c *consumer) Received(ctx context.Context, callbackFunDealSmg func(receivedData string)) {
+func (c *Consumer) Received(ctx context.Context, callbackFunDealSmg func(receivedData []byte)) {
 	defer func() {
 		c.close()
 	}()
 	// 将回调函数地址赋值给结构体变量，用于掉线重连使用
 	c.callbackForReceived = callbackFunDealSmg
 
-	for i := 1; i <= c.chanNumber; i++ {
+	for i := 1; i <= c.config.ChanNumber; i++ {
 		go func(chanNo int) {
 			ch, err := c.connect.Channel()
 			if err != nil {
@@ -66,8 +57,8 @@ func (c *consumer) Received(ctx context.Context, callbackFunDealSmg func(receive
 			}()
 
 			queue, err := ch.QueueDeclare(
-				c.queueName,
-				c.durable,
+				c.config.QueueName,
+				c.config.Durable,
 				true,
 				false,
 				false,
@@ -94,7 +85,7 @@ func (c *consumer) Received(ctx context.Context, callbackFunDealSmg func(receive
 					case msg := <-msgs:
 						// 消息处理
 						if c.status == 1 && len(msg.Body) > 0 {
-							callbackFunDealSmg(string(msg.Body))
+							callbackFunDealSmg(msg.Body)
 						} else if c.status == 0 {
 							return
 						}
@@ -113,20 +104,20 @@ func (c *consumer) Received(ctx context.Context, callbackFunDealSmg func(receive
 }
 
 // OnConnectionError 消费者端，掉线重连监听器
-func (c *consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
+func (c *Consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 	c.callbackOffLine = callbackOfflineErr
 	go func() {
 		select {
 		case err := <-c.connErr:
 			var i = 1
-			for i = 1; i <= c.retryTimes; i++ {
+			for i = 1; i <= c.config.RetryTimes; i++ {
 				// 自动重连机制
-				time.Sleep(c.offLineReconnectIntervalSec * time.Second)
+				time.Sleep(c.config.ReconnectInterval * time.Second)
 				// 发生连接错误时,中断原来的消息监听（包括关闭连接）
 				if c.status == 1 {
 					c.receivedMsgBlocking <- struct{}{}
 				}
-				conn, err := CreateConsumer()
+				conn, err := CreateConsumer(c.config)
 				if err != nil {
 					continue
 				} else {
@@ -142,7 +133,7 @@ func (c *consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 					break
 				}
 			}
-			if i > c.retryTimes {
+			if i > c.config.RetryTimes {
 				callbackOfflineErr(err)
 				// 如果超过最大重连次数，同样需要释放回调函数 - OnConnectionError
 				if c.status == 0 {
@@ -154,6 +145,6 @@ func (c *consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 }
 
 // close 关闭连接
-func (c *consumer) close() {
+func (c *Consumer) close() {
 	_ = c.connect.Close()
 }

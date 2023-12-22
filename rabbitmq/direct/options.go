@@ -9,27 +9,27 @@ import (
 
 // OptionsProd 定义动态设置参数接口
 type OptionsProd interface {
-	apply(*producer)
+	apply(*Producer)
 }
 
 // OptionFunc 以函数形式实现上面的接口
-type OptionFunc func(*producer)
+type OptionFunc func(*Producer)
 
-func (f OptionFunc) apply(prod *producer) {
+func (f OptionFunc) apply(prod *Producer) {
 	f(prod)
 }
 
 // SetProdMsgDelayParams 开发者设置生产者初始化时的参数
-func SetProdMsgDelayParams(enableMsgDelayPlugin bool) OptionsProd {
-	return OptionFunc(func(p *producer) {
+func SetProdMsgDelayParams(delayExchangeName string, enableMsgDelayPlugin bool) OptionsProd {
+	return OptionFunc(func(p *Producer) {
 		p.enableDelayMsgPlugin = enableMsgDelayPlugin
-		p.exchangeType = "x-delayed-message"
+		p.config.ExchangeType = "x-delayed-message"
 		p.args = amqp.Table{
 			"x-delayed-type": "direct",
 		}
-		p.exchangeName = RabbitMqDelayExchangeName
+		p.config.ExchangeName = delayExchangeName
 		// 延迟消息队列，交换机、消息全部设置为持久
-		p.durable = true
+		p.config.Durable = true
 	})
 }
 
@@ -37,23 +37,23 @@ func SetProdMsgDelayParams(enableMsgDelayPlugin bool) OptionsProd {
 
 // OptionsConsumer 定义动态设置参数接口
 type OptionsConsumer interface {
-	apply(*consumer)
+	apply(*Consumer)
 }
 
 // OptionsConsumerFunc 以函数形式实现上面的接口
-type OptionsConsumerFunc func(*consumer)
+type OptionsConsumerFunc func(*Consumer)
 
-func (f OptionsConsumerFunc) apply(cons *consumer) {
+func (f OptionsConsumerFunc) apply(cons *Consumer) {
 	f(cons)
 }
 
 // SetConsMsgDelayParams 开发者设置消费者端初始化时的参数
-func SetConsMsgDelayParams(enableDelayMsgPlugin bool) OptionsConsumer {
-	return OptionsConsumerFunc(func(c *consumer) {
+func SetConsMsgDelayParams(delayExchangeName string, enableDelayMsgPlugin bool) OptionsConsumer {
+	return OptionsConsumerFunc(func(c *Consumer) {
 		c.enableDelayMsgPlugin = enableDelayMsgPlugin
-		c.exchangeType = "x-delayed-message"
-		c.exchangeName = RabbitMqDelayExchangeName
+		c.config.ExchangeType = "x-delayed-message"
+		c.config.ExchangeName = delayExchangeName
 		// 延迟消息队列，交换机、消息全部设置为持久
-		c.durable = true
+		c.config.Durable = true
 	})
 }

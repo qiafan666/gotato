@@ -2,30 +2,32 @@ package topics
 
 import "time"
 
-var (
+type ConsumerConfig struct {
 	// RabbitMqAddr rabbitmq 地址
-	RabbitMqAddr string
+	Addr string
 	// RabbitMqQueueName rabbitmq 队列名称
-	RabbitMqQueueName string
+	QueueName string
 	// RabbitMqDurable rabbitmq 是否持久化
-	RabbitMqDurable bool
+	Durable bool
 	// RabbitMqReconnectInterval rabbitmq 重连间隔
-	RabbitMqReconnectInterval time.Duration
+	ReconnectInterval time.Duration
 	// RabbitMqRetryTimes rabbitmq 重试次数
-	RabbitMqRetryTimes int
+	RetryTimes int
 	// RabbitMqExchangeType rabbitmq exchange类型
-	RabbitMqExchangeType string
+	ExchangeType string
 	// RabbitMqExchangeName rabbitmq exchange名称
-	RabbitMqExchangeName string
-)
+	ExchangeName string
+}
 
-func StartTopics(addr string, queueName string, durable bool, reconnectInterval time.Duration, retryTimes int, exchangeType string, exchangeName string) {
-
-	RabbitMqAddr = addr
-	RabbitMqQueueName = queueName
-	RabbitMqDurable = durable
-	RabbitMqReconnectInterval = reconnectInterval
-	RabbitMqRetryTimes = retryTimes
-	RabbitMqExchangeType = exchangeType
-	RabbitMqExchangeName = exchangeName
+type ProducerConfig struct {
+	// RabbitMqAddr rabbitmq 地址
+	Addr string
+	// RabbitMqExchangeType rabbitmq exchange类型
+	ExchangeType string
+	// RabbitMqExchangeName rabbitmq exchange名称
+	ExchangeName string
+	// RabbitMqQueueName rabbitmq 队列名称
+	QueueName string
+	// RabbitMqDurable rabbitmq 是否持久化
+	Durable bool
 }

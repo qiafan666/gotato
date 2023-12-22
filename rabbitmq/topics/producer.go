@@ -6,20 +6,17 @@ import (
 )
 
 // CreateProducer 创建一个生产者
-func CreateProducer(options ...OptionsProd) (*producer, error) {
+func CreateProducer(config ProducerConfig, options ...OptionsProd) (*Producer, error) {
 	// 获取配置信息
-	conn, err := amqp.Dial(RabbitMqAddr)
+	conn, err := amqp.Dial(config.Addr)
 	if err != nil {
 		log.Slog.ErrorF(nil, "rabbitmq connect error: %s", err.Error())
 		return nil, err
 	}
 
-	prod := &producer{
-		connect:      conn,
-		exchangeType: RabbitMqExchangeType,
-		exchangeName: RabbitMqExchangeName,
-		queueName:    RabbitMqQueueName,
-		durable:      RabbitMqDurable,
+	prod := &Producer{
+		config:  config,
+		connect: conn,
 	}
 	// 加载用户设置的参数
 	for _, val := range options {
@@ -29,12 +26,9 @@ func CreateProducer(options ...OptionsProd) (*producer, error) {
 }
 
 // 定义一个消息队列结构体：Topics 模型
-type producer struct {
+type Producer struct {
+	config               ProducerConfig
 	connect              *amqp.Connection
-	exchangeType         string
-	exchangeName         string
-	queueName            string
-	durable              bool
 	occurError           error
 	enableDelayMsgPlugin bool // 是否使用延迟队列模式
 	args                 amqp.Table
@@ -45,7 +39,7 @@ type producer struct {
 // routeKey 路由键、
 // data 发送的数据、
 // delayMillisecond 延迟时间(毫秒)，只有启用了消息延迟插件才有效果
-func (p *producer) Send(routeKey, data string, delayMillisecond int) bool {
+func (p *Producer) Send(routeKey, data string, delayMillisecond int) bool {
 
 	// 获取一个频道
 	ch, err := p.connect.Channel()
@@ -56,10 +50,10 @@ func (p *producer) Send(routeKey, data string, delayMillisecond int) bool {
 
 	// 声明交换机，该模式生产者只负责将消息投递到交换机即可
 	err = ch.ExchangeDeclare(
-		p.exchangeName, //交换器名称
-		p.exchangeType, //topic模式
-		p.durable,      //交换机是否持久化
-		!p.durable,     //交换器是否自动删除
+		p.config.ExchangeName, //交换器名称
+		p.config.ExchangeType, //topic模式
+		p.config.Durable,      //交换机是否持久化
+		!p.config.Durable,     //交换器是否自动删除
 		false,
 		false,
 		p.args,
@@ -68,14 +62,14 @@ func (p *producer) Send(routeKey, data string, delayMillisecond int) bool {
 
 	// 如果交换机是持久化的，那么消息也设置为持久化
 	msgPersistent := amqp.Transient
-	if p.durable {
+	if p.config.Durable {
 		msgPersistent = amqp.Persistent
 	}
 	// 投递消息
 	if err == nil {
 		err = ch.Publish(
-			p.exchangeName, // 交换机名称
-			routeKey,       // topics 模式默认为空即可
+			p.config.ExchangeName, // 交换机名称
+			routeKey,              // topics 模式默认为空即可
 			false,
 			false,
 			amqp.Publishing{
@@ -97,6 +91,6 @@ func (p *producer) Send(routeKey, data string, delayMillisecond int) bool {
 }
 
 // Close 发送完毕手动关闭，这样不影响send多次发送数据
-func (p *producer) Close() {
+func (p *Producer) Close() {
 	_ = p.connect.Close()
 }

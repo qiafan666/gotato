@@ -37,7 +37,7 @@ func Go(callback interface{}, args ...interface{}) {
 	go F(callback, 0, args...)
 }
 
-//-1表示一直恢复
+// -1表示一直恢复
 func GoRecover(callback interface{}, recoverNum int, args ...interface{}) {
 	go F(callback, recoverNum, args...)
 }
