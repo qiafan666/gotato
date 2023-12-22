@@ -222,6 +222,22 @@ func Remove[T any](ts []T, t T) []T {
 	return ts // 如果未找到匹配的元素，则返回原始切片
 }
 
+// UniqueValueSlice 返回切片中的唯一值组成的新切片
+func UniqueValueSlice[T any](ts []T) []T {
+	uniqueMap := make(map[string]bool)
+	var uniqueSlice []T
+
+	for _, v := range ts {
+		key := fmt.Sprintf("%v", v)
+		if !uniqueMap[key] {
+			uniqueMap[key] = true
+			uniqueSlice = append(uniqueSlice, v)
+		}
+	}
+
+	return uniqueSlice
+}
+
 // 合并两个切片，去除重复元素
 func MergeString(a []string, b []string) []string {
 	// 创建一个map用于存储所有元素的唯一值
