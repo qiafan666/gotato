@@ -44,9 +44,9 @@ oss:
     accessKeyID: test2
     accessKeySecret: test2
 mongo:
-  - url: test1
+  - url: mongodb://test1:root@192.168.1.181:27000/test1
     name: test1
-    tls:
-  - url: test2
+    tls: test1
+  - url: mongodb://test2:root@192.168.1.181:27000/test1
     name: test2
     tls: test2
