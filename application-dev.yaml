@@ -14,6 +14,7 @@ dataSource:
    max_idle_time: 20
    max_life_time: 20
    charset: utf8mb4
+   loc: Local
    db_name: test_db
    name: mysql
    type: mysql

@@ -73,13 +73,19 @@ func (slf *GotatoDB) StartMysql(dbConfig serveries.DataBaseConfig) error {
 	}
 	slf.name = dbConfig.Name
 	var err error
-	Dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
+
+	if len(dbConfig.Loc) <= 0 {
+		dbConfig.Loc = "Local"
+	}
+
+	Dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=%s",
 		dbConfig.Username,
 		dbConfig.Password,
 		dbConfig.Addr,
 		dbConfig.Port,
 		dbConfig.DbName,
 		dbConfig.Charset,
+		dbConfig.Loc,
 	)
 	slf.db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{PrepareStmt: true,
 		NamingStrategy: schema.NamingStrategy{
