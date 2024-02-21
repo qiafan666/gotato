@@ -23,11 +23,10 @@ func (slf *App) Default() {
 	slf.app.UseGlobal(middleware.Default)
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
-		c := ctx.Values().Get("ctx").(context.Context)
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefualtLanguage, c.Value("trace_id").(string)))
+			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefualtLanguage, ""))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage, c.Value("trace_id").(string)))
+			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage, ""))
 		}
 	})
 	slf.app.Logger().SetLevel(config.SC.SConfigure.LogLevel)
@@ -38,11 +37,10 @@ func (slf *App) New() {
 	slf.app = iris.New()
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
-		c := ctx.Values().Get("ctx").(context.Context)
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefualtLanguage, c.Value("trace_id").(string)))
+			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefualtLanguage, ""))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage, c.Value("trace_id").(string)))
+			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage, ""))
 		}
 	})
 	slf.app.Logger().SetLevel(config.SC.SConfigure.LogLevel)
