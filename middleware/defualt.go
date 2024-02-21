@@ -39,11 +39,20 @@ func Default(ctx iris.Context) {
 		}
 	}()
 
-	start := time.Now()
-	ctx.Next()
-	addr := ctx.Request().RemoteAddr
-	if ctx.GetHeader("X-Forwarded-For") != "" {
-		addr = ctx.GetHeader("X-Forwarded-For")
+	if _, ok := ignoreRequestMap.Load(ctx.Request().URL.Path); !ok {
+
+		start := time.Now()
+		ctx.Next()
+
+		addr := ctx.Request().RemoteAddr
+		if ctx.GetHeader("X-Forwarded-For") != "" {
+			addr = ctx.GetHeader("X-Forwarded-For")
+		}
+		path := ctx.Request().URL.Path
+		if ctx.Request().URL.RawQuery != "" {
+			path += "?" + ctx.Request().URL.RawQuery
+		}
+
+		slog.Slog.InfoF(value, "[response code:%d] [%s] [%dms] [%s:%s]", ctx.GetStatusCode(), addr, time.Now().Sub(start).Milliseconds(), ctx.Request().Method, path)
 	}
-	slog.Slog.InfoF(value, "%s -> %s %s -> %dms", addr, ctx.Request().Method, ctx.Request().URL.Path, time.Now().Sub(start).Milliseconds())
 }
