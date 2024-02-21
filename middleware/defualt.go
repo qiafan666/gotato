@@ -39,7 +39,14 @@ func Default(ctx iris.Context) {
 		}
 	}()
 
-	start := time.Now()
+	if _, ok := ignoreRequestMap.Load(ctx.Request().URL.Path); !ok {
+
+		start := time.Now()
+		path := ctx.Request().URL.Path
+		if ctx.Request().URL.RawQuery != "" {
+			path += "?" + ctx.Request().URL.RawQuery
+		}
+		slog.Slog.InfoF(value, "[response code:%d] [%s] [%dms] [%s:%s]", ctx.GetStatusCode(), ctx.Request().RemoteAddr, time.Now().Sub(start).Milliseconds(), ctx.Request().Method, path)
+	}
 	ctx.Next()
-	slog.Slog.InfoF(value, "%s -> %s %s -> %dms", ctx.Request().RemoteAddr, ctx.Request().Method, ctx.Request().URL.Path, time.Now().Sub(start).Milliseconds())
 }
