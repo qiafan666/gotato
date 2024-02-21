@@ -12,7 +12,6 @@ func TestStart_Default_Server(t *testing.T) {
 
 	Instance.app.Get("/ping", func(context iris.Context) {
 		context.WriteString("123")
-		panic("kkk")
 	})
 	server.WaitClose(iris.WithoutBodyConsumptionOnUnmarshal)
 

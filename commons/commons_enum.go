@@ -80,7 +80,7 @@ var ZapLogLevel = map[string]zapcore.Level{
 	"error": zapcore.ErrorLevel,
 }
 
-var DefualtLanguage = MsgLanguageEnglish
+var DefaultLanguage = MsgLanguageEnglish
 
 // msg language
 const (

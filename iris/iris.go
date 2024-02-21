@@ -24,40 +24,26 @@ func (slf *App) Default() {
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefualtLanguage))
+			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
+			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefaultLanguage))
 		}
 	})
 	slf.app.Logger().SetLevel(config.SC.SConfigure.LogLevel)
 	slf.app.Logger().SetOutput(os.Stdout)
 }
 
-func (slf *App) New() {
-	slf.app = iris.New()
-	//global error handling
-	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
-		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefualtLanguage))
-		} else {
-			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
-		}
-	})
-	slf.app.Logger().SetLevel(config.SC.SConfigure.LogLevel)
-	slf.app.Logger().SetOutput(os.Stdout)
-}
-
-// set middleware
+// SetGlobalMiddleware set global middleware
 func (slf *App) SetGlobalMiddleware(handlers ...context.Handler) {
 	slf.app.UseGlobal(handlers...)
 }
 
-// set middleware
+// SetMiddleware set middleware
 func (slf *App) SetMiddleware(handlers ...context.Handler) {
 	slf.app.Use(handlers...)
 }
 
-// get Iris App
+// GetIrisApp get Iris App
 func (slf *App) GetIrisApp() *iris.Application {
 	return slf.app
 }
