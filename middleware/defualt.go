@@ -40,11 +40,10 @@ func Default(ctx iris.Context) {
 	}()
 
 	start := time.Now()
-
+	ctx.Next()
 	addr := ctx.Request().RemoteAddr
 	if ctx.GetHeader("X-Forwarded-For") != "" {
 		addr = ctx.GetHeader("X-Forwarded-For")
 	}
 	slog.Slog.InfoF(value, "%s -> %s %s -> %dms", addr, ctx.Request().Method, ctx.Request().URL.Path, time.Now().Sub(start).Milliseconds())
-	ctx.Next()
 }
