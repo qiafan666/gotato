@@ -69,7 +69,19 @@ func (l *Logger) InfoF(ctx context.Context, template string, args ...interface{}
 }
 
 func (l *Logger) DebugF(ctx context.Context, template string, args ...interface{}) {
-	ZapLog.Debugf(getTraceId(ctx)+template, args...)
+	if ctx != nil {
+		ZapLog.Debugf(getTraceId(ctx)+template, args...)
+	} else {
+		ZapLog.Debugf(template, args...)
+	}
+}
+
+func (l *Logger) WarnF(ctx context.Context, template string, args ...interface{}) {
+	if ctx != nil {
+		ZapLog.Warnf(getTraceId(ctx)+template, args...)
+	} else {
+		ZapLog.Warnf(template, args...)
+	}
 }
 
 func (l *Logger) ErrorF(ctx context.Context, template string, args ...interface{}) {
