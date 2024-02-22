@@ -35,6 +35,7 @@ type DataBaseConfig struct {
 	Name    string        `yaml:"name"`
 	Type    string        `yaml:"type"`
 	SlowSql time.Duration `yaml:"slow_sql"`
+	Silent  bool          `yaml:"silent"` //true 不打印sql
 
 	//sqlite
 	DBFilePath string `yaml:"db_file_path"`
