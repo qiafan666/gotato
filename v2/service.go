@@ -22,6 +22,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	redisV8 "github.com/go-redis/redis/v8"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Instance we need create the single object but thread safe
@@ -163,6 +165,15 @@ func (slf *Server) http() {
 	slf.httpServer = &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
 		Handler: slf.App(),
+	}
+	//开启pprof
+	if config.SC.PProfConfig.Enable == true {
+		slf.app.GET("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
+	}
+
+	//开启swagger
+	if config.SC.SwaggerConfig.Enable == true {
+		slf.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
