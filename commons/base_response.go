@@ -9,7 +9,7 @@ type BaseResponse struct {
 	Msg       string       `json:"msg"`
 	Data      interface{}  `json:"data"`
 	Time      int64        `json:"time"`
-	RequestId string       `json:"requestId"`
+	RequestId string       `json:"request_id"`
 }
 
 type BaseResponseHeader struct {
