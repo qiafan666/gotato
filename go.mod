@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/kataras/iris/v12 v12.2.1
+	github.com/kataras/iris/v12 v12.2.10
 	github.com/klauspost/compress v1.17.4
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/satori/go.uuid v1.2.0
