@@ -65,17 +65,19 @@ func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
 	}
+
+	var tx *gorm.DB
 	if value, ok := info.(map[string]interface{}); ok {
 		table := value[commons.Table].(string)
 		delete(value, commons.Table)
-		dbs := s.db.Table(table).Where(where).Updates(info)
-		err = dbs.Error
-		rows = dbs.RowsAffected
+		tx = s.db.Table(table)
 	} else {
-		dbs := s.db.Model(info).Where(where).Updates(info)
-		err = dbs.Error
-		rows = dbs.RowsAffected
+		tx = s.db.Model(info)
 	}
+
+	updates := tx.Where(where).Updates(info)
+	err = updates.Error
+	rows = updates.RowsAffected
 	return
 }
 func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
@@ -89,9 +91,9 @@ func (s Imp) Delete(entity interface{}, where map[string]interface{}, scope func
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
 	}
-	db := s.db.Model(entity).Where(where).Delete(&entity)
-	rows = db.RowsAffected
-	err = db.Error
+	deletes := s.db.Model(entity).Where(where).Delete(&entity)
+	rows = deletes.RowsAffected
+	err = deletes.Error
 	return
 }
 func (s Imp) Tx() Dao {
