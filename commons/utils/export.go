@@ -52,9 +52,9 @@ func ExportToExcel(data map[string][]interface{}, srcPath string) error {
 func getColumnLetter(index int) string {
 	letter := ""
 	for index >= 26 {
-		letter = string('A'+(index%26)) + letter
+		letter = fmt.Sprintf("%c%s", 'A'+(index%26), letter)
 		index = (index / 26) - 1
 	}
-	letter = string('A'+index) + letter
+	letter = fmt.Sprintf("%c%s", 'A'+index, letter)
 	return letter
 }
