@@ -4,9 +4,24 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 )
+
+func GenerateAESKey(keySize int) (string, error) {
+	switch keySize {
+	case 16, 24, 32: // 128位、192位和256位密钥长度
+		key := make([]byte, keySize)
+		_, err := rand.Read(key)
+		if err != nil {
+			return "", err
+		}
+		return base64.StdEncoding.EncodeToString(key), nil
+	default:
+		return "", errors.New("unsupported key size")
+	}
+}
 
 func PKCS7Padding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize
