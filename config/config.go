@@ -70,6 +70,7 @@ type Config struct {
 	Kafka    kafkaConfig      `yaml:"kafka"`
 	Oss      []OssConfig      `yaml:"oss"`
 	Mongo    []MongoConfig    `yaml:"mongo"`
+	Smtp     []SmtpConfig     `yaml:"smtp"`
 }
 
 type OssConfig struct {
@@ -82,8 +83,16 @@ type OssConfig struct {
 
 type MongoConfig struct {
 	Url  string `yaml:"url"`
-	Name string `json:"name"`
-	Tls  string `json:"tls"`
+	Name string `yaml:"name"`
+	Tls  string `yaml:"tls"`
+}
+
+type SmtpConfig struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Sender   string `yaml:"sender"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
 }
 
 func InitAllConfig(fileName string) Config {

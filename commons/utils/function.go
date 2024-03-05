@@ -316,3 +316,16 @@ func StructToStringMapWithNilFilter(inputStruct interface{}, table string, JumpS
 
 	return resultMap
 }
+
+// DataCheck 检查输入的字符串是否有空值
+func DataCheck(datas ...string) []int {
+	var nullIndices []int
+
+	for i, data := range datas {
+		if len(data) == 0 {
+			nullIndices = append(nullIndices, i)
+		}
+	}
+
+	return nullIndices
+}

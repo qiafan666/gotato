@@ -52,3 +52,9 @@ mongo:
   - url: mongodb://test2:root@192.168.1.181:27000/test1
     name: test2
     tls: test2
+smtp:
+  - host: test@qq.com
+    port: 111
+    sender: test
+    password: test
+    name: qqEmail
