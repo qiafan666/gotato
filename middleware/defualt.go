@@ -42,7 +42,7 @@ func Default(ctx iris.Context) {
 	start := time.Now()
 	ctx.Next()
 
-	if _, ok := ignoreRequestMap.Load(ctx.Request().URL.Path); !ok {
+	if !IsIgnoredRequest(ctx.Request().URL.Path) {
 
 		addr := ctx.Request().RemoteAddr
 		if ctx.GetHeader("X-Forwarded-For") != "" {
