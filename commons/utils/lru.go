@@ -12,7 +12,7 @@ type LRUCache struct {
 	items     map[string]*list.Element // 用于快速检索缓存中的条目，键是字符串，值是双向链表的元素指针
 	evictList *list.List               // 双向链表，按照最近使用顺序存储缓存中的条目
 	capacity  int                      // 缓存的最大容量
-	mu        sync.RWMutex             // 读写锁，用于保护并发访问缓存的安全
+	mu        sync.Mutex               // 独占锁，用于保护并发访问缓存的安全
 }
 
 // entry 是LRUCache中每个条目的结构体，包括键和值
@@ -37,8 +37,8 @@ func Constructor(capacity int) LRUCache {
 
 // Get 根据键从LRU缓存中获取值
 func (cache *LRUCache) Get(key string) interface{} {
-	cache.mu.RLock()         // 加读锁，允许多个读取者并发访问
-	defer cache.mu.RUnlock() // 函数执行完毕后释放读锁
+	cache.mu.Lock()         // 加读锁，允许多个读取者并发访问
+	defer cache.mu.Unlock() // 函数执行完毕后释放读锁
 
 	// 检查键是否存在于缓存中
 	ent, ok := cache.items[key]
@@ -52,8 +52,8 @@ func (cache *LRUCache) Get(key string) interface{} {
 
 // GetTopEntries 获取缓存中前n个键值对
 func (cache *LRUCache) GetTopEntries(n int) map[string]interface{} {
-	cache.mu.RLock()         // 加读锁，允许多个读取者并发访问
-	defer cache.mu.RUnlock() // 函数执行完毕后释放读锁
+	cache.mu.Lock()         // 加读锁，允许多个读取者并发访问
+	defer cache.mu.Unlock() // 函数执行完毕后释放读锁
 
 	result := make(map[string]interface{}, n) // 存储前n个键值对的map
 
@@ -143,8 +143,8 @@ func (cache *LRUCache) RemoveHeadEntries(n int) {
 
 // Size 返回LRU缓存中的键值对数量
 func (cache *LRUCache) Size() int {
-	cache.mu.RLock()
-	defer cache.mu.RUnlock()
+	cache.mu.Lock()         // 加读锁，允许多个读取者并发访问
+	defer cache.mu.Unlock() // 函数执行完毕后释放读锁
 
 	return len(cache.items)
 }
