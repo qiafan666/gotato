@@ -187,7 +187,7 @@ func RandomString(stringSize int) string {
 			b[i] = letterBytes[rand.Intn(len(letterBytes))]
 		}
 	}
-	return strings.ToUpper(string(b))
+	return string(b)
 }
 
 // 数组中是否包含某个元素
