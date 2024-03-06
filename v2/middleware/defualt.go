@@ -34,6 +34,10 @@ func Default(ctx *gin.Context) {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 		}
 	}()
+
+	blw := &CustomResponseWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
+	ctx.Writer = blw
+
 	if _, ok := ignoreRequestMap.Load(ctx.Request.URL.Path); !ok {
 		if ctx.Request.Method == http.MethodPost {
 			all, err := io.ReadAll(ctx.Request.Body)
@@ -50,7 +54,7 @@ func Default(ctx *gin.Context) {
 		if ctx.Request.URL.RawQuery != "" {
 			path += "?" + ctx.Request.URL.RawQuery
 		}
-		slog.Slog.InfoF(value, "[response code:%d] [%s] [%dms] [%s:%s]", ctx.Writer.Status(), ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Request.Method, path)
+		slog.Slog.InfoF(value, "[%s:%s] [%s] [%dms] [response code:%d] [response:%s]", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), blw.body.String())
 	} else {
 		ctx.Next()
 	}
