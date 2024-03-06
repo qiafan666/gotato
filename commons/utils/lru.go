@@ -105,6 +105,42 @@ func (cache *LRUCache) RemoveKey(key string) {
 	}
 }
 
+// RemoveLastEntries 删除LRU缓存中的后面几个条目
+func (cache *LRUCache) RemoveLastEntries(n int) {
+	cache.mu.Lock()         // 加锁，保护并发访问
+	defer cache.mu.Unlock() // 函数执行完毕后释放锁
+
+	// 删除后面n个条目
+	for i := 0; i < n && cache.evictList.Len() > 0; i++ {
+		ent := cache.evictList.Back() // 获取最久未使用的条目
+		key := ent.Value.(*entry).key // 获取条目的键
+		cache.evictList.Remove(ent)   // 从链表中移除最久未使用的条目
+		delete(cache.items, key)      // 从items中删除最久未使用的条目
+	}
+}
+
+// RemoveHeadEntries 根据数量删除LRU缓存中的头部条目
+func (cache *LRUCache) RemoveHeadEntries(n int) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	// 如果要删除的数量大于等于LRU缓存的当前容量，则直接清空LRU缓存
+	if n >= cache.evictList.Len() {
+		cache.Clear()
+		return
+	}
+
+	// 删除LRU缓存中的头部条目，直到达到指定的数量
+	for i := 0; i < n; i++ {
+		ent := cache.evictList.Front()
+		if ent != nil {
+			key := ent.Value.(*entry).key
+			delete(cache.items, key)
+			cache.evictList.Remove(ent)
+		}
+	}
+}
+
 // Size 返回LRU缓存中的键值对数量
 func (cache *LRUCache) Size() int {
 	cache.mu.RLock()
