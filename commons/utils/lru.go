@@ -1,0 +1,138 @@
+package utils
+
+import (
+	"container/list"
+	"sync"
+)
+
+var CacheInstance LRUCache
+
+// LRUCache Least Recently Used，最近最少使用
+type LRUCache struct {
+	items     map[string]*list.Element // 用于快速检索缓存中的条目，键是字符串，值是双向链表的元素指针
+	evictList *list.List               // 双向链表，按照最近使用顺序存储缓存中的条目
+	capacity  int                      // 缓存的最大容量
+	mu        sync.RWMutex             // 读写锁，用于保护并发访问缓存的安全
+}
+
+// entry 是LRUCache中每个条目的结构体，包括键和值
+type entry struct {
+	key   string      // 键
+	value interface{} // 值的类型是任意类型，使用空接口(interface{})表示
+}
+
+// InitCache 初始化LRU缓存
+func InitCache() {
+	CacheInstance = Constructor(100000)
+}
+
+// Constructor 创建LRUCache对象，并指定缓存的容量
+func Constructor(capacity int) LRUCache {
+	return LRUCache{
+		items:     make(map[string]*list.Element, 2), // 初始化items为map类型，键为字符串，值为双向链表元素的指针
+		evictList: list.New(),                        // 初始化evictList为双向链表
+		capacity:  capacity,                          // 设置缓存的容量
+	}
+}
+
+// Get 根据键从LRU缓存中获取值
+func (cache *LRUCache) Get(key string) interface{} {
+	cache.mu.RLock()         // 加读锁，允许多个读取者并发访问
+	defer cache.mu.RUnlock() // 函数执行完毕后释放读锁
+
+	// 检查键是否存在于缓存中
+	ent, ok := cache.items[key]
+	if ok {
+		cache.evictList.MoveToFront(ent) // 将对应条目移到链表头部，表示最近使用
+		return ent.Value.(*entry).value  // 返回条目的值
+	}
+
+	return nil // 如果键不存在于缓存中，则返回nil
+}
+
+// GetTopEntries 获取缓存中前n个键值对
+func (cache *LRUCache) GetTopEntries(n int) map[string]interface{} {
+	cache.mu.RLock()         // 加读锁，允许多个读取者并发访问
+	defer cache.mu.RUnlock() // 函数执行完毕后释放读锁
+
+	result := make(map[string]interface{}, n) // 存储前n个键值对的map
+
+	// 遍历双向链表，获取前n个键值对
+	count := 0
+	for ent := cache.evictList.Front(); ent != nil && count < n; ent = ent.Next() {
+		key := ent.Value.(*entry).key
+		value := ent.Value.(*entry).value
+		result[key] = value
+		count++
+	}
+
+	return result
+}
+
+// Put 将键值对添加到LRU缓存中
+func (cache *LRUCache) Put(key string, value interface{}) {
+	cache.mu.Lock()         // 加锁，保护并发访问
+	defer cache.mu.Unlock() // 函数执行完毕后释放锁
+
+	// 检查键是否已经存在于缓存中
+	if ent, ok := cache.items[key]; ok {
+		cache.evictList.MoveToFront(ent) // 将对应条目移到链表头部，表示最近使用
+		ent.Value.(*entry).value = value // 更新条目的值
+		return
+	}
+
+	// 如果缓存容量已达上限，则移除最久未使用的条目
+	if cache.evictList.Len() == cache.capacity {
+		ent := cache.evictList.Back() // 获取最久未使用的条目
+		kv := ent.Value.(*entry)      // 获取条目的键值对
+		cache.evictList.Remove(ent)   // 从链表中移除最久未使用的条目
+		delete(cache.items, kv.key)   // 从items中删除最久未使用的条目
+	}
+
+	// 创建新的条目，并添加到缓存中
+	entryValue := cache.evictList.PushFront(&entry{key, value}) // 在链表头部添加新条目
+	cache.items[key] = entryValue                               // 在items中添加新条目
+}
+
+// RemoveKey 从LRU缓存中删除指定的键值对
+func (cache *LRUCache) RemoveKey(key string) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	if ent, ok := cache.items[key]; ok {
+		delete(cache.items, key)
+		cache.evictList.Remove(ent)
+	}
+}
+
+// Size 返回LRU缓存中的键值对数量
+func (cache *LRUCache) Size() int {
+	cache.mu.RLock()
+	defer cache.mu.RUnlock()
+
+	return len(cache.items)
+}
+
+// Clear 清空LRU缓存中的所有键值对
+func (cache *LRUCache) Clear() {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	cache.items = make(map[string]*list.Element)
+	cache.evictList.Init()
+}
+
+// SetCapacity 设置LRU缓存的最大容量
+func (cache *LRUCache) SetCapacity(capacity int) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	cache.capacity = capacity
+}
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * obj := Constructor(capacity);
+ * param_1 := obj.Get(key);
+ * obj.Put(key,value);
+ */

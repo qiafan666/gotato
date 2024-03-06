@@ -46,9 +46,10 @@ func SetCache(key string, value interface{}) {
 		Expiration: 0,
 		Value:      value,
 	})
+
 }
 
-// SetCacheExpire 设置缓存,过期时间以秒为单位
+// SetCacheExpire 设置缓存,过期时间以秒为单位 eg:int64(time.Second * 10)
 func SetCacheExpire(key string, value interface{}, expire int64) {
 	m.Store(key, container{
 		Expiration: time.Now().Unix() + expire,
