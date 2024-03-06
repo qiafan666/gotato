@@ -159,6 +159,18 @@ func (slf *Server) http() {
 	}
 	gin.ForceConsoleColor()
 	slf.app = gin.New()
+
+	slf.app.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.Abort()
+		return
+	})
+	slf.app.NoMethod(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.Abort()
+		return
+	})
+
 	//插入中间件
 	slf.app.Use(middleware.Default)
 

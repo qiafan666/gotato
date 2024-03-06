@@ -18,7 +18,7 @@ type BaseResponseHeader struct {
 	Time int64        `json:"time"`
 }
 
-// return struct of the response code and msg
+// BuildResponse return struct of the response code and msg
 func BuildResponse(code ResponseCode, msg string, data interface{}, requestId string) *BaseResponse {
 	return &BaseResponse{code, msg, data, time.Now().UnixNano() / 1e6, requestId}
 }
