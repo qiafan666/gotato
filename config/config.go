@@ -1,11 +1,13 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"log"
 	"os"
 	_ "path/filepath"
+	"strings"
 	"time"
 )
 
@@ -14,7 +16,7 @@ var Configs Config
 var YamlFile []byte
 
 func init() {
-	yamlFile, err := ioutil.ReadFile("application.yaml")
+	yamlFile, err := os.ReadFile("application.yaml")
 	if err != nil {
 		panic(fmt.Errorf("load application.yaml error, will exit,please fix the application"))
 	}
@@ -22,11 +24,16 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	for _, v := range os.Args {
+		if strings.Contains(v, "-env") {
+			SC.SConfigure.Profile = strings.Split(v, "=")[1]
+		}
+	}
 	if len(SC.SConfigure.Profile) == 0 {
 		// load dev profile application-dev.yaml
-		Configs = InitAllConfig("application-dev.yaml")
+		Configs = InitAllConfig(strings.TrimRight(SC.SConfigure.ConfigPath, "/") + "/" + "dev")
 	} else {
-		Configs = InitAllConfig(fmt.Sprintf("application-%s.yaml", SC.SConfigure.Profile))
+		Configs = InitAllConfig(strings.TrimRight(SC.SConfigure.ConfigPath, "/") + "/" + SC.SConfigure.Profile)
 	}
 }
 
@@ -96,13 +103,27 @@ type SmtpConfig struct {
 }
 
 func InitAllConfig(fileName string) Config {
-	var err error
-	YamlFile, err = ioutil.ReadFile(fileName)
+	dir, err := os.ReadDir(fileName)
 	if err != nil {
-		panic("load config error")
+		log.Panicf("load config error %s %s", err, fileName)
+	}
+	var buffer bytes.Buffer
+	for _, v := range dir {
+		if v.IsDir() == false {
+			if strings.Contains(v.Name(), ".yaml") {
+				file, err := os.ReadFile(fileName + "/" + v.Name())
+				if err != nil {
+					panic("load config error")
+				}
+				buffer.Write(file)
+				buffer.Write([]byte("\n"))
+				continue
+			}
+		}
 	}
 	dbc := Config{}
-	err = yaml.Unmarshal(YamlFile, &dbc)
+	YamlFile = buffer.Bytes()
+	err = yaml.Unmarshal(buffer.Bytes(), &dbc)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(0)
@@ -119,12 +140,13 @@ func LoadCustomizeConfig(config interface{}) error {
 }
 
 type ServerBaseConfig struct {
-	Addr     string `yaml:"addr"`
-	Port     int    `yaml:"port"`
-	LogLevel string `yaml:"loglevel"`
-	Profile  string `yaml:"profile"`
-	LogPath  string `yaml:"logPath"`
-	LogName  string `yaml:"logName"`
+	Addr       string `yaml:"addr"`
+	Port       int    `yaml:"port"`
+	LogLevel   string `yaml:"loglevel"`
+	Profile    string `yaml:"profile"`
+	LogPath    string `yaml:"logPath"`
+	LogName    string `yaml:"logName"`
+	ConfigPath string `yaml:"configPath"`
 }
 type ServerConfig struct {
 	SConfigure    ServerBaseConfig `yaml:"server"`

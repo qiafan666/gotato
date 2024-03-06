@@ -4,6 +4,7 @@ server:
   # debug info warn error
   loglevel: warn
   profile: dev
+  configPath: .\configs
   logPath: .\log
   logName:  iris
 swagger:
