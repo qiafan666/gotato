@@ -39,7 +39,7 @@ func Default(ctx *gin.Context) {
 	ctx.Writer = blw
 
 	if _, ok := ignoreRequestMap.Load(ctx.Request.URL.Path); !ok {
-		if ctx.Request.Method == http.MethodPost {
+		if ctx.Request.Method == http.MethodPost && ctx.Writer.Status() == http.StatusOK {
 			all, err := io.ReadAll(ctx.Request.Body)
 			if err != nil {
 				slog.Slog.ErrorF(value, "ReadAll %s", err)
