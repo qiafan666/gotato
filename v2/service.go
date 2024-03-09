@@ -43,7 +43,7 @@ type ServerOption int
 const (
 	DatabaseService = iota + 1
 	RedisService
-	HttpService
+	GinService
 	OssService
 	MongoService
 )
@@ -52,7 +52,7 @@ func init() {
 	Instance = &Server{}
 }
 
-// GetCornusInstance create the single object
+// GetGotatoInstance create the single object
 func GetGotatoInstance() *Server {
 	return Instance
 }
@@ -88,6 +88,9 @@ func (slf *Server) WaitClose() {
 		defer cancel()
 		for _, db := range slf.db {
 			_ = db.StopDb()
+		}
+		for _, stopRedis := range slf.redis {
+			_ = stopRedis.StopRedis()
 		}
 		err := server.Shutdown(ctx)
 		if err != nil {
@@ -148,7 +151,7 @@ func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
 		panic(err)
 	}
 }
-func (slf *Server) http() {
+func (slf *Server) gin() {
 	//设置模式
 	if config.SC.SConfigure.Profile == "prod" {
 		gin.SetMode(gin.ReleaseMode)
@@ -199,8 +202,8 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 	var err error
 	for _, v := range opt {
 		switch v {
-		case HttpService:
-			slf.http()
+		case GinService:
+			slf.gin()
 		case DatabaseService:
 			slf.db = make([]gotatodb.GotatoDB, 0)
 			for _, v := range config.Configs.DataBase {

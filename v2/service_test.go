@@ -11,7 +11,7 @@ func TestStart_Default_Server(t *testing.T) {
 	log.Slog.InfoF(context.Background(), "TestStart_Default_Server")
 	server := GetGotatoInstance()
 
-	server.StartServer(HttpService)
+	server.StartServer(GinService)
 
 	server.App().GET("/ping", func(c *gin.Context) {
 		ctx := c.MustGet("ctx").(context.Context)
