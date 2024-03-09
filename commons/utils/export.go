@@ -3,28 +3,24 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/xuri/excelize/v2"
 )
 
-// Export multiple sheets to Excel
-func ExportToExcel(data map[string][]interface{}, srcPath string) error {
+// ExportToExcel Export multiple sheets to Excel
+func ExportToExcel(data map[string][]interface{}, srcPath string) (err error) {
 	// 创建Excel文件
 	file := excelize.NewFile()
-	file.DeleteSheet("Sheet1")
+	err = file.DeleteSheet("Sheet1")
+	if err != nil {
+		return err
+	}
 
 	// 遍历每个sheet的数据
 	for sheetName, sheetData := range data {
 		// 创建sheet
-		file.NewSheet(sheetName)
-
-		// 写入数据到表格
-		for row, rowData := range sheetData {
-			if rowSlice, ok := rowData.([]interface{}); ok {
-				for col, value := range rowSlice {
-					cell := fmt.Sprintf("%s%d", getColumnLetter(col), row+1) // 获取列字母和行号
-					file.SetCellValue(sheetName, cell, value)
-				}
-			}
+		_, err = file.NewSheet(sheetName)
+		if err != nil {
+			return err
 		}
 
 		// 为列添加名称
@@ -35,13 +31,33 @@ func ExportToExcel(data map[string][]interface{}, srcPath string) error {
 		}
 		for col := 0; col < columnCount; col++ {
 			columnName := fmt.Sprintf("%s%d", getColumnLetter(col), 1)
-			file.SetCellValue(sheetName, columnName, firstRowData[col]) // 使用第一行作为列名
-			file.SetColWidth(sheetName, columnName, columnName, 15)     // 设置列宽度
+			err = file.SetCellValue(sheetName, columnName, firstRowData[col])
+			if err != nil {
+				return err
+			}
+			// 使用第一行作为列名
+			err = file.SetColWidth(sheetName, columnName, columnName, 15)
+			if err != nil {
+				return err
+			}
+		}
+
+		// 写入数据到表格
+		for row, rowData := range sheetData {
+			if rowSlice, ok := rowData.([]interface{}); ok {
+				for col, value := range rowSlice {
+					cell := fmt.Sprintf("%s%d", getColumnLetter(col), row+1) // 获取列字母和行号
+					err = file.SetCellValue(sheetName, cell, value)
+					if err != nil {
+						return err
+					}
+				}
+			}
 		}
 	}
 
 	// 保存Excel文件
-	err := file.SaveAs(srcPath)
+	err = file.SaveAs(srcPath)
 	if err != nil {
 		return err
 	}
