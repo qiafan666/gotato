@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -10,18 +9,11 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type BaseResponse struct {
-	Code int             `json:"code"`
-	Msg  string          `json:"msg"`
-	Data json.RawMessage `json:"data"`
-	Time int64           `json:"time"`
-}
-
 type ProxyRequestHeader struct {
 	ContentType string
 }
 
-var TimeOut = time.Second * 10
+var TimeOut = time.Second * 5
 
 func ProxyRequest(ctx context.Context, method string, header http.Header, url string, body []byte) (response []byte, respHeader ProxyRequestHeader, err error) {
 	req := fasthttp.AcquireRequest()
@@ -37,7 +29,7 @@ func ProxyRequest(ctx context.Context, method string, header http.Header, url st
 	req.SetRequestURI(url)
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
-	if err := fasthttp.DoTimeout(req, resp, time.Second*5); err != nil {
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Slog.InfoF(ctx, "Http Request Do Error %s", err.Error())
 		return nil, ProxyRequestHeader{}, err
 	}
@@ -46,8 +38,8 @@ func ProxyRequest(ctx context.Context, method string, header http.Header, url st
 
 }
 
-// append request url
-func getRequestURL(url string, params map[string]string) string {
+// GetRequestURL append request url
+func GetRequestURL(url string, params map[string]string) string {
 	var urlAddress = ""
 	lastCharctor := url[len(url)-1:]
 	if lastCharctor == "?" {
