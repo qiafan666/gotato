@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-var CacheInstance LRUCache
+var DefaultLRUCache LRUCache
 
 // LRUCache Least Recently Used，最近最少使用
 type LRUCache struct {
@@ -23,11 +23,11 @@ type entry struct {
 
 // InitCache 初始化LRU缓存
 func InitCache() {
-	CacheInstance = Constructor(100000)
+	DefaultLRUCache = NewLRUCache(100000)
 }
 
-// Constructor 创建LRUCache对象，并指定缓存的容量
-func Constructor(capacity int) LRUCache {
+// NewLRUCache 创建LRUCache对象，并指定缓存的容量
+func NewLRUCache(capacity int) LRUCache {
 	return LRUCache{
 		items:     make(map[string]*list.Element, 2), // 初始化items为map类型，键为字符串，值为双向链表元素的指针
 		evictList: list.New(),                        // 初始化evictList为双向链表
@@ -50,22 +50,55 @@ func (cache *LRUCache) Get(key string) interface{} {
 	return nil // 如果键不存在于缓存中，则返回nil
 }
 
-// GetTopEntries 获取缓存中前n个键值对
-func (cache *LRUCache) GetTopEntries(n int) map[string]interface{} {
-	cache.mu.Lock()         // 加读锁，允许多个读取者并发访问
-	defer cache.mu.Unlock() // 函数执行完毕后释放读锁
+// GetFrontEntries 获取缓存中前n个键值对，如果num为-1，则获取所有键值对
+func (cache *LRUCache) GetFrontEntries(num int) map[string]interface{} {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
 
-	result := make(map[string]interface{}, n) // 存储前n个键值对的map
-
-	// 遍历双向链表，获取前n个键值对
-	count := 0
-	for ent := cache.evictList.Front(); ent != nil && count < n; ent = ent.Next() {
-		key := ent.Value.(*entry).key
-		value := ent.Value.(*entry).value
-		result[key] = value
-		count++
+	result := make(map[string]interface{})
+	if num == -1 {
+		// 遍历双向链表，获取所有键值对
+		for ent := cache.evictList.Front(); ent != nil; ent = ent.Next() {
+			key := ent.Value.(*entry).key
+			value := ent.Value.(*entry).value
+			result[key] = value
+		}
+	} else {
+		// 遍历双向链表，获取前n个键值对
+		count := 0
+		for ent := cache.evictList.Front(); ent != nil && count < num; ent = ent.Next() {
+			key := ent.Value.(*entry).key
+			value := ent.Value.(*entry).value
+			result[key] = value
+			count++
+		}
 	}
+	return result
+}
 
+// GetBackEntries 获取缓存中后n个键值对，如果n为-1，则获取所有键值对
+func (cache *LRUCache) GetBackEntries(n int) map[string]interface{} {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	result := make(map[string]interface{})
+	if n == -1 {
+		// 遍历双向链表，获取所有键值对
+		for ent := cache.evictList.Back(); ent != nil; ent = ent.Prev() {
+			key := ent.Value.(*entry).key
+			value := ent.Value.(*entry).value
+			result[key] = value
+		}
+	} else {
+		// 遍历双向链表，获取后n个键值对
+		count := 0
+		for ent := cache.evictList.Back(); ent != nil && count < n; ent = ent.Prev() {
+			key := ent.Value.(*entry).key
+			value := ent.Value.(*entry).value
+			result[key] = value
+			count++
+		}
+	}
 	return result
 }
 
@@ -105,8 +138,8 @@ func (cache *LRUCache) RemoveKey(key string) {
 	}
 }
 
-// RemoveLastEntries 删除LRU缓存中的后面几个条目
-func (cache *LRUCache) RemoveLastEntries(n int) {
+// RemoveBackEntries 删除LRU缓存中的后面几个条目
+func (cache *LRUCache) RemoveBackEntries(n int) {
 	cache.mu.Lock()         // 加锁，保护并发访问
 	defer cache.mu.Unlock() // 函数执行完毕后释放锁
 
@@ -119,8 +152,8 @@ func (cache *LRUCache) RemoveLastEntries(n int) {
 	}
 }
 
-// RemoveHeadEntries 根据数量删除LRU缓存中的头部条目
-func (cache *LRUCache) RemoveHeadEntries(n int) {
+// RemoveFrontEntries 根据数量删除LRU缓存中的头部条目
+func (cache *LRUCache) RemoveFrontEntries(n int) {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 
@@ -156,6 +189,14 @@ func (cache *LRUCache) Clear() {
 
 	cache.items = make(map[string]*list.Element)
 	cache.evictList.Init()
+}
+
+// GetCapacity 获取LRU缓存的最大容量
+func (cache *LRUCache) GetCapacity() int {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	return cache.capacity
 }
 
 // SetCapacity 设置LRU缓存的最大容量

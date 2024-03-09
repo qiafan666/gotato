@@ -8,23 +8,14 @@ import (
 
 const WindowSize = 8 << 10 // 8kiB
 
-func NewDecoder(r io.Reader, options ...zstd.DOption) (*zstd.Decoder, error) {
-	defaults := []zstd.DOption{
-
-		zstd.WithDecoderConcurrency(1),
-		zstd.WithDecoderLowmem(true),
-	}
-
-	return zstd.NewReader(r, append(defaults, options...)...)
-}
-
-func NewEncoder(w io.Writer, options ...zstd.EOption) (*zstd.Encoder, error) {
-	defaults := []zstd.EOption{
-		zstd.WithEncoderConcurrency(1),
-		zstd.WithWindowSize(WindowSize),
-		zstd.WithZeroFrames(true),
-	}
-	return zstd.NewWriter(w, append(defaults, options...)...)
+var zstdEncoderPool = &sync.Pool{
+	New: func() any {
+		encoder, err := newEncoder(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
+		if err != nil {
+			panic(err)
+		}
+		return encoder
+	},
 }
 
 func ZstdEncode(in []byte) []byte {
@@ -40,7 +31,7 @@ func ZstdEncode(in []byte) []byte {
 }
 
 func ZstdDecode(in []byte) ([]byte, error) {
-	decoder, err := NewDecoder(nil)
+	decoder, err := newDecoder(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +42,21 @@ func ZstdDecode(in []byte) ([]byte, error) {
 	return all, nil
 }
 
-var zstdEncoderPool = &sync.Pool{
-	New: func() any {
-		encoder, err := NewEncoder(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
-		if err != nil {
-			panic(err)
-		}
-		return encoder
-	},
+func newEncoder(w io.Writer, options ...zstd.EOption) (*zstd.Encoder, error) {
+	defaults := []zstd.EOption{
+		zstd.WithEncoderConcurrency(1),
+		zstd.WithWindowSize(WindowSize),
+		zstd.WithZeroFrames(true),
+	}
+	return zstd.NewWriter(w, append(defaults, options...)...)
+}
+
+func newDecoder(r io.Reader, options ...zstd.DOption) (*zstd.Decoder, error) {
+	defaults := []zstd.DOption{
+
+		zstd.WithDecoderConcurrency(1),
+		zstd.WithDecoderLowmem(true),
+	}
+
+	return zstd.NewReader(r, append(defaults, options...)...)
 }

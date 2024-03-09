@@ -190,7 +190,7 @@ func RandomString(stringSize int) string {
 	return string(b)
 }
 
-// 数组中是否包含某个元素
+// Contains 数组中是否包含某个元素
 func Contains[T any](ts []T, t T) bool {
 	for _, v := range ts {
 		if reflect.DeepEqual(v, t) {
@@ -201,7 +201,7 @@ func Contains[T any](ts []T, t T) bool {
 	return false
 }
 
-// 数组中是否包含某个元素,没有就追加,有就返回原数组
+// Append 数组中是否包含某个元素,没有就追加,有就返回原数组
 func Append[T any](ts []T, t T) []T {
 	for _, v := range ts {
 		if reflect.DeepEqual(v, t) {
@@ -212,8 +212,8 @@ func Append[T any](ts []T, t T) []T {
 	return ts
 }
 
-// 使用泛型函数来删除切片中的某个元素
-func Remove[T any](ts []T, t T) []T {
+// RemoveSlice 使用泛型函数来删除切片中的某个元素
+func RemoveSlice[T any](ts []T, t T) []T {
 	for i, v := range ts {
 		if reflect.DeepEqual(v, t) {
 			return append(ts[:i], ts[i+1:]...)
