@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"fmt"
@@ -8,38 +8,46 @@ import (
 
 func TestAPIBasics(t *testing.T) {
 
+	//encrypt256k1 := NewProxyEncrypt(Encrypt256k1)
+	NewProxyEncrypt(EncryptSm2)
+
 	cxt := MakeDefaultContext()
 
 	//Alice
-	privKeyAlice := GenPrivateKey(cxt)
-	pubKeyAlice := privKeyAlice.GetPublicKey(cxt)
-
-	str := StructToString(pubKeyAlice)
-	fmt.Println(str, len(str))
+	encrypt := NewProxyEncrypt(Encrypt256k1)
+	privKeyAlice := encrypt.PrivateKey
+	pubKeyAlice := encrypt.PublicKey
 
 	fmt.Println(len(priPrefix), len(priPostfix), len(pubPreFix), len(pubPostFix))
 
-	fmt.Println(privKeyAlice.String(), len(privKeyAlice.String()))
-
-	fmt.Println(pubKeyAlice.String(), len(pubKeyAlice.String()))
+	//fmt.Println(privKeyAlice.String(), len(privKeyAlice.String()))
+	//
+	//fmt.Println(pubKeyAlice.String(), len(pubKeyAlice.String()))
 
 	//a=StructToString(pubKeyAlice2))
 	//fmt.Println(len(StructToString(privKeyAlice)))
 	var obj = new(UmbralCurveElement)
 	StringToStruct(StructToString(pubKeyAlice), obj)
-	fmt.Println(obj.String())
-	fmt.Println(pubKeyAlice.String())
+	//fmt.Println(obj.String())
+	//fmt.Println(pubKeyAlice.String())
 	//fmt.Println(obj.GetPublicKey(cxt))
 	//fmt.Println(cxt.curveField.GetGen())
 	//fmt.Println(pubKeyAlice.MulScalar(privKeyAlice.Invert().GetValue()))
+
+	str1 := StructToString(privKeyAlice)
+	fmt.Println(str1, len(str1))
+	str := StructToString(pubKeyAlice)
+	fmt.Println(str, len(str))
 
 	msg := []byte("hellohellohellohellohellohellohello")
 	r, s := Sign(cxt, msg, privKeyAlice)
 	fmt.Println(Verify(cxt, r, s, msg, pubKeyAlice))
 
 	//Bob
-	privKeyBob := GenPrivateKey(cxt)
+	//privKeyBob := GenPrivateKey(cxt)
+	privKeyBob := NewProxyEncrypt(Encrypt256k1).PrivateKey
 	pubKeyBob := privKeyBob.GetPublicKey(cxt)
+	//pubKeyBob := privKeyBob.GetPublicKey(cxt)
 
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice

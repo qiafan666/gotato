@@ -1,4 +1,4 @@
-package encrypt
+package CSCrypto
 
 import (
 	"crypto/md5"
@@ -24,12 +24,12 @@ func NAF(nIn *big.Int, k int) []int8 {
 	length := 0
 	for nCopy.Sign() > 0 {
 		if (nCopy.Bit(0)) != 0 {
-			remainder := big.Int{}
-			remainder.SetBytes(nCopy.Bytes()).Mod(nCopy, pow2wBI) // copy n
-			if remainder.Bit(k-1) != 0 {
-				wnaf[i] = (int8)(remainder.Int64() - (int64)(pow2wB))
+			reCSCryptoder := big.Int{}
+			reCSCryptoder.SetBytes(nCopy.Bytes()).Mod(nCopy, pow2wBI) // copy n
+			if reCSCryptoder.Bit(k-1) != 0 {
+				wnaf[i] = (int8)(reCSCryptoder.Int64() - (int64)(pow2wB))
 			} else {
-				wnaf[i] = (int8)(remainder.Int64())
+				wnaf[i] = (int8)(reCSCryptoder.Int64())
 			}
 
 			nCopy = nCopy.Sub(nCopy, big.NewInt((int64)(wnaf[i])))
