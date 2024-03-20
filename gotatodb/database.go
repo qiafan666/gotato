@@ -32,23 +32,15 @@ func (slf *GotatoDB) StartPgsql(dbConfig serveries.DataBaseConfig) (err error) {
 		return errors.New("db already open")
 	}
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=%s", dbConfig.Addr, dbConfig.Username, dbConfig.Password, dbConfig.DbName, dbConfig.Port, dbConfig.Loc)
-	if dbConfig.Silent == true {
-		slf.db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{NamingStrategy: schema.NamingStrategy{
-			SingularTable: true,
-		}, Logger: nil})
-		if err != nil {
-			slog.Slog.InfoF(context.Background(), "conn database error %s", err)
-			return err
-		}
-	} else {
-		slf.db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{NamingStrategy: schema.NamingStrategy{
-			SingularTable: true,
-		}, Logger: &slog.Gorm})
-		if err != nil {
-			slog.Slog.InfoF(context.Background(), "conn database error %s", err)
-			return err
-		}
+
+	slf.db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{NamingStrategy: schema.NamingStrategy{
+		SingularTable: true,
+	}, Logger: nil})
+	if err != nil {
+		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		return err
 	}
+
 	slf.name = dbConfig.Name
 	db, err := slf.db.DB()
 	if err != nil {
@@ -66,26 +58,17 @@ func (slf *GotatoDB) StartSqlite(dbConfig serveries.DataBaseConfig) error {
 		return errors.New("db already open")
 	}
 	slf.name = dbConfig.Name
+
 	var err error
-	if dbConfig.Silent == true {
-		slf.db, err = gorm.Open(sqlite.Open(dbConfig.DBFilePath), &gorm.Config{PrepareStmt: true,
-			NamingStrategy: schema.NamingStrategy{
-				SingularTable: true,
-			}, Logger: nil})
-		if err != nil {
-			slog.Slog.InfoF(context.Background(), "conn database error %s", err)
-			return err
-		}
-	} else {
-		slf.db, err = gorm.Open(sqlite.Open(dbConfig.DBFilePath), &gorm.Config{PrepareStmt: true,
-			NamingStrategy: schema.NamingStrategy{
-				SingularTable: true,
-			}, Logger: &slog.Gorm})
-		if err != nil {
-			slog.Slog.InfoF(context.Background(), "conn database error %s", err)
-			return err
-		}
+	slf.db, err = gorm.Open(sqlite.Open(dbConfig.DBFilePath), &gorm.Config{PrepareStmt: true,
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+		}, Logger: &slog.Gorm})
+	if err != nil {
+		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		return err
 	}
+
 	return nil
 }
 func (slf *GotatoDB) StartMysql(dbConfig serveries.DataBaseConfig) error {
@@ -108,24 +91,14 @@ func (slf *GotatoDB) StartMysql(dbConfig serveries.DataBaseConfig) error {
 		dbConfig.Charset,
 		dbConfig.Loc,
 	)
-	if dbConfig.Silent == true {
-		slf.db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{PrepareStmt: true,
-			NamingStrategy: schema.NamingStrategy{
-				SingularTable: true,
-			}, Logger: nil})
-		if err != nil {
-			slog.Slog.InfoF(context.Background(), "conn database error %s", err)
-			return err
-		}
-	} else {
-		slf.db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{PrepareStmt: true,
-			NamingStrategy: schema.NamingStrategy{
-				SingularTable: true,
-			}, Logger: &slog.Gorm})
-		if err != nil {
-			slog.Slog.InfoF(context.Background(), "conn database error %s", err)
-			return err
-		}
+
+	slf.db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{PrepareStmt: true,
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+		}, Logger: &slog.Gorm})
+	if err != nil {
+		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		return err
 	}
 
 	db, err := slf.db.DB()
