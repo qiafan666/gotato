@@ -140,13 +140,14 @@ func LoadCustomizeConfig(config interface{}) error {
 }
 
 type ServerBaseConfig struct {
-	Addr       string `yaml:"addr"`
-	Port       int    `yaml:"port"`
-	LogLevel   string `yaml:"loglevel"`
-	Profile    string `yaml:"profile"`
-	LogPath    string `yaml:"logPath"`
-	LogName    string `yaml:"logName"`
-	ConfigPath string `yaml:"configPath"`
+	Addr         string `yaml:"addr"`
+	Port         int    `yaml:"port"`
+	GormLogLevel string `yaml:"gorm_log_level"`
+	ZapLogLevel  string `yaml:"zap_log_level"`
+	Profile      string `yaml:"profile"`
+	LogPath      string `yaml:"logPath"`
+	LogName      string `yaml:"logName"`
+	ConfigPath   string `yaml:"configPath"`
 }
 type ServerConfig struct {
 	SConfigure    ServerBaseConfig `yaml:"server"`
