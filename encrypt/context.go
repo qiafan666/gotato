@@ -1,9 +1,7 @@
 package CSCrypto
 
 import (
-	"fmt"
 	"math/big"
-	"reflect"
 )
 
 type Context struct {
@@ -54,57 +52,4 @@ func MakeSM2Context() *Context {
 	uY, _ := big.NewInt(0).SetString("31511737151452315797500599923801180801680237233295617230109528048179423546071", 10)
 	U := curveField.MakeElement(uX, uY)
 	return &Context{curveField, targetField, getMinValSha512(curveField), U, SECRET_SM4_KEY_SIZE}
-}
-
-func Aaaa() {
-
-	cxt := MakeDefaultContext()
-	//Alice
-	privKeyAlice := GenPrivateKey(cxt)
-	pubKeyAlice := privKeyAlice.GetPublicKey(cxt)
-	//Bob
-	privKeyBob := GenPrivateKey(cxt)
-	pubKeyBob := privKeyBob.GetPublicKey(cxt)
-
-	plainText := []byte("attack at dawn")
-	//Charlie or Alice
-	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := Encrypt(cxt, pubKeyAlice, plainText)
-	//Alice
-	testDecrypt := DecryptDirect(cxt, capsule, privKeyAlice, cipherText)
-
-	if !reflect.DeepEqual(plainText, testDecrypt) {
-		//t.Errorf("Direct decryption failed")
-	}
-	n := 20
-	th := 10
-	//Alice
-	//kFrags := ReKeyGen(cxt, privKeyAlice, pubKeyBob, 10, 20)
-	//
-	//Proxy
-	privaProxyList := make([]*UmbralFieldElement, n)
-	pubProxyList := make([]*UmbralCurveElement, n)
-	for i := 0; i < n; i++ {
-		privaProxyList[i] = GenPrivateKey(cxt)
-		pubProxyList[i] = privaProxyList[i].GetPublicKey(cxt)
-	}
-	//Alice
-	ckFrags := GenerateCKFrags(cxt, privKeyAlice, pubKeyBob, pubProxyList, th, n)
-	//Alice sends cFrags[i] to Proxy[i]
-	//cFrags[i]
-
-	//Proxy
-	kFrags := GetKFrags(cxt, privaProxyList, ckFrags)
-	cFrags := make([]*CFrag, th)
-	for i := range cFrags {
-		cFrags[i] = ReEncapsulate(kFrags[i], capsule)
-	}
-
-	//Proxy[i] sends cFrags[i] to Bob
-	//Bob
-	testDecryptFrags := DecryptFragments(cxt, capsule, cFrags, privKeyBob, pubKeyAlice, cipherText)
-	if !reflect.DeepEqual(plainText, testDecryptFrags) {
-		//t.Errorf("Re-encapsulated fragment decryption failed")
-	}
-	fmt.Println("true")
 }

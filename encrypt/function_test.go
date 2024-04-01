@@ -10,24 +10,26 @@ func TestFunction256k1(t *testing.T) {
 	cxt := MakeDefaultContext()
 
 	//Alice
-	encryptAlice := NewProxyEncrypt(Encrypt256k1)
+	alice := NewProxyEncrypt(Encrypt256k1)
 
-	fmt.Println(len(encryptAlice.PrivateKeyString))
-	fmt.Println(len(encryptAlice.PublicKeyString))
+	fmt.Println(len(alice.PrivateKeyString))
+	fmt.Println(len(alice.PublicKeyString))
+
+	alice.PrivateKey = alice.String2Pri(alice.Pri2String())
 
 	msg := []byte("hellohellohellohellohellohellohello")
-	r, s := Sign(cxt, msg, encryptAlice.PrivateKey)
-	fmt.Println(Verify(cxt, r, s, msg, encryptAlice.PublicKey))
+	r, s := alice.Sign(msg)
+	fmt.Println(alice.Verify(r, s, msg))
 
 	//Bob
-	encryptBob := NewProxyEncrypt(Encrypt256k1)
+	bob := NewProxyEncrypt(Encrypt256k1)
 
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice
 	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := encryptAlice.Encrypt(plainText)
+	cipherText, capsule := alice.Encrypt(plainText)
 	//Alice
-	decrypt := encryptAlice.Decrypt(capsule, cipherText)
+	decrypt := alice.Decrypt(capsule, cipherText)
 
 	if !reflect.DeepEqual(plainText, decrypt) {
 		t.Errorf("Direct decryption failed")
@@ -45,7 +47,7 @@ func TestFunction256k1(t *testing.T) {
 		pubProxyList[i] = encrypt.PublicKey
 	}
 	//Alice
-	ckFrags := GenerateCKFrags(cxt, encryptAlice.PrivateKey, encryptBob.PublicKey, pubProxyList, th, n)
+	ckFrags := GenerateCKFrags(cxt, alice.PrivateKey, bob.PublicKey, pubProxyList, th, n)
 
 	ckFragStr := StructToString(ckFrags)
 	fmt.Println("ckFrags:", ckFrags[0])
@@ -64,7 +66,7 @@ func TestFunction256k1(t *testing.T) {
 	//Proxy[i] sends cFrags[i] to Bob
 	//Bob
 
-	fragments := encryptBob.DecryptFragments(capsule, cFrags, encryptAlice.PublicKey, cipherText)
+	fragments := bob.DecryptFragments(capsule, cFrags, alice.PublicKey, cipherText)
 	if !reflect.DeepEqual(plainText, fragments) {
 		t.Errorf("Re-encapsulated fragment decryption failed")
 	}
@@ -135,25 +137,28 @@ func TestFunction2SM2(t *testing.T) {
 	cxt := MakeSM2Context()
 
 	//Alice
-	encryptAlice := NewProxyEncrypt()
+	alice := NewProxyEncrypt()
 
-	fmt.Println(len(encryptAlice.PrivateKeyString))
-	fmt.Println(len(encryptAlice.PublicKeyString))
+	fmt.Println(len(alice.PrivateKeyString))
+	fmt.Println(len(alice.PublicKeyString))
+
+	alice.PrivateKey = alice.String2Pri(alice.Pri2String())
+	alice.PublicKey = alice.String2Pub(alice.Pub2String())
 
 	msg := []byte("hellohellohellohellohellohellohello")
-	r, s := Sign(cxt, msg, encryptAlice.PrivateKey)
-	fmt.Println(Verify(cxt, r, s, msg, encryptAlice.PublicKey))
+	r, s := alice.Sign(msg)
+	fmt.Println(alice.Verify(r, s, msg))
 
 	//Bob
-	encryptBob := NewProxyEncrypt()
+	bob := NewProxyEncrypt()
 
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice
 	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := encryptAlice.Encrypt(plainText)
+	cipherText, capsule := alice.Encrypt(plainText)
 
 	//Alice
-	decrypt := encryptAlice.Decrypt(capsule, cipherText)
+	decrypt := alice.Decrypt(capsule, cipherText)
 	if !reflect.DeepEqual(plainText, decrypt) {
 		t.Errorf("Direct decryption failed")
 	}
@@ -170,7 +175,7 @@ func TestFunction2SM2(t *testing.T) {
 		pubProxyList[i] = encrypt.PublicKey
 	}
 	//Alice
-	ckFrags := GenerateCKFrags(cxt, encryptAlice.PrivateKey, encryptBob.PublicKey, pubProxyList, th, n)
+	ckFrags := GenerateCKFrags(cxt, alice.PrivateKey, bob.PublicKey, pubProxyList, th, n)
 
 	ckFragStr := StructToString(ckFrags)
 	fmt.Println("ckFrags:", ckFrags[0])
@@ -188,7 +193,7 @@ func TestFunction2SM2(t *testing.T) {
 
 	//Proxy[i] sends cFrags[i] to Bob
 	//Bob
-	fragments := encryptBob.DecryptFragments(capsule, cFrags, encryptAlice.PublicKey, cipherText)
+	fragments := bob.DecryptFragments(capsule, cFrags, alice.PublicKey, cipherText)
 	if !reflect.DeepEqual(plainText, fragments) {
 		t.Errorf("Re-encapsulated fragment decryption failed")
 	}

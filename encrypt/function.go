@@ -1,7 +1,9 @@
 package CSCrypto
 
 import (
+	"fmt"
 	"github.com/tjfoc/gmsm/sm4"
+	"os"
 )
 
 const (
@@ -31,6 +33,8 @@ func NewProxyEncrypt(encryptMethod ...string) *ProxyEncrypt {
 		if encryptMethod[0] == Encrypt256k1 {
 			privateKey = GenPrivateKey(MakeDefaultContext())
 			publicKey = privateKey.GetPublicKey(MakeDefaultContext())
+			str := StructToString(publicKey)
+			fmt.Fprintf(os.Stdout, str)
 			privateKeyString = StructToString(privateKey)
 			publicKeyString = StructToString(publicKey)
 		} else if encryptMethod[0] == EncryptSm2 {
@@ -59,6 +63,53 @@ func NewProxyEncrypt(encryptMethod ...string) *ProxyEncrypt {
 		PrivateKeyString: privateKeyString,
 		PublicKeyString:  publicKeyString,
 	}
+}
+
+func (proxyEncrypt *ProxyEncrypt) Sign(msg []byte) (*UmbralFieldElement, *UmbralFieldElement) {
+
+	var cxt *Context
+	if proxyEncrypt.EncryptMethod == Encrypt256k1 {
+		cxt = MakeDefaultContext()
+
+	} else if proxyEncrypt.EncryptMethod == EncryptSm2 {
+		cxt = MakeSM2Context()
+	} else {
+		return nil, nil
+	}
+
+	h := GenPrivateKeyFromMsg(cxt, msg)
+	k := &UmbralFieldElement{*cxt.targetField.NewElement(ONE)} //GenPrivateKey(cxt)
+	kG := k.GetPublicKey(cxt)
+	_r := kG.DataX
+	e := cxt.targetField.NewElement(_r.GetValue())
+	r := &UmbralFieldElement{*e}
+	_s := proxyEncrypt.PrivateKey.Mul(r.ModInt).Add(h.ModInt).Mul(k.Invert())
+	e = cxt.targetField.NewElement(_s.GetValue())
+	s := &UmbralFieldElement{*e}
+	return r, s
+}
+
+func (proxyEncrypt *ProxyEncrypt) Verify(r *UmbralFieldElement, s *UmbralFieldElement, msg []byte) bool {
+
+	var cxt *Context
+	if proxyEncrypt.EncryptMethod == Encrypt256k1 {
+		cxt = MakeDefaultContext()
+
+	} else if proxyEncrypt.EncryptMethod == EncryptSm2 {
+		cxt = MakeSM2Context()
+	} else {
+		return false
+	}
+
+	h := GenPrivateKeyFromMsg(cxt, msg)
+	s_1 := s.Invert()
+	h_s1 := h.Mul(s_1).GetValue()
+	r_s1 := r.Mul(s_1).GetValue()
+	P_1 := cxt.curveField.GetGen().MulScalar(h_s1)
+	P_2 := proxyEncrypt.PublicKey.MulScalar(r_s1)
+	R2 := P_1.Add(P_2)
+	//fmt.Println(r.GetValue(), R2.DataX.GetValue())
+	return r.GetValue().Cmp(R2.DataX.GetValue()) == 0
 }
 
 func (proxyEncrypt *ProxyEncrypt) Encrypt(plainText []byte) ([]byte, *Capsule) {
@@ -116,6 +167,53 @@ func (proxyEncrypt *ProxyEncrypt) DecryptFragments(capsule *Capsule, reKeyFrags 
 		return dst
 	} else {
 		return []byte{}
+	}
+}
+func (proxyEncrypt *ProxyEncrypt) Pri2String() string {
+
+	if proxyEncrypt.EncryptMethod == Encrypt256k1 {
+		return StructToString(proxyEncrypt.PrivateKey)
+	} else if proxyEncrypt.EncryptMethod == EncryptSm2 {
+		return SM2PrivateToString(proxyEncrypt.PrivateKey)
+	} else {
+		return ""
+	}
+}
+
+func (proxyEncrypt *ProxyEncrypt) Pub2String() string {
+
+	if proxyEncrypt.EncryptMethod == Encrypt256k1 {
+		return StructToString(proxyEncrypt.PublicKey)
+	} else if proxyEncrypt.EncryptMethod == EncryptSm2 {
+		return SM2PublicToString(proxyEncrypt.PublicKey)
+	} else {
+		return ""
+	}
+}
+
+func (proxyEncrypt *ProxyEncrypt) String2Pri(pri string) *UmbralFieldElement {
+
+	if proxyEncrypt.EncryptMethod == Encrypt256k1 {
+		var obj = new(UmbralFieldElement)
+		StringToStruct(pri, obj)
+		return obj
+	} else if proxyEncrypt.EncryptMethod == EncryptSm2 {
+		return SM2StringToPrivate(pri)
+	} else {
+		return nil
+	}
+}
+
+func (proxyEncrypt *ProxyEncrypt) String2Pub(pub string) *UmbralCurveElement {
+
+	if proxyEncrypt.EncryptMethod == Encrypt256k1 {
+		var obj = new(UmbralCurveElement)
+		StringToStruct(pub, obj)
+		return obj
+	} else if proxyEncrypt.EncryptMethod == EncryptSm2 {
+		return SM2StringToPublic(pub)
+	} else {
+		return nil
 	}
 }
 
