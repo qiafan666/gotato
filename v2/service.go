@@ -190,6 +190,10 @@ func (slf *Server) gin() {
 	if config.SC.SwaggerConfig.Enable == true {
 		slf.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
+
+	//忽略pprof和swagger的路由日志
+	middleware.RegisterIgnoreRequest("/debug/pprof/*any", "/swagger/*any")
+
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Slog.ErrorF(context.Background(), err.Error())

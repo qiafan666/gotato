@@ -14,10 +14,12 @@ var ignoreRequestMap sync.Map
 func RegisterIgnoreRequest(paths ...string) {
 	for _, path := range paths {
 		// 如果路径中包含通配符 /*，则将其替换为正则表达式中的通配符 .*
+		currentPath := path
 		if strings.Contains(path, "/*") {
-			regexPath := strings.Replace(path, "/*", "/.*", -1)
-			ignoreRequestMap.Store(regexPath, true)
-		} else {
+			currentPath = strings.Replace(path, "/*", "/.*", -1)
+		}
+
+		if _, exist := ignoreRequestMap.Load(currentPath); !exist {
 			ignoreRequestMap.Store(path, true)
 		}
 	}
