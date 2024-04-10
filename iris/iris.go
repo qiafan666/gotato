@@ -77,7 +77,7 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	}
 
 	//忽略pprof和swagger的路由日志
-	middleware.RegisterIgnoreRequest("/debug/pprof/*any", "/swagger/*any")
+	middleware.RegisterIgnoreRequest("/debug/pprof/*", "/swagger/*")
 
 	params = append(params, iris.WithoutStartupLog)
 

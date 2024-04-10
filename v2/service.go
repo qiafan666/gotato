@@ -192,7 +192,7 @@ func (slf *Server) gin() {
 	}
 
 	//忽略pprof和swagger的路由日志
-	middleware.RegisterIgnoreRequest("/debug/pprof/*any", "/swagger/*any")
+	middleware.RegisterIgnoreRequest("/debug/pprof/*", "/swagger/*")
 
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
