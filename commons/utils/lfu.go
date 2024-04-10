@@ -13,7 +13,7 @@ type lfuItem struct {
 
 }
 
-// LFUCache 是一个LFU缓存结构
+// LFUCache least frequently used cache 最不经常使用缓存
 type LFUCache struct {
 	capacity int                            // 缓存容量
 	items    map[string]lfuItem             // 缓存所有项
@@ -56,7 +56,6 @@ func (lfu *LFUCache) Put(key string, value interface{}) {
 
 	// 更新频率映射
 	lfu.updateSort()
-
 }
 
 // updateSort 更新频率层级

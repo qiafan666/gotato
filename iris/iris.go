@@ -29,7 +29,7 @@ func (slf *App) Default() {
 			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefaultLanguage, ""))
 		}
 	})
-	slf.app.Logger().SetLevel(config.SC.SConfigure.LogLevel)
+	slf.app.Logger().SetLevel(config.SC.SConfigure.ZapLogLevel)
 	slf.app.Logger().SetOutput(os.Stdout)
 }
 

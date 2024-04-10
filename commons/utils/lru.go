@@ -5,8 +5,6 @@ import (
 	"sync"
 )
 
-var DefaultLRUCache LRUCache
-
 // LRUCache Least Recently Used，最近最少使用
 type LRUCache struct {
 	items     map[string]*list.Element // 用于快速检索缓存中的条目，键是字符串，值是双向链表的元素指针
@@ -19,11 +17,6 @@ type LRUCache struct {
 type entry struct {
 	key   string      // 键
 	value interface{} // 值的类型是任意类型，使用空接口(interface{})表示
-}
-
-// InitCache 初始化LRU缓存
-func InitCache() {
-	DefaultLRUCache = NewLRUCache(100000)
 }
 
 // NewLRUCache 创建LRUCache对象，并指定缓存的容量
@@ -206,10 +199,3 @@ func (cache *LRUCache) SetCapacity(capacity int) {
 
 	cache.capacity = capacity
 }
-
-/**
- * Your LRUCache object will be instantiated and called as such:
- * obj := Constructor(capacity);
- * param_1 := obj.Get(key);
- * obj.Put(key,value);
- */
