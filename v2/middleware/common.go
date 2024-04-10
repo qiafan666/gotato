@@ -20,7 +20,7 @@ func RegisterIgnoreRequest(paths ...string) {
 		}
 
 		if _, exist := ignoreRequestMap.Load(currentPath); !exist {
-			ignoreRequestMap.Store(path, true)
+			ignoreRequestMap.Store(currentPath, true)
 		}
 	}
 }
