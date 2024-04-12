@@ -44,6 +44,7 @@ const (
 	DatabaseService = iota + 1
 	RedisService
 	GinService
+	GinInitService
 	OssService
 	MongoService
 )
@@ -200,6 +201,39 @@ func (slf *Server) gin() {
 		}
 	}()
 }
+func (slf *Server) ginInit() {
+
+	//设置模式
+	if config.SC.SConfigure.Profile == "prod" {
+		gin.SetMode(gin.ReleaseMode)
+	} else if config.SC.SConfigure.Profile == "test" {
+		gin.SetMode(gin.TestMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
+	slf.app = gin.New()
+
+	slf.httpServer = &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
+		Handler: slf.App(),
+	}
+	//开启pprof
+	if config.SC.PProfConfig.Enable == true {
+		slf.app.GET("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
+	}
+
+	//开启swagger
+	if config.SC.SwaggerConfig.Enable == true {
+		slf.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
+
+	go func() {
+		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Slog.ErrorF(context.Background(), err.Error())
+		}
+	}()
+}
 
 // StartServer need call this function after Option, if Dependent service is not started return panic.
 func (slf *Server) StartServer(opt ...ServerOption) {
@@ -208,6 +242,8 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 		switch v {
 		case GinService:
 			slf.gin()
+		case GinInitService:
+			slf.ginInit()
 		case DatabaseService:
 			slf.db = make([]gotatodb.GotatoDB, 0)
 			for _, v := range config.Configs.DataBase {

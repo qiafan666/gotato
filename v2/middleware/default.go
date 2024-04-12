@@ -39,22 +39,29 @@ func Default(ctx *gin.Context) {
 	ctx.Writer = blw
 
 	if !IsIgnoredRequest(ctx.Request.URL.Path) {
-		if ctx.Request.Method == http.MethodPost && ctx.Writer.Status() == http.StatusOK {
-			all, err := io.ReadAll(ctx.Request.Body)
+		var bodyBytes []byte
+		var err error
+		var requestBody *bytes.Buffer
+		if ctx.Request.Method == http.MethodPost {
+			bodyBytes, err = io.ReadAll(ctx.Request.Body)
 			if err != nil {
 				slog.Slog.ErrorF(value, "ReadAll %s", err)
-			} else if len(all) > 0 {
-				slog.Slog.InfoF(value, "Body \n%s", string(all))
-				ctx.Request.Body = io.NopCloser(bytes.NewBuffer(all))
+			} else if len(bodyBytes) > 0 {
+				requestBody = bytes.NewBuffer(bodyBytes)
+				ctx.Request.Body = io.NopCloser(requestBody)
+			} else {
+				requestBody = bytes.NewBuffer([]byte(""))
+				bodyBytes = []byte("")
 			}
 		}
 		start := time.Now()
 		ctx.Next()
+
 		path := ctx.Request.URL.Path
 		if ctx.Request.URL.RawQuery != "" {
 			path += "?" + ctx.Request.URL.RawQuery
 		}
-		slog.Slog.InfoF(value, "[%s:%s] [%s] [%dms] [response code:%d] [response:%s]", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), blw.body.String())
+		slog.Slog.InfoF(value, "[%s:%s] [%s] [%dms] [response code:%d] [request:%s] [response:%s]", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), requestBody.String(), blw.body.String())
 	} else {
 		ctx.Next()
 	}
