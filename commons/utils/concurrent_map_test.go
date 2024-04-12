@@ -14,7 +14,7 @@ type Animal struct {
 }
 
 func TestMapCreation(t *testing.T) {
-	m := New[string]()
+	m := NewCMap[string]()
 	if m.shards == nil {
 		t.Error("map is null.")
 	}
@@ -25,7 +25,7 @@ func TestMapCreation(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 	elephant := Animal{"elephant"}
 	monkey := Animal{"monkey"}
 
@@ -38,7 +38,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestInsertAbsent(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 	elephant := Animal{"elephant"}
 	monkey := Animal{"monkey"}
 
@@ -52,7 +52,7 @@ func TestInsertAbsent(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 
 	// Get a missing element.
 	val, ok := m.Get("Money")
@@ -80,7 +80,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestHas(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 
 	// Get a missing element.
 	if m.Has("Money") == true {
@@ -96,7 +96,7 @@ func TestHas(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 
 	monkey := Animal{"monkey"}
 	m.Set("monkey", monkey)
@@ -121,7 +121,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestRemoveCb(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 
 	monkey := Animal{"monkey"}
 	m.Set("monkey", monkey)
@@ -209,7 +209,7 @@ func TestRemoveCb(t *testing.T) {
 }
 
 func TestPop(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 
 	monkey := Animal{"monkey"}
 	m.Set("monkey", monkey)
@@ -242,7 +242,7 @@ func TestPop(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 	for i := 0; i < 100; i++ {
 		m.Set(strconv.Itoa(i), Animal{strconv.Itoa(i)})
 	}
@@ -253,7 +253,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestItems(t *testing.T) {
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 
 	// Insert 100 elements.
 	for i := 0; i < 100; i++ {
@@ -325,7 +325,7 @@ func TestStringer(t *testing.T) {
 }
 
 func TestConcurrent(t *testing.T) {
-	m := New[int]()
+	m := NewCMap[int]()
 	ch := make(chan int)
 	const iterations = 1000
 	var a [iterations]int
@@ -414,7 +414,7 @@ func TestMInsert(t *testing.T) {
 		"elephant": {"elephant"},
 		"monkey":   {"monkey"},
 	}
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 	m.MSet(animals)
 
 	if m.Count() != 2 {
@@ -450,7 +450,7 @@ func TestUpsert(t *testing.T) {
 		return valueInMap
 	}
 
-	m := New[Animal]()
+	m := NewCMap[Animal]()
 	m.Set("marine", dolphin)
 	m.Upsert("marine", whale, cb)
 	m.Upsert("predator", tiger, cb)

@@ -41,8 +41,8 @@ func create[K comparable, V any](sharding func(key K) uint32, defaultShardCount 
 	return newMap
 }
 
-// New 创建一个以string为键的并发Map
-func New[V any](shardCounts ...int) *ConcurrentMap[string, V] {
+// NewCMap 创建一个以string为键的并发Map
+func NewCMap[V any](shardCounts ...int) *ConcurrentMap[string, V] {
 	if len(shardCounts) > 0 {
 		return create[string, V](fnv32, shardCounts[0])
 	}
