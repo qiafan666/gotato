@@ -15,7 +15,7 @@ func init() {
 	}()
 }
 
-var m sync.Map
+var syncMaps sync.Map
 
 type container struct {
 	Expiration int64
@@ -25,7 +25,7 @@ type container struct {
 func GetCache[T any](key string) (T, bool) {
 
 	var zero T
-	i, exist := m.Load(key)
+	i, exist := syncMaps.Load(key)
 	if !exist {
 		return zero, false
 	}
@@ -42,7 +42,7 @@ func GetCache[T any](key string) (T, bool) {
 }
 
 func SetCache(key string, value interface{}) {
-	m.Store(key, container{
+	syncMaps.Store(key, container{
 		Expiration: 0,
 		Value:      value,
 	})
@@ -51,18 +51,18 @@ func SetCache(key string, value interface{}) {
 
 // SetCacheExpire 设置缓存,过期时间以秒为单位 eg:int64(time.Second * 10)
 func SetCacheExpire(key string, value interface{}, expire int64) {
-	m.Store(key, container{
+	syncMaps.Store(key, container{
 		Expiration: time.Now().Unix() + expire,
 		Value:      value,
 	})
 }
 
 func clearCache() {
-	m.Range(func(key, value interface{}) bool {
+	syncMaps.Range(func(key, value interface{}) bool {
 		t := value.(container)
 		if t.Expiration != 0 {
 			if time.Now().Unix() > t.Expiration {
-				m.Delete(key)
+				syncMaps.Delete(key)
 			}
 		}
 		return true
