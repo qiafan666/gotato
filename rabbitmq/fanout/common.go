@@ -1,8 +1,12 @@
 package fanout
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type ConsumerConfig struct {
+	Ctx context.Context
 	// RabbitMqAddr rabbitmq 地址
 	Addr string
 	// RabbitMqQueueName rabbitmq 队列名称
@@ -24,6 +28,7 @@ type ConsumerConfig struct {
 }
 
 type ProducerConfig struct {
+	Ctx context.Context
 	// RabbitMqAddr rabbitmq 地址
 	Addr string
 	// RabbitMqQueueName rabbitmq 队列名称

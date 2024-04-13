@@ -2,20 +2,26 @@ package hello_world
 
 import (
 	"context"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
 )
 
 func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
+
+	if config.Ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
 	// 获取配置信息
 	conn, err := amqp.Dial(config.Addr)
 
 	if err != nil {
-		log.Slog.ErrorF(context.Background(), "rabbitmq consumer connect error:%v", err)
+		log.Slog.ErrorF(config.Ctx, "rabbitmq consumer connect error:%v", err)
 		return nil, err
 	}
 	cons := &Consumer{
+		ctx:                 config.Ctx,
 		config:              config,
 		connect:             conn,
 		connErr:             conn.NotifyClose(make(chan *amqp.Error, 1)),
@@ -27,9 +33,9 @@ func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 
 // 定义一个消息队列结构体：helloworld 模型
 type Consumer struct {
+	ctx                 context.Context
 	config              ConsumerConfig
 	connect             *amqp.Connection
-	occurError          error
 	connErr             chan *amqp.Error
 	callbackForReceived func(receivedData []byte) //   断线重连，结构体内部使用
 	callbackOffLine     func(err *amqp.Error)     //   断线重连，结构体内部使用
@@ -38,7 +44,7 @@ type Consumer struct {
 }
 
 // Received 接收、处理消息
-func (c *Consumer) Received(ctx context.Context, callbackFunDealSmg func(receivedData []byte)) {
+func (c *Consumer) Received(callbackFunDealSmg func(receivedData []byte)) {
 	defer func() {
 		c.close()
 	}()
@@ -49,7 +55,7 @@ func (c *Consumer) Received(ctx context.Context, callbackFunDealSmg func(receive
 		go func(chanNo int) {
 			ch, err := c.connect.Channel()
 			if err != nil {
-				log.Slog.ErrorF(ctx, "rabbitmq consumer connect error:%v", err)
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer create channel error:%v, chanNo:%d", err, chanNo)
 				return
 			}
 			defer func() {
@@ -66,10 +72,11 @@ func (c *Consumer) Received(ctx context.Context, callbackFunDealSmg func(receive
 			)
 
 			if err != nil {
-				log.Slog.ErrorF(ctx, "rabbitmq consumer connect error:%v", err)
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error:%v", err)
 				return
 			}
-			msgs, err := ch.Consume(
+			msgs, err := ch.ConsumeWithContext(
+				c.ctx,
 				queue.Name,
 				"",    //  消费者标记，请确保在一个消息通道唯一
 				true,  //是否自动确认，这里设置为 true，自动确认
@@ -78,7 +85,10 @@ func (c *Consumer) Received(ctx context.Context, callbackFunDealSmg func(receive
 				false, // 队列如果已经在服务器声明，设置为 true ，否则设置为 false；
 				nil,
 			)
-			c.occurError = err
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer consume error:%v", err)
+				return
+			}
 			if err == nil {
 				for {
 					select {
@@ -113,6 +123,7 @@ func (c *Consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 			for i = 1; i <= c.config.RetryTimes; i++ {
 				// 自动重连机制
 				time.Sleep(c.config.ReconnectInterval * time.Second)
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connection error:%v, retry times:%d", err, i)
 				// 发生连接错误时,中断原来的消息监听（包括关闭连接）
 				if c.status == 1 {
 					c.receivedMsgBlocking <- struct{}{}
@@ -124,7 +135,7 @@ func (c *Consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 					go func() {
 						c.connErr = conn.connect.NotifyClose(make(chan *amqp.Error, 1))
 						go conn.OnConnectionError(c.callbackOffLine)
-						conn.Received(context.Background(), c.callbackForReceived)
+						conn.Received(c.callbackForReceived)
 					}()
 					// 新的客户端重连成功后，释放旧的回调函数 - OnConnectionError
 					if c.status == 0 {

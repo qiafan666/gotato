@@ -1,12 +1,18 @@
 package hello_world
 
 import (
+	"context"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // CreateProducer 创建一个生产者
 func CreateProducer(config ProducerConfig) (*Producer, error) {
+
+	if config.Ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
 	// 获取配置信息
 	conn, err := amqp.Dial(config.Addr)
 
@@ -16,6 +22,7 @@ func CreateProducer(config ProducerConfig) (*Producer, error) {
 	}
 
 	prod := &Producer{
+		ctx:     config.Ctx,
 		config:  config,
 		connect: conn,
 	}
@@ -24,16 +31,19 @@ func CreateProducer(config ProducerConfig) (*Producer, error) {
 
 // 定义一个消息队列结构体：helloworld 模型
 type Producer struct {
-	config     ProducerConfig
-	connect    *amqp.Connection
-	occurError error
+	ctx     context.Context
+	config  ProducerConfig
+	connect *amqp.Connection
 }
 
-func (p *Producer) Send(data string) bool {
+func (p *Producer) Send(data []byte) bool {
 
 	// 获取一个通道
 	ch, err := p.connect.Channel()
-	p.occurError = err
+	if err != nil {
+		log.Slog.ErrorF(p.ctx, "rabbitmq channel error: %s", err.Error())
+		return false
+	}
 
 	defer func() {
 		_ = ch.Close()
@@ -48,7 +58,10 @@ func (p *Producer) Send(data string) bool {
 		false,              // 队列如果已经在服务器声明，设置为 true ，否则设置为 false；
 		nil,                // 相关参数
 	)
-	p.occurError = err
+	if err != nil {
+		log.Slog.ErrorF(p.ctx, "rabbitmq queue declare error: %s", err.Error())
+		return false
+	}
 
 	// 如果队列的声明是持久化的，那么消息也设置为持久化
 	msgPersistent := amqp.Transient
@@ -56,25 +69,22 @@ func (p *Producer) Send(data string) bool {
 		msgPersistent = amqp.Persistent
 	}
 	// 投递消息
-	if err == nil {
-		err = ch.Publish(
-			"",                 // helloworld 、workqueue 模式设置为空字符串，表示使用默认交换机
-			p.config.QueueName, //  direct key，注意：简单模式与队列名称相同
-			false,
-			false,
-			amqp.Publishing{
-				DeliveryMode: msgPersistent, //消息是否持久化，这里与保持保持一致即可
-				ContentType:  "text/plain",
-				Body:         []byte(data),
-			})
-	}
-	p.occurError = err
-	if p.occurError != nil { //  发生错误，返回 false
-		log.Slog.ErrorF(nil, "rabbitmq Send error: %s", p.occurError.Error())
+	err = ch.PublishWithContext(
+		p.ctx,
+		"",                 // helloworld 、workqueue 模式设置为空字符串，表示使用默认交换机
+		p.config.QueueName, //  direct key，注意：简单模式与队列名称相同
+		false,
+		false,
+		amqp.Publishing{
+			DeliveryMode: msgPersistent, //消息是否持久化，这里与保持保持一致即可
+			ContentType:  "text/plain",
+			Body:         data,
+		})
+	if err != nil {
+		log.Slog.ErrorF(p.ctx, "rabbitmq publish error: %s", err.Error())
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
 // Close 发送完毕手动关闭，这样不影响send多次发送数据

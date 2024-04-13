@@ -1,22 +1,30 @@
 package direct
 
 import (
+	"context"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // CreateProducer  创建一个生产者
 func CreateProducer(config ProducerConfig, options ...OptionsProd) (*Producer, error) {
+
+	if config.Ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
 	// 获取配置信息
 	conn, err := amqp.Dial(config.Addr)
 	if err != nil {
-		log.Slog.ErrorF(nil, "rabbitmq producer connect error: %s", err.Error())
+		log.Slog.ErrorF(config.Ctx, "rabbitmq producer connect error: %s", err.Error())
 		return nil, err
 	}
 
 	prod := &Producer{
+		ctx:     config.Ctx,
 		config:  config,
 		connect: conn,
+		args:    config.Args,
 	}
 	// 加载用户设置的参数
 	for _, val := range options {
@@ -27,9 +35,9 @@ func CreateProducer(config ProducerConfig, options ...OptionsProd) (*Producer, e
 
 // 定义一个消息队列结构体：Routing 模型
 type Producer struct {
+	ctx                  context.Context
 	config               ProducerConfig
 	connect              *amqp.Connection
-	occurError           error
 	enableDelayMsgPlugin bool // 是否使用延迟队列模式
 	args                 amqp.Table
 }
@@ -39,11 +47,14 @@ type Producer struct {
 // routeKey 路由键、
 // data 发送的数据、
 // delayMillisecond 延迟时间(毫秒)，只有启用了消息延迟插件才有效果
-func (p *Producer) Send(routeKey, data string, delayMillisecond int) bool {
+func (p *Producer) Send(routeKey string, data []byte, delayMillisecond int) bool {
 
 	// 获取一个频道
 	ch, err := p.connect.Channel()
-	p.occurError = err
+	if err != nil {
+		log.Slog.ErrorF(p.ctx, "rabbitmq channel error: %s", err.Error())
+		return false
+	}
 	defer func() {
 		_ = ch.Close()
 	}()
@@ -58,7 +69,10 @@ func (p *Producer) Send(routeKey, data string, delayMillisecond int) bool {
 		false,
 		p.args,
 	)
-	p.occurError = err
+	if err != nil {
+		log.Slog.ErrorF(p.ctx, "rabbitmq exchange declare error: %s", err.Error())
+		return false
+	}
 
 	// 如果队列的声明是持久化的，那么消息也设置为持久化
 	msgPersistent := amqp.Transient
@@ -66,28 +80,26 @@ func (p *Producer) Send(routeKey, data string, delayMillisecond int) bool {
 		msgPersistent = amqp.Persistent
 	}
 	// 投递消息
-	if err == nil {
-		err = ch.Publish(
-			p.config.ExchangeName, // 交换机名称
-			routeKey,              // direct 模式默认为空即可
-			false,
-			false,
-			amqp.Publishing{
-				DeliveryMode: msgPersistent, //消息是否持久化，这里与保持保持一致即可
-				ContentType:  "text/plain",
-				Body:         []byte(data),
-				Headers: amqp.Table{
-					"x-delay": delayMillisecond, // 延迟时间: 毫秒
-				},
-			})
-	}
-	p.occurError = err
-	if p.occurError != nil { //  发生错误，返回 false
-		log.Slog.ErrorF(nil, "rabbitmq send error: %s", p.occurError.Error())
+	err = ch.PublishWithContext(
+		p.ctx,
+		p.config.ExchangeName, // 交换机名称
+		routeKey,              // direct 模式默认为空即可
+		false,
+		false,
+		amqp.Publishing{
+			DeliveryMode: msgPersistent, //消息是否持久化，这里与保持保持一致即可
+			ContentType:  "text/plain",
+			Body:         data,
+			Headers: amqp.Table{
+				"x-delay": delayMillisecond, // 延迟时间: 毫秒
+			},
+		})
+	if err != nil {
+		log.Slog.ErrorF(p.ctx, "rabbitmq publish error: %s", err.Error())
 		return false
-	} else {
-		return true
 	}
+
+	return true
 }
 
 // Close 发送完毕手动关闭，这样不影响send多次发送数据

@@ -27,9 +27,9 @@ func TestFunction256k1(t *testing.T) {
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice
 	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := alice.Encrypt(plainText)
+	cipherText, capsule, _ := alice.Encrypt(plainText)
 	//Alice
-	decrypt := alice.Decrypt(capsule, cipherText)
+	decrypt, _ := alice.Decrypt(capsule, cipherText)
 
 	if !reflect.DeepEqual(plainText, decrypt) {
 		t.Errorf("Direct decryption failed")
@@ -66,7 +66,7 @@ func TestFunction256k1(t *testing.T) {
 	//Proxy[i] sends cFrags[i] to Bob
 	//Bob
 
-	fragments := bob.DecryptFragments(capsule, cFrags, alice.PublicKey, cipherText)
+	fragments, _ := bob.DecryptFragments(capsule, cFrags, alice.PublicKey, cipherText)
 	if !reflect.DeepEqual(plainText, fragments) {
 		t.Errorf("Re-encapsulated fragment decryption failed")
 	}
@@ -90,10 +90,10 @@ func TestFunctionSM2(t *testing.T) {
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice
 	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := encryptAlice.Encrypt(plainText)
+	cipherText, capsule, _ := encryptAlice.Encrypt(plainText)
 
 	//Alice
-	decrypt := encryptAlice.Decrypt(capsule, cipherText)
+	decrypt, _ := encryptAlice.Decrypt(capsule, cipherText)
 	if !reflect.DeepEqual(plainText, decrypt) {
 		t.Errorf("Direct decryption failed")
 	}
@@ -128,7 +128,7 @@ func TestFunctionSM2(t *testing.T) {
 
 	//Proxy[i] sends cFrags[i] to Bob
 	//Bob
-	fragments := encryptBob.DecryptFragments(capsule, cFrags, encryptAlice.PublicKey, cipherText)
+	fragments, _ := encryptBob.DecryptFragments(capsule, cFrags, encryptAlice.PublicKey, cipherText)
 	if !reflect.DeepEqual(plainText, fragments) {
 		t.Errorf("Re-encapsulated fragment decryption failed")
 	}
@@ -155,10 +155,10 @@ func TestFunction2SM2(t *testing.T) {
 	plainText := []byte("attack at dawn")
 	//Charlie or Alice
 	//胶囊中包含在解密期间重新生成 新密钥的必要信息
-	cipherText, capsule := alice.Encrypt(plainText)
+	cipherText, capsule, _ := alice.Encrypt(plainText)
 
 	//Alice
-	decrypt := alice.Decrypt(capsule, cipherText)
+	decrypt, _ := alice.Decrypt(capsule, cipherText)
 	if !reflect.DeepEqual(plainText, decrypt) {
 		t.Errorf("Direct decryption failed")
 	}
@@ -193,7 +193,7 @@ func TestFunction2SM2(t *testing.T) {
 
 	//Proxy[i] sends cFrags[i] to Bob
 	//Bob
-	fragments := bob.DecryptFragments(capsule, cFrags, alice.PublicKey, cipherText)
+	fragments, _ := bob.DecryptFragments(capsule, cFrags, alice.PublicKey, cipherText)
 	if !reflect.DeepEqual(plainText, fragments) {
 		t.Errorf("Re-encapsulated fragment decryption failed")
 	}

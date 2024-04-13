@@ -2,20 +2,25 @@ package fanout
 
 import (
 	"context"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
 )
 
 func CreateConsumer(config ConsumerConfig, options ...OptionsConsumer) (*Consumer, error) {
-	conn, err := amqp.Dial(config.Addr)
 
+	if config.Ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	conn, err := amqp.Dial(config.Addr)
 	if err != nil {
-		log.Slog.ErrorF(context.Background(), "rabbitmq consumer connect error:%v", err)
+		log.Slog.ErrorF(config.Ctx, "rabbitmq consumer connect error:%v", err)
 		return nil, err
 	}
 
 	cons := &Consumer{
+		ctx:                 config.Ctx,
 		connect:             conn,
 		connErr:             conn.NotifyClose(make(chan *amqp.Error, 1)),
 		receivedMsgBlocking: make(chan struct{}),
@@ -30,10 +35,10 @@ func CreateConsumer(config ConsumerConfig, options ...OptionsConsumer) (*Consume
 
 // 定义一个消息队列结构体：PublishSubscribe 模型
 type Consumer struct {
+	ctx                  context.Context
 	config               ConsumerConfig
 	connect              *amqp.Connection
 	connErr              chan *amqp.Error
-	occurError           error
 	callbackForReceived  func(receivedData []byte) //   断线重连，结构体内部使用
 	callbackOffLine      func(err *amqp.Error)     //   断线重连，结构体内部使用
 	enableDelayMsgPlugin bool                      // 是否使用延迟队列模式
@@ -55,7 +60,8 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 
 			ch, err := c.connect.Channel()
 			if err != nil {
-				log.Slog.ErrorF(context.Background(), "rabbitmq consumer connect Channel error:%v", err)
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect Channel error:%v, chanNo:%d", err, chanNo)
+				return
 			}
 			defer func() {
 				_ = ch.Close()
@@ -71,6 +77,10 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 				false,
 				nil,
 			)
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect ExchangeDeclare error:%v", err)
+				return
+			}
 			// 声明队列
 			queue, err := ch.QueueDeclare(
 				c.config.QueueName,
@@ -80,10 +90,11 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 				false,
 				nil,
 			)
-			c.occurError = err
 			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect QueueDeclare error:%v", err)
 				return
 			}
+
 			//队列绑定
 			err = ch.QueueBind(
 				queue.Name,
@@ -92,9 +103,13 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 				false,
 				nil,
 			)
-			c.occurError = err
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect QueueBind error:%v", err)
+				return
+			}
 
-			msgs, err := ch.Consume(
+			msgs, err := ch.ConsumeWithContext(
+				c.ctx,
 				queue.Name, // 队列名称
 				"",         //  消费者标记，请确保在一个消息频道唯一
 				true,       //是否自动确认，这里设置为 true，自动确认
@@ -103,22 +118,21 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 				false,      // 队列如果已经在服务器声明，设置为 true ，否则设置为 false；
 				nil,
 			)
-			c.occurError = err
-			if err == nil {
-				for {
-					select {
-					case msg := <-msgs:
-						// 消息处理
-						if c.status == 1 && len(msg.Body) > 0 {
-							callbackFunDealMsg(msg.Body)
-						} else if c.status == 0 {
-							return
-						}
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect Consume error:%v", err)
+				return
+			}
+
+			for {
+				select {
+				case msg := <-msgs:
+					// 消息处理
+					if c.status == 1 && len(msg.Body) > 0 {
+						callbackFunDealMsg(msg.Body)
+					} else if c.status == 0 {
+						return
 					}
 				}
-			} else {
-				log.Slog.ErrorF(context.Background(), "rabbitmq consumer connect Consume error:%v", err)
-				return
 			}
 		}(i)
 	}
@@ -139,6 +153,7 @@ func (c *Consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 			for i = 1; i <= c.config.RetryTimes; i++ {
 				// 自动重连机制
 				time.Sleep(c.config.ReconnectInterval * time.Second)
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error:%v, retry times:%d", err, i)
 				// 发生连接错误时,中断原来的消息监听（包括关闭连接）
 				if c.status == 1 {
 					c.receivedMsgBlocking <- struct{}{}

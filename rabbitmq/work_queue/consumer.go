@@ -1,12 +1,18 @@
 package work_queue
 
 import (
+	"context"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
 )
 
 func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
+
+	if config.Ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
 	// 获取配置信息
 	conn, err := amqp.Dial(config.Addr)
 	if err != nil {
@@ -15,6 +21,7 @@ func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 	}
 
 	cons := &Consumer{
+		ctx:                 config.Ctx,
 		config:              config,
 		connect:             conn,
 		connErr:             conn.NotifyClose(make(chan *amqp.Error, 1)),
@@ -26,9 +33,9 @@ func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 
 // 定义一个消息队列结构体：WorkQueue 模型
 type Consumer struct {
+	ctx                 context.Context
 	config              ConsumerConfig
 	connect             *amqp.Connection
-	occurError          error
 	connErr             chan *amqp.Error
 	callbackForReceived func(receivedData []byte) //   断线重连，结构体内部使用
 	callbackOffLine     func(err *amqp.Error)     //   断线重连，结构体内部使用
@@ -48,7 +55,10 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 		go func(chanNo int) {
 
 			ch, err := c.connect.Channel()
-			c.occurError = err
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer channel error: %s, chanNo: %d", err.Error(), chanNo)
+				return
+			}
 			defer func() {
 				_ = ch.Close()
 			}()
@@ -61,18 +71,22 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 				false,
 				nil,
 			)
-			c.occurError = err
-
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer queue declare error: %s, chanNo: %d", err.Error(), chanNo)
+				return
+			}
 			err = ch.Qos(
 				1,     // 大于0，服务端将会传递该数量的消息到消费者端进行待处理（通俗地说，就是消费者端积压消息的数量最大值）
 				0,     // prefetch size
 				false, // false 表示本连接只针对本频道有效，true表示应用到本连接的所有频道
 			)
-			c.occurError = err
 			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer qos error: %s, chanNo: %d", err.Error(), chanNo)
 				return
 			}
-			msgs, err := ch.Consume(
+
+			msgs, err := ch.ConsumeWithContext(
+				c.ctx,
 				q.Name,
 				"",    //  消费者标记，请确保在一个消息频道唯一
 				true,  //是否自动确认，这里设置为 true 自动确认，如果是 false  后面需要调用 ack 函数确认
@@ -81,21 +95,21 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 				false, // 队列如果已经在服务器声明，设置为 true ，否则设置为 false；
 				nil,
 			)
-			c.occurError = err
-			if err == nil {
-				for {
-					select {
-					case msg := <-msgs:
-						// 消息处理
-						if c.status == 1 && len(msg.Body) > 0 {
-							callbackFunDealMsg(msg.Body)
-						} else if c.status == 0 {
-							return
-						}
+			if err != nil {
+				log.Slog.ErrorF(c.ctx, "rabbitmq consumer consume error: %s, chanNo: %d", err.Error(), chanNo)
+				return
+			}
+
+			for {
+				select {
+				case msg := <-msgs:
+					// 消息处理
+					if c.status == 1 && len(msg.Body) > 0 {
+						callbackFunDealMsg(msg.Body)
+					} else if c.status == 0 {
+						return
 					}
 				}
-			} else {
-				return
 			}
 		}(i)
 	}

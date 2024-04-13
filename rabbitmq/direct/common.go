@@ -1,8 +1,13 @@
 package direct
 
-import "time"
+import (
+	"context"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"time"
+)
 
 type ConsumerConfig struct {
+	Ctx context.Context
 	// RabbitMqAddr rabbitmq 地址
 	Addr string
 	// RabbitMqQueueName rabbitmq 队列名称
@@ -22,6 +27,7 @@ type ConsumerConfig struct {
 }
 
 type ProducerConfig struct {
+	Ctx context.Context
 	// RabbitMqAddr rabbitmq 地址
 	Addr string
 	// RabbitMqQueueName rabbitmq 队列名称
@@ -32,4 +38,6 @@ type ProducerConfig struct {
 	ExchangeType string
 	// RabbitMqExchangeName rabbitmq exchange名称
 	ExchangeName string
+	// args rabbitmq 队列参数
+	Args amqp.Table
 }
