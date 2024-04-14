@@ -13,6 +13,11 @@ func CreateConsumer(config ConsumerConfig, options ...OptionsConsumer) (*Consume
 	if config.Ctx == nil {
 		return nil, fmt.Errorf("context is nil")
 	}
+
+	if config.ChanNumber <= 0 {
+		return nil, fmt.Errorf("channel number is less than 1")
+	}
+
 	// 获取配置信息
 	conn, err := amqp.Dial(config.Addr)
 	if err != nil {
@@ -52,135 +57,171 @@ type Consumer struct {
 
 // Received  接收、处理消息
 func (c *Consumer) Received(routeKey string, callbackFunDealMsg func(receivedData []byte)) {
-	defer func() {
-		c.close()
-	}()
-	// 将回调函数地址赋值给结构体变量，用于掉线重连使用
+	defer c.close() // 确保在函数退出时关闭连接
+
+	// 存储路由键和回调函数，以便在需要时重新建立连接
 	c.routeKey = routeKey
 	c.callbackForReceived = callbackFunDealMsg
 
-	go func(key string) {
+	// 启动多个goroutine并发处理消息
+	for i := 1; i <= c.config.ChanNumber; i++ {
+		go c.startConsuming(i, routeKey, callbackFunDealMsg)
+	}
 
-		ch, err := c.connect.Channel()
-		if err != nil {
-			log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error: %s", err.Error())
-			return
-		}
-		defer func() {
-			_ = ch.Close()
-		}()
-
-		// 声明exchange交换机
-		err = ch.ExchangeDeclare(
-			c.config.ExchangeName, //exchange name
-			c.config.ExchangeType, //exchange kind
-			c.config.Durable,      //数据是否持久化
-			!c.config.Durable,     //所有连接断开时，交换机是否删除
-			false,
-			false,
-			nil,
-		)
-		// 声明队列
-		queue, err := ch.QueueDeclare(
-			c.config.QueueName,
-			c.config.Durable,
-			true,
-			false,
-			false,
-			nil,
-		)
-		if err != nil {
-			log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error: %s", err.Error())
-			return
-		}
-
-		//队列绑定
-		err = ch.QueueBind(
-			queue.Name,
-			key, //  Topics 模式,生产者会将消息投递至交换机的route_key， 消费者匹配不同的key获取消息、处理
-			c.config.ExchangeName,
-			false,
-			nil,
-		)
-		if err != nil {
-			log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error: %s", err.Error())
-			return
-		}
-
-		msgs, err := ch.ConsumeWithContext(
-			c.ctx,
-			queue.Name, // 队列名称
-			"",         //  消费者标记，请确保在一个消息频道唯一
-			true,       //是否自动确认，这里设置为 true，自动确认
-			false,      //是否私有队列，false标识允许多个 consumer 向该队列投递消息，true 表示独占
-			false,      //RabbitMQ不支持noLocal标志。
-			false,      // 队列如果已经在服务器声明，设置为 true ，否则设置为 false；
-			nil,
-		)
-		if err != nil {
-			log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error: %s", err.Error())
-			return
-		}
-		for {
-			select {
-			case msg := <-msgs:
-				// 消息处理
-				if c.status == 1 && len(msg.Body) > 0 {
-					callbackFunDealMsg(msg.Body)
-				} else if c.status == 0 {
-					return
-				}
-			}
-		}
-	}(routeKey)
-
+	// 阻塞，直到收到停止信号
 	if _, isOk := <-c.receivedMsgBlocking; isOk {
 		c.status = 0
 		close(c.receivedMsgBlocking)
 	}
+}
 
+func (c *Consumer) startConsuming(chanNo int, routeKey string, callbackFunDealMsg func(receivedData []byte)) {
+	ch, err := c.connect.Channel()
+	if err != nil {
+		log.Slog.ErrorF(c.ctx, "创建RabbitMQ通道失败: %s", err)
+		return
+	}
+	defer ch.Close()
+
+	err = c.setQos(ch, chanNo)
+	if err != nil {
+		return
+	}
+
+	if err := c.setupExchangeAndQueue(ch, routeKey); err != nil {
+		log.Slog.ErrorF(c.ctx, "设置交换机和队列失败: %s", err)
+		return
+	}
+
+	msgs, err := c.consumeMessages(ch)
+	if err != nil {
+		log.Slog.ErrorF(c.ctx, "启动消息消费失败: %s", err)
+		return
+	}
+
+	c.processMessages(msgs, callbackFunDealMsg)
+}
+
+func (c *Consumer) setupExchangeAndQueue(ch *amqp.Channel, routeKey string) error {
+	if err := ch.ExchangeDeclare(
+		c.config.ExchangeName,
+		c.config.ExchangeType,
+		c.config.Durable,
+		!c.config.Durable,
+		false,
+		false,
+		nil,
+	); err != nil {
+		return err
+	}
+
+	queue, err := ch.QueueDeclare(
+		c.config.QueueName,
+		c.config.Durable,
+		true,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	return ch.QueueBind(
+		queue.Name,
+		routeKey,
+		c.config.ExchangeName,
+		false,
+		nil,
+	)
+}
+
+// setQos 设置质量保证
+func (c *Consumer) setQos(ch *amqp.Channel, chanNo int) error {
+	err := ch.Qos(
+		1,     // 预取计数
+		0,     // 预取大小
+		false, // 全局应用
+	)
+	if err != nil {
+		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s, chanNo: %d", err.Error(), chanNo)
+	}
+	return err
+}
+
+func (c *Consumer) consumeMessages(ch *amqp.Channel) (<-chan amqp.Delivery, error) {
+	return ch.ConsumeWithContext(
+		c.ctx,
+		c.config.QueueName,
+		"",    // Consumer tag - Ensure it is unique
+		true,  // Auto Ack
+		false, // Exclusive
+		false, // No Local
+		false, // No Wait
+		nil,
+	)
+}
+
+func (c *Consumer) processMessages(msgs <-chan amqp.Delivery, callbackFunDealMsg func(receivedData []byte)) {
+	for msg := range msgs {
+		if c.status == 1 && len(msg.Body) > 0 {
+			callbackFunDealMsg(msg.Body)
+		} else if c.status == 0 {
+			return
+		}
+	}
 }
 
 // OnConnectionError 消费者端，掉线重连失败后的错误回调
 func (c *Consumer) OnConnectionError(callbackOfflineErr func(err *amqp.Error)) {
 	c.callbackOffLine = callbackOfflineErr
-	go func() {
-		select {
-		case err := <-c.connErr:
-			var i = 1
-			for i = 1; i <= c.config.RetryTimes; i++ {
-				// 自动重连机制
-				time.Sleep(c.config.ReconnectInterval * time.Second)
-				log.Slog.ErrorF(c.ctx, "rabbitmq consumer connect error: %s, retrying %d times", err.Error(), i)
-				// 发生连接错误时,中断原来的消息监听（包括关闭连接）
-				if c.status == 1 {
-					c.receivedMsgBlocking <- struct{}{}
-				}
-				conn, err := CreateConsumer(c.config)
-				if err != nil {
-					continue
-				} else {
-					go func() {
-						c.connErr = conn.connect.NotifyClose(make(chan *amqp.Error, 1))
-						go conn.OnConnectionError(c.callbackOffLine)
-						conn.Received(c.routeKey, c.callbackForReceived)
-					}()
-					// 新的客户端重连成功后，释放旧的回调函数 - OnConnectionError
-					if c.status == 0 {
-						return
-					}
-					break
-				}
-			}
-			if i > c.config.RetryTimes {
-				callbackOfflineErr(err)
-				// 如果超过最大重连次数，同样需要释放回调函数 - OnConnectionError
-				if c.status == 0 {
-					return
-				}
-			}
+	go c.monitorConnection()
+}
+
+func (c *Consumer) monitorConnection() {
+	err := <-c.connErr
+	c.handleConnectionError(err)
+}
+
+func (c *Consumer) handleConnectionError(err *amqp.Error) {
+	attempts := 1
+	for attempts <= c.config.RetryTimes {
+		attempts++
+		time.Sleep(c.config.ReconnectInterval * time.Second)
+		log.Slog.ErrorF(c.ctx, "RabbitMQ consumer connection error: %s, retry attempt: %d", err, attempts)
+
+		if c.status == 1 {
+			c.receivedMsgBlocking <- struct{}{}
 		}
-	}()
+
+		newConsumer, err := CreateConsumer(c.config)
+		if err != nil {
+			log.Slog.ErrorF(c.ctx, "RabbitMQ consumer connection error: %s", err)
+			continue
+		}
+
+		c.swapConnection(newConsumer)
+		return
+	}
+
+	// 如果超过最大重连次数，调用回调函数
+	c.callbackOffLine(err)
+}
+
+func (c *Consumer) swapConnection(newConsumer *Consumer) {
+	c.ctx = newConsumer.ctx
+	c.config = newConsumer.config
+	c.connect = newConsumer.connect
+	c.connErr = newConsumer.connErr
+	c.routeKey = newConsumer.routeKey
+	c.callbackForReceived = newConsumer.callbackForReceived
+	c.callbackOffLine = newConsumer.callbackOffLine
+	c.enableDelayMsgPlugin = newConsumer.enableDelayMsgPlugin
+	c.receivedMsgBlocking = newConsumer.receivedMsgBlocking
+
+	go c.connect.NotifyClose(c.connErr)
+	go c.OnConnectionError(c.callbackOffLine)
+	c.Received(c.routeKey, c.callbackForReceived)
 }
 
 // close 关闭连接
