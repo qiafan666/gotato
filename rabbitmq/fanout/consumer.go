@@ -38,7 +38,7 @@ func CreateConsumer(config ConsumerConfig, options ...OptionsConsumer) (*Consume
 	return cons, nil
 }
 
-// 定义一个消息队列结构体：PublishSubscribe 模型
+// Consumer 定义一个消息队列结构体：PublishSubscribe 模型
 type Consumer struct {
 	ctx                  context.Context
 	config               ConsumerConfig
@@ -49,6 +49,7 @@ type Consumer struct {
 	enableDelayMsgPlugin bool                      // 是否使用延迟队列模式
 	receivedMsgBlocking  chan struct{}             // 接受消息时用于阻塞消息处理函数
 	status               byte                      // 客户端状态：1=正常；0=异常
+	ch                   *amqp.Channel             // 通道
 }
 
 func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
@@ -77,20 +78,16 @@ func (c *Consumer) consumeMessages(chanNo int, callbackFunDealMsg func(receivedD
 	}
 	defer ch.Close()
 
-	// qos 设置
-	err = c.setQos(ch, chanNo)
-	if err != nil {
-		return
-	}
+	c.ch = ch
 
 	if err = c.setupExchangeAndQueue(ch); err != nil {
-		log.Slog.ErrorF(c.ctx, "rabbitmq setup error: %s", err)
+		log.Slog.ErrorF(c.ctx, "rabbitmq setup error: %s, chanNo:%d", err, chanNo)
 		return
 	}
 
 	msgs, err := c.consumeMessagesFromChannel(ch)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "rabbitmq consume error: %s", err)
+		log.Slog.ErrorF(c.ctx, "rabbitmq consume error: %s, chanNo:%d", err, chanNo)
 		return
 	}
 
@@ -136,19 +133,18 @@ func (c *Consumer) setupExchangeAndQueue(ch *amqp.Channel) error {
 	return err
 }
 
-// setQos 设置质量保证
-func (c *Consumer) setQos(ch *amqp.Channel, chanNo int) error {
-	err := ch.Qos(
-		1,     // 预取计数
-		0,     // 预取大小
-		false, // 全局应用
+// SetQos 设置质量保证
+func (c *Consumer) SetQos(prefetchCount int, prefetchSize int, global bool) error {
+	err := c.ch.Qos(
+		prefetchCount, // 预取计数
+		prefetchSize,  // 预取大小
+		global,        // 全局应用
 	)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s, chanNo: %d", err.Error(), chanNo)
+		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s", err.Error())
 	}
 	return err
 }
-
 func (c *Consumer) consumeMessagesFromChannel(ch *amqp.Channel) (<-chan amqp.Delivery, error) {
 	// 消费消息
 	return ch.ConsumeWithContext(

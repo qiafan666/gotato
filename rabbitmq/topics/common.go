@@ -7,34 +7,34 @@ import (
 
 type ConsumerConfig struct {
 	Ctx context.Context
-	// RabbitMqAddr rabbitmq 地址
+	// Addr  地址
 	Addr string
-	// RabbitMqQueueName rabbitmq 队列名称
+	// QueueName  队列名称
 	QueueName string
-	// RabbitMqDurable rabbitmq 是否持久化
+	// Durable  是否持久化
 	Durable bool
-	// RabbitMqChanNumber rabbitmq 通道数量
+	// ChanNumber  消费者数量
 	ChanNumber int
-	// RabbitMqReconnectInterval rabbitmq 重连间隔
+	// ReconnectInterval  重连间隔
 	ReconnectInterval time.Duration
-	// RabbitMqRetryTimes rabbitmq 重试次数
+	// RetryTimes  重试次数
 	RetryTimes int
-	// RabbitMqExchangeType rabbitmq exchange类型
+	// ExchangeType  exchange类型
 	ExchangeType string
-	// RabbitMqExchangeName rabbitmq exchange名称
+	// ExchangeName  exchange名称
 	ExchangeName string
 }
 
 type ProducerConfig struct {
 	Ctx context.Context
-	// RabbitMqAddr rabbitmq 地址
+	// Addr  地址
 	Addr string
-	// RabbitMqExchangeType rabbitmq exchange类型
+	// ExchangeType  exchange类型
 	ExchangeType string
-	// RabbitMqExchangeName rabbitmq exchange名称
+	// ExchangeName  exchange名称
 	ExchangeName string
-	// RabbitMqQueueName rabbitmq 队列名称
+	// QueueName  队列名称
 	QueueName string
-	// RabbitMqDurable rabbitmq 是否持久化
+	// Durable  是否持久化
 	Durable bool
 }

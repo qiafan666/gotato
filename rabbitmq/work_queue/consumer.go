@@ -36,7 +36,7 @@ func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 	return cons, nil
 }
 
-// 定义一个消息队列结构体：WorkQueue 模型
+// Consumer 定义一个消息队列结构体：WorkQueue 模型
 type Consumer struct {
 	ctx                 context.Context
 	config              ConsumerConfig
@@ -46,6 +46,7 @@ type Consumer struct {
 	callbackOffLine     func(err *amqp.Error)     //   断线重连，结构体内部使用
 	receivedMsgBlocking chan struct{}             // 接受消息时用于阻塞消息处理函数
 	status              byte                      // 客户端状态：1=正常；0=异常
+	ch                  *amqp.Channel             // 通道
 }
 
 // Received 接收、处理消息
@@ -81,9 +82,7 @@ func (c *Consumer) consumeMessagesOnChannel(chanNo int, callbackFunDealMsg func(
 		return // 相关错误已在 declareQueue 中记录
 	}
 
-	if err = c.setQos(ch, chanNo); err != nil {
-		return // 错误日志在 setQos 中已处理
-	}
+	c.ch = ch
 
 	msgs, err := c.startConsuming(ch, q, chanNo)
 	if err != nil {
@@ -110,15 +109,15 @@ func (c *Consumer) declareQueue(ch *amqp.Channel, chanNo int) (*amqp.Queue, erro
 	return &q, nil
 }
 
-// setQos 设置质量保证
-func (c *Consumer) setQos(ch *amqp.Channel, chanNo int) error {
-	err := ch.Qos(
-		1,     // 预取计数
-		0,     // 预取大小
-		false, // 全局应用
+// SetQos 设置质量保证
+func (c *Consumer) SetQos(prefetchCount int, prefetchSize int, global bool) error {
+	err := c.ch.Qos(
+		prefetchCount, // 预取计数
+		prefetchSize,  // 预取大小
+		global,        // 全局应用
 	)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s, chanNo: %d", err.Error(), chanNo)
+		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s", err.Error())
 	}
 	return err
 }

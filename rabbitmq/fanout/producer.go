@@ -34,7 +34,7 @@ func CreateProducer(config ProducerConfig, options ...OptionsProd) (*Producer, e
 	return prod, nil
 }
 
-// 定义一个消息队列结构体：PublishSubscribe 模型
+// Producer 定义一个消息队列结构体：PublishSubscribe 模型
 type Producer struct {
 	ctx                  context.Context
 	config               ProducerConfig

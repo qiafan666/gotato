@@ -40,7 +40,7 @@ func CreateConsumer(config ConsumerConfig, options ...OptionsConsumer) (*Consume
 	return cons, nil
 }
 
-// 定义一个消息队列结构体：Topics 模型
+// Consumer 定义一个消息队列结构体：Topics 模型
 type Consumer struct {
 	ctx                  context.Context
 	config               ConsumerConfig
@@ -52,7 +52,7 @@ type Consumer struct {
 	enableDelayMsgPlugin bool                      // 是否使用延迟队列模式
 	receivedMsgBlocking  chan struct{}             // 接受消息时用于阻塞消息处理函数
 	status               byte                      // 客户端状态：1=正常；0=异常
-
+	ch                   *amqp.Channel             // 通道
 }
 
 // Received  接收、处理消息
@@ -78,24 +78,21 @@ func (c *Consumer) Received(routeKey string, callbackFunDealMsg func(receivedDat
 func (c *Consumer) startConsuming(chanNo int, routeKey string, callbackFunDealMsg func(receivedData []byte)) {
 	ch, err := c.connect.Channel()
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "创建RabbitMQ通道失败: %s", err)
+		log.Slog.ErrorF(c.ctx, "create channel error: %s, channel number: %d", err.Error(), chanNo)
 		return
 	}
 	defer ch.Close()
 
-	err = c.setQos(ch, chanNo)
-	if err != nil {
-		return
-	}
+	c.ch = ch
 
 	if err := c.setupExchangeAndQueue(ch, routeKey); err != nil {
-		log.Slog.ErrorF(c.ctx, "设置交换机和队列失败: %s", err)
+		log.Slog.ErrorF(c.ctx, "setup exchange and queue error: %s", err.Error())
 		return
 	}
 
 	msgs, err := c.consumeMessages(ch)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "启动消息消费失败: %s", err)
+		log.Slog.ErrorF(c.ctx, "consume messages error: %s, channel number: %d", err.Error(), chanNo)
 		return
 	}
 
@@ -136,15 +133,15 @@ func (c *Consumer) setupExchangeAndQueue(ch *amqp.Channel, routeKey string) erro
 	)
 }
 
-// setQos 设置质量保证
-func (c *Consumer) setQos(ch *amqp.Channel, chanNo int) error {
-	err := ch.Qos(
-		1,     // 预取计数
-		0,     // 预取大小
-		false, // 全局应用
+// SetQos 设置质量保证
+func (c *Consumer) SetQos(prefetchCount int, prefetchSize int, global bool) error {
+	err := c.ch.Qos(
+		prefetchCount, // 预取计数
+		prefetchSize,  // 预取大小
+		global,        // 全局应用
 	)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s, chanNo: %d", err.Error(), chanNo)
+		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s", err.Error())
 	}
 	return err
 }

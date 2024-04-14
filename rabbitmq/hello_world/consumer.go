@@ -36,7 +36,7 @@ func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 	return cons, nil
 }
 
-// 定义一个消息队列结构体：helloworld 模型
+// Consumer 定义一个消息队列结构体：helloworld 模型
 type Consumer struct {
 	ctx                 context.Context
 	config              ConsumerConfig
@@ -46,6 +46,7 @@ type Consumer struct {
 	callbackOffLine     func(err *amqp.Error)     //   断线重连，结构体内部使用
 	receivedMsgBlocking chan struct{}             // 接受消息时用于阻塞消息处理函数
 	status              byte                      // 客户端状态：1=正常；0=异常
+	ch                  *amqp.Channel
 }
 
 // Received 接收、处理消息
@@ -70,27 +71,24 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 func (c *Consumer) handleChannel(chanNo int) {
 	ch, err := c.connect.Channel()
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "创建rabbitmq通道失败:%v, 通道编号:%d", err, chanNo)
+		log.Slog.ErrorF(c.ctx, "create channel error:%v, channel number:%d", err, chanNo)
 		return
 	}
 	defer ch.Close() // 确保在函数退出时关闭通道
 
-	err = c.setQos(ch, chanNo)
-	if err != nil {
-		return
-	}
+	c.ch = ch
 
 	// 声明并初始化队列
 	queue, err := c.declareQueue(ch)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "声明队列失败:%v", err)
+		log.Slog.ErrorF(c.ctx, "declare queue error:%v, channel number:%d", err, chanNo)
 		return
 	}
 
 	// 开始消费消息
 	msgs, err := c.consumeQueue(ch, queue.Name)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "开始消费消息失败:%v", err)
+		log.Slog.ErrorF(c.ctx, "consume queue error:%v, channel number:%d", err, chanNo)
 		return
 	}
 
@@ -98,19 +96,18 @@ func (c *Consumer) handleChannel(chanNo int) {
 	c.processMessages(msgs, c.callbackForReceived)
 }
 
-// setQos 设置质量保证
-func (c *Consumer) setQos(ch *amqp.Channel, chanNo int) error {
-	err := ch.Qos(
-		1,     // 预取计数
-		0,     // 预取大小
-		false, // 全局应用
+// SetQos 设置质量保证
+func (c *Consumer) SetQos(prefetchCount int, prefetchSize int, global bool) error {
+	err := c.ch.Qos(
+		prefetchCount, // 预取计数
+		prefetchSize,  // 预取大小
+		global,        // 全局应用
 	)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s, chanNo: %d", err.Error(), chanNo)
+		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s", err.Error())
 	}
 	return err
 }
-
 func (c *Consumer) declareQueue(ch *amqp.Channel) (amqp.Queue, error) {
 	return ch.QueueDeclare(
 		c.config.QueueName,
