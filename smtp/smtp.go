@@ -11,12 +11,17 @@ import (
 	"strings"
 )
 
-// Sendmail 可批量发送，格式：test1;test2;test3
-func Sendmail(smtpName, receive, subject string, body string) error {
+// Sendmail
+// smtpConfigName 对应配置文件中的名称
+// receive 收件人，多个收件人用;分隔
+// subject 主题
+// body 内容支持变量替换，格式：$replace
+// content 为可变参数，可以传入多个内容，会依次替换body中的$replace变量
+func Sendmail(smtpConfigName string, receive, subject string, body string, content ...string) error {
 
 	var configContent config.SmtpConfig
 	for _, smtpConfig := range config.Configs.Smtp {
-		if smtpConfig.Name == smtpName {
+		if smtpConfig.Name == smtpConfigName {
 			configContent = smtpConfig
 		}
 	}
@@ -40,6 +45,11 @@ func Sendmail(smtpName, receive, subject string, body string) error {
 	for k, v := range header {
 		message += fmt.Sprintf("%s:%s\r\n", k, v)
 	}
+
+	for i := range content {
+		body = strings.Replace(body, "$replace", content[i], -1)
+	}
+
 	message += "\r\n" + body
 	auth := smtp.PlainAuth(
 		"",
@@ -139,7 +149,7 @@ const example = `
                         </font>
                     </h2>
                     <!-- 中文 -->
-                    <p>您好！感谢您使用Gotato，您的账号正在进行邮箱验证，验证码为：<font color="#ff8c00" size="4">` + "Gotato" + `</font>，有效期5分钟，请尽快填写验证码完成验证！</p><br>
+                    <p>您好！感谢您使用Gotato，您的账号正在进行邮箱验证，验证码为：<font color="#ff8c00" size="4">` + "$replace" + `</font>，有效期5分钟，请尽快填写验证码完成验证！</p><br>
   					<br>
                     <div style="width:100%;margin:0 auto;">
                         <div style="padding:10px 10px 0;border-top:1px solid #ccc;color:#747474;margin-bottom:20px;line-height:1.3em;font-size:12px;">
