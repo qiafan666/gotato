@@ -16,6 +16,8 @@ type Dao interface {
 	Get(ctx context.Context, k string) (out string, err error)
 	Set(ctx context.Context, k string, x interface{}, d time.Duration) (err error)
 	Delete(ctx context.Context, k string) (err error)
+	Publish(ctx context.Context, channel string, message interface{}) (err error)
+	Subscribe(ctx context.Context, channel string) (out <-chan *redis.Message, err error)
 }
 
 type Imp struct {
@@ -48,4 +50,30 @@ func (i Imp) Set(ctx context.Context, k string, x interface{}, d time.Duration) 
 
 func (i Imp) Delete(ctx context.Context, k string) (err error) {
 	return i.redis.Del(ctx, k).Err()
+}
+
+func (i Imp) Publish(ctx context.Context, channel string, message interface{}) (err error) {
+	err = i.redis.Publish(ctx, channel, message).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (i Imp) Subscribe(ctx context.Context, channel string) (<-chan *redis.Message, error) {
+	// 创建一个通道，用于发送接收到的消息
+	out := make(chan *redis.Message)
+
+	// 从 Redis 订阅给定的频道
+	sub := i.redis.Subscribe(ctx, channel)
+	// 使用 Go 协程来处理接收到的消息
+	go func() {
+		defer close(out) // 确保在协程结束时关闭通道
+		for message := range sub.Channel() {
+			// 将接收到的消息发送到通道
+			out <- message
+		}
+	}()
+
+	return out, nil
 }
