@@ -97,6 +97,10 @@ func (slf *Server) WaitClose(params ...irisV12.Configurator) {
 	}
 }
 
+func (slf *Server) New() {
+	slf.app.New()
+}
+
 // App return app
 func (slf *Server) App() *iris.App {
 	return &slf.app
