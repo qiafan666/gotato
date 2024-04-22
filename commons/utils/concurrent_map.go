@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// concurrent_map可当做缓存数据库
 var defaultShardCount = 16 // 默认分片数
 
 // Stringer 接口定义，需要同时具备fmt.Stringer和可比较性
