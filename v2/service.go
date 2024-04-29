@@ -33,7 +33,6 @@ type Server struct {
 	app        *gin.Engine
 	redis      []redis.Redis
 	db         []gotatodb.GotatoDB
-	ctx        context.Context
 	httpServer *http.Server
 	oss        []oss.Oss
 	mongo      []mongo.Mongo
@@ -179,7 +178,7 @@ func (slf *Server) gin() {
 	slf.app.Use(middleware.Default)
 
 	slf.httpServer = &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
+		Addr:    fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port),
 		Handler: slf.App(),
 	}
 	//开启pprof
@@ -215,7 +214,7 @@ func (slf *Server) ginInit() {
 	slf.app = gin.New()
 
 	slf.httpServer = &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
+		Addr:    fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port),
 		Handler: slf.App(),
 	}
 	//开启pprof
