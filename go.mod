@@ -1,6 +1,6 @@
 module github.com/qiafan666/gotato
 
-go 1.21
+go 1.22.2
 
 require (
 	github.com/IBM/sarama v1.41.2
@@ -10,7 +10,8 @@ require (
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/kataras/iris/v12 v12.2.1
-	github.com/klauspost/compress v1.17.4
+	github.com/klauspost/compress v1.17.7
+	github.com/nats-io/nats.go v1.34.1
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/swaggo/files v1.0.1
@@ -19,7 +20,7 @@ require (
 	github.com/valyala/fasthttp v1.49.0
 	github.com/xuri/excelize/v2 v2.8.1
 	go.uber.org/zap v1.25.0
-	golang.org/x/crypto v0.19.0
+	golang.org/x/crypto v0.22.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -98,6 +99,8 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/nats-io/nkeys v0.4.7 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
@@ -123,7 +126,7 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
