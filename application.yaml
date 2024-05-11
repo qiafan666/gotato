@@ -4,7 +4,7 @@ server:
   # silent debug info warn error
   gorm_log_level: debug
   # debug info warn error
-  loglevel: debug
+  zap_log_level: debug
   profile: dev
   configPath: .\configs
   logPath: .\log
