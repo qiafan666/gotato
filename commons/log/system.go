@@ -58,8 +58,12 @@ func getTraceId(ctx context.Context) string {
 	} else {
 		return ""
 	}
-
 }
+
+func SetTraceId(traceId string) context.Context {
+	return context.WithValue(context.Background(), "trace_id", traceId)
+}
+
 func (l *Logger) InfoF(ctx context.Context, template string, args ...interface{}) {
 	if ctx != nil {
 		ZapLog.Infof(getTraceId(ctx)+template, args...)
