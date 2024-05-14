@@ -45,9 +45,13 @@ func Default(ctx iris.Context) {
 	if !IsIgnoredRequest(ctx.Request().URL.Path) {
 
 		addr := ctx.Request().RemoteAddr
+		if ctx.GetHeader("X-Real-IP") != "" {
+			addr = ctx.GetHeader("X-Real-IP")
+		}
 		if ctx.GetHeader("X-Forwarded-For") != "" {
 			addr = ctx.GetHeader("X-Forwarded-For")
 		}
+
 		path := ctx.Request().URL.Path
 		if ctx.Request().URL.RawQuery != "" {
 			path += "?" + ctx.Request().URL.RawQuery
