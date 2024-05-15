@@ -4,6 +4,7 @@ import (
 	"context"
 	gotato "github.com/qiafan666/gotato"
 	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/utils"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -18,6 +19,7 @@ type Dao interface {
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
+	UpdateNotNullFields(interface{}, string, map[string]interface{}, func(*gorm.DB) *gorm.DB, ...string) (int64, error)
 	Delete(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Count(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Save(interface{}) error
@@ -76,6 +78,26 @@ func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*
 	}
 
 	updates := tx.Where(where).Updates(info)
+	err = updates.Error
+	rows = updates.RowsAffected
+	return
+}
+
+// UpdateNotNullFields 更新不为nil的字段
+// info 要更新的结构体
+// table 要更新的表名
+// where 更新条件
+// scope 事务作用域
+// jumpStrings 跳过结构体中的字段名
+func (s Imp) UpdateNotNullFields(info interface{}, table string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, jumpStrings ...string) (rows int64, err error) {
+
+	if scope != nil {
+		s.db = s.db.Scopes(scope)
+	}
+
+	s.db = s.db.Table(table)
+	updates := s.db.Where(where).Updates(utils.StructToStringMapWithNilFilter(info, table, jumpStrings...))
+
 	err = updates.Error
 	rows = updates.RowsAffected
 	return

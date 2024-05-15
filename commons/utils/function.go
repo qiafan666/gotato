@@ -238,7 +238,7 @@ func UniqueValueSlice[T any](ts []T) []T {
 	return uniqueSlice
 }
 
-// 合并两个切片，去除重复元素
+// MergeString 合并两个切片，去除重复元素
 func MergeString(a []string, b []string) []string {
 	// 创建一个map用于存储所有元素的唯一值
 	uniqueElements := make(map[string]bool)
@@ -262,7 +262,7 @@ func MergeString(a []string, b []string) []string {
 	return merged
 }
 
-// 合并两个切片，去除重复元素
+// MergeInt64 合并两个切片，去除重复元素
 func MergeInt64(a []int64, b []int64) []int64 {
 	// 创建一个map用于存储所有元素的唯一值
 	uniqueElements := make(map[int64]bool)
@@ -286,7 +286,7 @@ func MergeInt64(a []int64, b []int64) []int64 {
 	return merged
 }
 
-// 筛选出非nil的字段，转换成map,用于更新数据库
+// StructToStringMapWithNilFilter 筛选出非nil的字段，转换成map,用于更新数据库,跳过指定字段，json标签为空的字段，json标签为数据库字段
 func StructToStringMapWithNilFilter(inputStruct interface{}, table string, JumpString ...string) map[string]interface{} {
 	resultMap := make(map[string]interface{})
 	resultMap[commons.Table] = table
@@ -307,7 +307,7 @@ func StructToStringMapWithNilFilter(inputStruct interface{}, table string, JumpS
 			continue // 跳过 nil 值的字段
 		}
 
-		if len(structType.Field(i).Tag) == 0 || len(structType.Field(i).Tag.Get("json")) == 0 {
+		if len(structType.Field(i).Tag) == 0 || len(structType.Field(i).Tag.Get("json")) == 0 || structType.Field(i).Tag.Get("json") == "-" {
 			continue
 		}
 

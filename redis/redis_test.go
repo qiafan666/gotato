@@ -11,6 +11,13 @@ import (
 
 var Nil = errors.New("redis: nil")
 
+const (
+	//没有过期时间
+	NoExpiration = time.Duration(0)
+	//ttl 保持现有过期时间
+	KeepTTL = time.Duration(-1)
+)
+
 type Dao interface {
 	Client() *redis.Client
 	Get(ctx context.Context, k string) (out string, err error)
