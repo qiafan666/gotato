@@ -36,16 +36,21 @@ func Instance() Dao {
 	return &Imp{mongo: gotato.GetGotatoInstance().Mongo("test")}
 }
 
+// Insert 向指定集合插入单个文档
 func (i Imp) Insert(collection string, docs any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Insert(docs)
 }
+
+// InsertManyData 向指定集合插入多个文档
 func (i *Imp) InsertManyData(collection string, docs []any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Insert(docs...)
 }
+
+// IsExistKey 检查集合中是否存在符合条件的文档
 func (i *Imp) IsExistKey(collection string, bs bson.M) (bool, error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
@@ -60,6 +65,8 @@ func (i *Imp) IsExistKey(collection string, bs bson.M) (bool, error) {
 	}
 	return true, nil
 }
+
+// QueryData 查询集合中符合条件的单个文档
 func (i *Imp) QueryData(collection string, bs bson.M, value any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
@@ -67,17 +74,21 @@ func (i *Imp) QueryData(collection string, bs bson.M, value any) (err error) {
 	return
 }
 
+// GetCount 获取符合条件的文档数量
 func (i *Imp) GetCount(collection string, bs bson.M) (count int, err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Find(bs).Count()
 }
+
+// QueryAllData 查询集合中所有符合条件的文档
 func (i *Imp) QueryAllData(collection string, bs bson.M, value any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Find(bs).All(value)
 }
 
+// QueryMultiData 查询集合中符合条件的多个文档并排序、分页
 func (i *Imp) QueryMultiData(collection string, bs bson.M, sort string, offset, limit int, value any) (int, error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
@@ -85,17 +96,20 @@ func (i *Imp) QueryMultiData(collection string, bs bson.M, sort string, offset, 
 	if err != nil {
 		return 0, err
 	}
-	if err := s.DB(i.mongo.DB).C(collection).Find(bs).Sort(sort).Skip(offset).Limit(limit).All(value); err != nil {
+	if err = s.DB(i.mongo.DB).C(collection).Find(bs).Sort(sort).Skip(offset).Limit(limit).All(value); err != nil {
 		return 0, err
 	}
 	return count, nil
 }
 
+// UpdateData 更新符合条件的单个文档
 func (i *Imp) UpdateData(collection string, bs bson.M, value any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Update(bs, value)
 }
+
+// UpdateAllData 更新所有符合条件的文档
 func (i *Imp) UpdateAllData(collection string, bs bson.M, value any) (num int, err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
@@ -105,11 +119,15 @@ func (i *Imp) UpdateAllData(collection string, bs bson.M, value any) (num int, e
 	}
 	return info.Updated, err
 }
+
+// UpdateDataById 根据ID更新单个文档
 func (i *Imp) UpdateDataById(collection string, id, value any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).UpdateId(id, value)
 }
+
+// Upsert 插入或更新符合条件的文档
 func (i *Imp) Upsert(collection string, bs bson.M, value any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
@@ -117,17 +135,21 @@ func (i *Imp) Upsert(collection string, bs bson.M, value any) (err error) {
 	return err
 }
 
+// DelDataById 根据ID删除单个文档
 func (i *Imp) DelDataById(collection string, id any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).RemoveId(id)
-
 }
+
+// DelData 删除符合条件的单个文档
 func (i *Imp) DelData(collection string, bs bson.M) error {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Remove(bs)
 }
+
+// DelAllData 删除所有符合条件的文档
 func (i *Imp) DelAllData(collection string, bs bson.M) (int, error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
@@ -138,17 +160,22 @@ func (i *Imp) DelAllData(collection string, bs bson.M) (int, error) {
 		return info.Removed, nil
 	}
 }
+
+// Aggregate 进行聚合查询，返回多个结果
 func (i *Imp) Aggregate(collection string, bs []bson.M, value any) error {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Pipe(bs).All(value)
 }
+
+// AggregateOne 进行聚合查询，返回单个结果
 func (i *Imp) AggregateOne(collection string, bs []bson.M, value any) error {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Pipe(bs).One(value)
 }
 
+// CreateIndex 为集合创建索引
 func (i *Imp) CreateIndex(collection string, unique bool, timeLimit bool, value []string) error {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
