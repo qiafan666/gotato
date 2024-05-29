@@ -52,6 +52,11 @@ func init() {
 	Instance = &Server{}
 }
 
+func (slf *Server) SetMysqlLogCallerSkip(skip int) {
+	slog.GormSkip = skip
+	slog.ReInit()
+}
+
 // GetGotatoInstance create the single object
 func GetGotatoInstance() *Server {
 	return Instance

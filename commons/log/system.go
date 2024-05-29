@@ -17,6 +17,8 @@ var Gorm GormLogger
 var ZapLog *zap.SugaredLogger
 var GormLog *zap.SugaredLogger
 
+var GormSkip int
+
 type Logger struct {
 }
 
@@ -32,6 +34,20 @@ func init() {
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
 	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
 	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(5)).Sugar()
+}
+
+func ReInit() {
+	encoder := getEncoder()
+	Slog = Logger{}
+	Gorm = GormLogger{
+		LogLevel:                  commons.LogLevel[config.SC.SConfigure.GormLogLevel],
+		IgnoreRecordNotFoundError: true,
+	}
+	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", config.SC.SConfigure.LogPath, config.SC.SConfigure.LogName))
+	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[config.SC.SConfigure.ZapLogLevel])
+	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
+	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
+	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(GormSkip)).Sugar()
 }
 
 func getEncoder() zapcore.Encoder {
