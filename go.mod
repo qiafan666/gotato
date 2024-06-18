@@ -1,6 +1,6 @@
 module github.com/qiafan666/gotato
 
-go 1.22.2
+go 1.22.4
 
 require (
 	github.com/IBM/sarama v1.41.2

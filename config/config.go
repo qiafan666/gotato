@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
+	"path/filepath"
 	_ "path/filepath"
 	"strings"
 	"time"
@@ -31,9 +32,9 @@ func init() {
 	}
 	if len(SC.SConfigure.Profile) == 0 {
 		// load dev profile application-dev.yaml
-		Configs = InitAllConfig(strings.TrimRight(SC.SConfigure.ConfigPath, "/") + "/" + "dev")
+		Configs = InitAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), "dev"))
 	} else {
-		Configs = InitAllConfig(strings.TrimRight(SC.SConfigure.ConfigPath, "/") + "/" + SC.SConfigure.Profile)
+		Configs = InitAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), SC.SConfigure.Profile))
 	}
 }
 
