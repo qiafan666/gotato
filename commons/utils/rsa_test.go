@@ -16,29 +16,27 @@ func TestRsa(t *testing.T) {
 	}
 	fmt.Println("生成的私钥=" + hex.EncodeToString(priv))
 	fmt.Println("生成的公钥=" + hex.EncodeToString(pub))
-	data := fmt.Sprintf("%s%s%s%s%s", "1", "2", "3", "4", "5")
 
-	dataString := bytes.NewBufferString(data)
-	sign, err := Rsa2Sign(dataString.Bytes(), priv, PKCS_8)
+	data := bytes.Buffer{}
+	data.WriteString("1")
+	data.WriteString("2")
+	data.WriteString("3")
+	data.WriteString("4")
+	data.WriteString("5")
+
+	sign, err := Rsa2Sign(data.Bytes(), priv, PKCS_8)
 	if err != nil {
 		fmt.Println(err)
 	}
-	encryptOut := hex.EncodeToString(sign)
-	fmt.Println("加密后的数据=" + encryptOut)
+	signData := hex.EncodeToString(sign)
+	fmt.Println("签名后的数据=" + signData)
 
-	bufferString := bytes.Buffer{}
-	bufferString.WriteString("1")
-	bufferString.WriteString("2")
-	bufferString.WriteString("3")
-	bufferString.WriteString("4")
-	bufferString.WriteString("5")
-
-	//decodeString, err := base64.StdEncoding.DecodeString(encryptOut)
-	decodeString, err := hex.DecodeString(encryptOut)
+	//decodeString, err := base64.StdEncoding.DecodeString(signData)
+	decodeString, err := hex.DecodeString(signData)
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, pub)
+	err = Rsa2VerifySign(sha256.Sum256(data.Bytes()), decodeString, pub)
 	if err != nil {
 		fmt.Println(err)
 	}
