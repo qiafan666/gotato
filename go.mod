@@ -9,13 +9,13 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/hashicorp/go-version v1.7.0
 	github.com/kataras/iris/v12 v12.2.1
 	github.com/klauspost/compress v1.17.7
 	github.com/mojocn/base64Captcha v1.3.6
 	github.com/nats-io/nats.go v1.34.1
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/rabbitmq/amqp091-go v1.9.0
-	github.com/redis/go-redis/v9 v9.0.5
 	github.com/satori/go.uuid v1.2.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
