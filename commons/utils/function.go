@@ -3,26 +3,31 @@ package utils
 import (
 	"context"
 	"crypto/md5"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-version"
 	"github.com/kataras/iris/v12"
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/log"
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/utils"
-	"math/rand"
+	"io"
+	mathRand "math/rand"
 	"reflect"
-	"sort"
 	"strings"
 	"time"
 )
 
+// GenerateUUID 生成UUID
 func GenerateUUID() string {
 	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
 }
 
+// StringToMd5 字符串转MD5
 func StringToMd5(str string) string {
 	data := []byte(str)
 	has := md5.Sum(data)
@@ -30,6 +35,7 @@ func StringToMd5(str string) string {
 	return md5str
 }
 
+// StringsToString 字符串数组转字符串
 func StringsToString(stringArray []string) string {
 	if len(stringArray) <= 0 {
 		return ""
@@ -37,6 +43,7 @@ func StringsToString(stringArray []string) string {
 	return strings.Join(stringArray, ",")
 }
 
+// StringToStrings 字符串转字符串数组;,逗号分隔
 func StringToStrings(param string) []string {
 	if len(param) <= 0 {
 		return []string{}
@@ -44,9 +51,217 @@ func StringToStrings(param string) []string {
 	return strings.Split(param, ",")
 }
 
+// StringToSha256 字符串转SHA256
 func StringToSha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
 }
+
+// Nonce 生成随机串(size应为偶数)
+func Nonce(size uint8) string {
+	nonce := make([]byte, size/2)
+	io.ReadFull(rand.Reader, nonce)
+	return hex.EncodeToString(nonce)
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+// RandomString 生成随机字符串
+func RandomString(stringSize int) string {
+	mathRand.Seed(time.Now().UnixNano())
+	b := make([]byte, stringSize)
+	for i := 0; i < stringSize; i++ {
+		for i := range b {
+			b[i] = letterBytes[mathRand.Intn(len(letterBytes))]
+		}
+	}
+	return string(b)
+}
+
+// DataCheck 检查输入的字符串是否有空值
+func DataCheck(input ...string) []int {
+	var nullIndices []int
+
+	for i, data := range input {
+		if len(data) == 0 {
+			nullIndices = append(nullIndices, i)
+		}
+	}
+
+	return nullIndices
+}
+
+// SliceIn 返回指定元素是否在集合中
+func SliceIn[T ~[]E, E comparable](list T, elem E) bool {
+	if len(list) == 0 {
+		return false
+	}
+	for _, v := range list {
+		if v == elem {
+			return true
+		}
+	}
+	return false
+}
+
+// SliceUniq 集合去重
+func SliceUniq[T ~[]E, E comparable](list T) T {
+	if len(list) == 0 {
+		return list
+	}
+
+	ret := make(T, 0, len(list))
+	m := make(map[E]struct{}, len(list))
+	for _, v := range list {
+		if _, ok := m[v]; !ok {
+			ret = append(ret, v)
+			m[v] = struct{}{}
+		}
+	}
+	return ret
+}
+
+// SliceDiff 返回两个集合之间的差异
+func SliceDiff[T ~[]E, E comparable](list1 T, list2 T) (ret1 T, ret2 T) {
+	m1 := map[E]struct{}{}
+	m2 := map[E]struct{}{}
+	for _, v := range list1 {
+		m1[v] = struct{}{}
+	}
+	for _, v := range list2 {
+		m2[v] = struct{}{}
+	}
+
+	ret1 = make(T, 0)
+	ret2 = make(T, 0)
+	for _, v := range list1 {
+		if _, ok := m2[v]; !ok {
+			ret1 = append(ret1, v)
+		}
+	}
+	for _, v := range list2 {
+		if _, ok := m1[v]; !ok {
+			ret2 = append(ret2, v)
+		}
+	}
+	return ret1, ret2
+}
+
+// SliceWithout 返回不包括所有给定值的切片
+func SliceWithout[T ~[]E, E comparable](list T, exclude ...E) T {
+	if len(list) == 0 {
+		return list
+	}
+
+	m := make(map[E]struct{}, len(exclude))
+	for _, v := range exclude {
+		m[v] = struct{}{}
+	}
+
+	ret := make(T, 0, len(list))
+	for _, v := range list {
+		if _, ok := m[v]; !ok {
+			ret = append(ret, v)
+		}
+	}
+	return ret
+}
+
+// SliceIntersect 返回两个集合的交集
+func SliceIntersect[T ~[]E, E comparable](list1 T, list2 T) T {
+	m := make(map[E]struct{})
+	for _, v := range list1 {
+		m[v] = struct{}{}
+	}
+
+	ret := make(T, 0)
+	for _, v := range list2 {
+		if _, ok := m[v]; ok {
+			ret = append(ret, v)
+		}
+	}
+	return ret
+}
+
+// SliceUnion 返回两个集合的并集
+func SliceUnion[T ~[]E, E comparable](lists ...T) T {
+	ret := make(T, 0)
+	m := make(map[E]struct{})
+	for _, list := range lists {
+		for _, v := range list {
+			if _, ok := m[v]; !ok {
+				ret = append(ret, v)
+				m[v] = struct{}{}
+			}
+		}
+	}
+	return ret
+}
+
+// SliceRand 返回一个指定随机挑选个数的切片
+// 若 n == -1 or n >= len(list)，则返回打乱的切片
+func SliceRand[T ~[]E, E any](list T, n int) T {
+	if n == 0 || n < -1 {
+		return nil
+	}
+
+	count := len(list)
+	ret := make(T, count)
+	copy(ret, list)
+	mathRand.Shuffle(count, func(i, j int) {
+		ret[i], ret[j] = ret[j], ret[i]
+	})
+	if n == -1 || n >= count {
+		return ret
+	}
+	return ret[:n]
+}
+
+// SlicePinTop 置顶集合中的一个元素
+func SlicePinTop[T any](list []T, index int) {
+	if index <= 0 || index >= len(list) {
+		return
+	}
+	for i := index; i > 0; i-- {
+		list[i], list[i-1] = list[i-1], list[i]
+	}
+}
+
+// SlicePinTopF 置顶集合中满足条件的一个元素
+func SlicePinTopF[T any](list []T, fn func(v T) bool) {
+	index := 0
+	for i, v := range list {
+		if fn(v) {
+			index = i
+			break
+		}
+	}
+	for i := index; i > 0; i-- {
+		list[i], list[i-1] = list[i-1], list[i]
+	}
+}
+
+// SliceAppendUnique 数组中是否包含某个元素,没有就追加,有就返回原数组
+func SliceAppendUnique[T any](ts []T, t T) []T {
+	for _, v := range ts {
+		if reflect.DeepEqual(v, t) {
+			return ts
+		}
+	}
+	ts = append(ts, t)
+	return ts
+}
+
+// SliceRemove 使用泛型函数来删除切片中的某个元素
+func SliceRemove[T any](ts []T, t T) []T {
+	for i, v := range ts {
+		if reflect.DeepEqual(v, t) {
+			return append(ts[:i], ts[i+1:]...)
+		}
+	}
+	return ts // 如果未找到匹配的元素，则返回原始切片
+}
+
+// RetryFunction 重试函数
 func RetryFunction(c func() bool, times int) bool {
 	for i := times + 1; i > 0; i-- {
 		if c() == true {
@@ -56,19 +271,7 @@ func RetryFunction(c func() bool, times int) bool {
 	return false
 }
 
-func ValidateAndBindParameters(entity interface{}, ctx iris.Context, info string) (commons.ResponseCode, string) {
-	if err := ctx.UnmarshalBody(entity, iris.UnmarshalerFunc(json.Unmarshal)); err != nil {
-		log.Slog.ErrorF(ctx.Values().Get("ctx").(context.Context), "%s error %s", info, err.Error())
-		return commons.ParameterError, err.Error()
-	}
-	if err := Validate(entity); err != nil {
-		log.Slog.ErrorF(ctx.Values().Get("ctx").(context.Context), "%s error %s", info, err.Error())
-		return commons.ValidateError, err.Error()
-	}
-
-	return commons.OK, ""
-}
-
+// ValidateAndBindCtxParameters iris v2版本参数验证
 func ValidateAndBindCtxParameters(entity interface{}, ctx iris.Context, info string) (commons.ResponseCode, string) {
 	err := json.Unmarshal(ctx.Values().Get(commons.CtxValueParameter).([]byte), entity)
 	if err != nil {
@@ -83,208 +286,26 @@ func ValidateAndBindCtxParameters(entity interface{}, ctx iris.Context, info str
 	return commons.OK, ""
 }
 
-// DifferenceInt64 找出两个数组不存在的元素
-func DifferenceInt64(a, b []int64) []int64 {
-	sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
-	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
-	var diff []int64
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		if a[i] < b[j] {
-			diff = append(diff, a[i])
-			i++
-		} else if a[i] > b[j] {
-			diff = append(diff, b[j])
-			j++
-		} else {
-			i++
-			j++
+// VersionCompare 语义化的版本比较，支持：>, >=, =, !=, <, <=, | (or), & (and).
+// 参数 `rangeVer` 示例：1.0.0, =1.0.0, >2.0.0, >=1.0.0&<2.0.0, <2.0.0|>3.0.0, !=4.0.4
+func VersionCompare(rangeVer, curVer string) (bool, error) {
+	semVer, err := version.NewVersion(curVer)
+	if err != nil {
+		return false, err
+	}
+
+	orVers := strings.Split(rangeVer, "|")
+	for _, ver := range orVers {
+		andVers := strings.Split(ver, "&")
+		constraints, err := version.NewConstraint(strings.Join(andVers, ","))
+		if err != nil {
+			return false, err
+		}
+		if constraints.Check(semVer) {
+			return true, nil
 		}
 	}
-	for ; i < len(a); i++ {
-		diff = append(diff, a[i])
-	}
-	for ; j < len(b); j++ {
-		diff = append(diff, b[j])
-	}
-	return diff
-}
-
-// CommonInt64 找出两个数组相同的元素
-func CommonInt64(a, b []int64) []int64 {
-	sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
-	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
-	var common []int64
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		if a[i] < b[j] {
-			i++
-		} else if a[i] > b[j] {
-			j++
-		} else {
-			common = append(common, a[i])
-			i++
-			j++
-		}
-	}
-	return common
-}
-
-// DifferenceStrings 找出两个数组不存在的元素
-func DifferenceStrings(a, b []string) []string {
-	sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
-	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
-	var diff []string
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		switch {
-		case a[i] < b[j]:
-			diff = append(diff, a[i])
-			i++
-		case a[i] > b[j]:
-			diff = append(diff, b[j])
-			j++
-		default:
-			i++
-			j++
-		}
-	}
-	for ; i < len(a); i++ {
-		diff = append(diff, a[i])
-	}
-	for ; j < len(b); j++ {
-		diff = append(diff, b[j])
-	}
-	return diff
-}
-
-// CommonStrings 找出两个数组相同的元素
-func CommonStrings(a, b []string) []string {
-	sort.Strings(a)
-	sort.Strings(b)
-	var common []string
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		if a[i] < b[j] {
-			i++
-		} else if a[i] > b[j] {
-			j++
-		} else {
-			common = append(common, a[i])
-			i++
-			j++
-		}
-	}
-	return common
-}
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func RandomString(stringSize int) string {
-	rand.Seed(time.Now().UnixNano())
-	b := make([]byte, stringSize)
-	for i := 0; i < stringSize; i++ {
-		for i := range b {
-			b[i] = letterBytes[rand.Intn(len(letterBytes))]
-		}
-	}
-	return string(b)
-}
-
-// Contains 数组中是否包含某个元素
-func Contains[T any](ts []T, t T) bool {
-	for _, v := range ts {
-		if reflect.DeepEqual(v, t) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// Append 数组中是否包含某个元素,没有就追加,有就返回原数组
-func Append[T any](ts []T, t T) []T {
-	for _, v := range ts {
-		if reflect.DeepEqual(v, t) {
-			return ts
-		}
-	}
-	ts = append(ts, t)
-	return ts
-}
-
-// RemoveSlice 使用泛型函数来删除切片中的某个元素
-func RemoveSlice[T any](ts []T, t T) []T {
-	for i, v := range ts {
-		if reflect.DeepEqual(v, t) {
-			return append(ts[:i], ts[i+1:]...)
-		}
-	}
-	return ts // 如果未找到匹配的元素，则返回原始切片
-}
-
-// UniqueValueSlice 返回切片中的唯一值组成的新切片
-func UniqueValueSlice[T any](ts []T) []T {
-	uniqueMap := make(map[string]bool)
-	var uniqueSlice []T
-
-	for _, v := range ts {
-		key := fmt.Sprintf("%v", v)
-		if !uniqueMap[key] {
-			uniqueMap[key] = true
-			uniqueSlice = append(uniqueSlice, v)
-		}
-	}
-
-	return uniqueSlice
-}
-
-// MergeString 合并两个切片，去除重复元素
-func MergeString(a []string, b []string) []string {
-	// 创建一个map用于存储所有元素的唯一值
-	uniqueElements := make(map[string]bool)
-
-	// 遍历数组a，将其中的元素添加到map中
-	for _, element := range a {
-		uniqueElements[element] = true
-	}
-
-	// 遍历数组b，将其中的元素添加到map中
-	for _, element := range b {
-		uniqueElements[element] = true
-	}
-
-	// 将map中的唯一值提取到一个新的切片中
-	merged := []string{}
-	for element := range uniqueElements {
-		merged = append(merged, element)
-	}
-
-	return merged
-}
-
-// MergeInt64 合并两个切片，去除重复元素
-func MergeInt64(a []int64, b []int64) []int64 {
-	// 创建一个map用于存储所有元素的唯一值
-	uniqueElements := make(map[int64]bool)
-
-	// 遍历数组a，将其中的元素添加到map中
-	for _, element := range a {
-		uniqueElements[element] = true
-	}
-
-	// 遍历数组b，将其中的元素添加到map中
-	for _, element := range b {
-		uniqueElements[element] = true
-	}
-
-	// 将map中的唯一值提取到一个新的切片中
-	merged := []int64{}
-	for element := range uniqueElements {
-		merged = append(merged, element)
-	}
-
-	return merged
+	return false, nil
 }
 
 // StructToStringMapWithNilFilter 筛选出非nil的字段，转换成map,用于更新数据库,跳过指定字段，json标签为空的字段，json标签为数据库字段
@@ -316,19 +337,6 @@ func StructToStringMapWithNilFilter(inputStruct interface{}, table string, JumpS
 	}
 
 	return resultMap
-}
-
-// DataCheck 检查输入的字符串是否有空值
-func DataCheck(datas ...string) []int {
-	var nullIndices []int
-
-	for i, data := range datas {
-		if len(data) == 0 {
-			nullIndices = append(nullIndices, i)
-		}
-	}
-
-	return nullIndices
 }
 
 // Paginate 分页
