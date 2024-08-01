@@ -63,15 +63,72 @@ func Nonce(size uint8) string {
 	return hex.EncodeToString(nonce)
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const randomLowerUpperNumberMixed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const randomLower = "abcdefghijklmnopqrstuvwxyz"
+const randomUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const randomNumber = "0123456789"
+const randomLowerUpper = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-// RandomString 生成随机字符串
-func RandomString(stringSize int) string {
+// RandomLowerUpperNumberMixed 生成随机字符串
+func RandomLowerUpperNumberMixed(stringSize int) string {
+
 	mathRand.Seed(time.Now().UnixNano())
 	b := make([]byte, stringSize)
 	for i := 0; i < stringSize; i++ {
 		for i := range b {
-			b[i] = letterBytes[mathRand.Intn(len(letterBytes))]
+			b[i] = randomLowerUpperNumberMixed[mathRand.Intn(len(randomLowerUpperNumberMixed))]
+		}
+	}
+	return string(b)
+}
+
+// RandomLower 生成随机小写
+func RandomLower(stringSize int) string {
+
+	mathRand.Seed(time.Now().UnixNano())
+	b := make([]byte, stringSize)
+	for i := 0; i < stringSize; i++ {
+		for i := range b {
+			b[i] = randomLower[mathRand.Intn(len(randomLower))]
+		}
+	}
+	return string(b)
+}
+
+// RandomUpper 生成随机大写字母
+func RandomUpper(stringSize int) string {
+
+	mathRand.Seed(time.Now().UnixNano())
+	b := make([]byte, stringSize)
+	for i := 0; i < stringSize; i++ {
+		for i := range b {
+			b[i] = randomUpper[mathRand.Intn(len(randomUpper))]
+		}
+	}
+	return string(b)
+}
+
+// RandomNumber 生成随机数字
+func RandomNumber(stringSize int) string {
+
+	mathRand.Seed(time.Now().UnixNano())
+	b := make([]byte, stringSize)
+	for i := 0; i < stringSize; i++ {
+		for i := range b {
+			b[i] = randomNumber[mathRand.Intn(len(randomNumber))]
+		}
+	}
+	return string(b)
+}
+
+// RandomLowerUpperMixed 生成大小写英文混合随机字符串
+func RandomLowerUpperMixed(stringSize int) string {
+
+	mathRand.Seed(time.Now().UnixNano())
+	b := make([]byte, stringSize)
+	for i := 0; i < stringSize; i++ {
+		for i := range b {
+			b[i] = randomLowerUpper[mathRand.Intn(len(randomLowerUpper))]
 		}
 	}
 	return string(b)
@@ -89,6 +146,8 @@ func DataCheck(input ...string) []int {
 
 	return nullIndices
 }
+
+// -------------------------- 集合相关函数 --------------------------
 
 // SliceIn 返回指定元素是否在集合中
 func SliceIn[T ~[]E, E comparable](list T, elem E) bool {
@@ -260,6 +319,8 @@ func SliceRemove[T any](ts []T, t T) []T {
 	}
 	return ts // 如果未找到匹配的元素，则返回原始切片
 }
+
+// ----------------------- 其他函数 -----------------------
 
 // RetryFunction 重试函数
 func RetryFunction(c func() bool, times int) bool {

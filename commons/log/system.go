@@ -112,6 +112,14 @@ func (l *Logger) ErrorF(ctx context.Context, template string, args ...interface{
 	}
 }
 
+func (l *Logger) PanicF(ctx context.Context, template string, args ...interface{}) {
+	if ctx != nil {
+		ZapLog.Panicf(getTraceId(ctx)+template, args...)
+	} else {
+		ZapLog.Panicf(template, args...)
+	}
+}
+
 func (l *Logger) Printf(format string, v ...interface{}) {
 	ZapLog.Infof(format, v...)
 }
