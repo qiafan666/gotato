@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	_ "path/filepath"
 	"strings"
 	"time"
 )

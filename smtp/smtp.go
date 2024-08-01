@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/qiafan666/gotato/commons/utils"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/config"
 	"net"
 	"net/smtp"
@@ -26,7 +26,7 @@ func Sendmail(smtpConfigName string, receive, subject string, body string, conte
 		}
 	}
 
-	if i := utils.DataCheck(configContent.Host, configContent.Port, configContent.Sender, configContent.Password); len(i) > 0 {
+	if i := gcommon.DataCheck(configContent.Host, configContent.Port, configContent.Sender, configContent.Password); len(i) > 0 {
 		return errors.New("smtp config error")
 	}
 

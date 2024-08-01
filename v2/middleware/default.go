@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	slog "github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/commons/utils"
 	"io"
 	"net/http"
 	"runtime"
@@ -14,7 +14,7 @@ import (
 )
 
 func Default(ctx *gin.Context) {
-	uuid := utils.GenerateUUID()
+	uuid := gcommon.GenerateUUID()
 	value := context.WithValue(ctx, "trace_id", uuid)
 	ctx.Set("trace_id", uuid)
 	ctx.Set("ctx", value)

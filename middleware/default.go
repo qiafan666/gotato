@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	slog "github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/commons/utils"
 	"runtime"
 	"time"
 )
 
 func Default(ctx iris.Context) {
-	value := context.WithValue(context.Background(), "trace_id", utils.GenerateUUID())
+	value := context.WithValue(context.Background(), "trace_id", gcommon.GenerateUUID())
 	ctx.Values().Set("ctx", value)
 	defer func() {
 		if err := recover(); err != nil {

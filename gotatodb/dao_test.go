@@ -4,7 +4,7 @@ import (
 	"context"
 	gotato "github.com/qiafan666/gotato"
 	"github.com/qiafan666/gotato/commons"
-	"github.com/qiafan666/gotato/commons/utils"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -96,7 +96,7 @@ func (s Imp) UpdateNotNullFields(info interface{}, table string, where map[strin
 	}
 
 	s.db = s.db.Table(table)
-	updates := s.db.Where(where).Updates(utils.StructToStringMapWithNilFilter(info, table, jumpStrings...))
+	updates := s.db.Where(where).Updates(gcommon.StructToStringMapWithNilFilter(info, table, jumpStrings...))
 
 	err = updates.Error
 	rows = updates.RowsAffected
