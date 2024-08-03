@@ -2,7 +2,7 @@ package gmap
 
 import "sync"
 
-// MergeMaps 函数用于合并多个同属性的 map
+// MergeMaps 函数用于合并多个map
 func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 	// 参数校验
 	if len(maps) == 0 {
@@ -21,7 +21,7 @@ func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 	return mergedMap
 }
 
-// MergeMapsUnique 函数用于合并多个同属性的 map, 并确保每个 key 只出现一次（保留第一个出现的键值对）
+// MergeMapsUnique 函数用于合并多个map, 并确保每个 key 只出现一次（保留第一个出现的键值对）
 func MergeMapsUnique[K comparable, V any](maps ...map[K]V) map[K]V {
 	// 参数校验
 	if len(maps) == 0 {
@@ -42,7 +42,7 @@ func MergeMapsUnique[K comparable, V any](maps ...map[K]V) map[K]V {
 	return mergedMap
 }
 
-// MergeMapsConcurrent 并发安全的合并多个同属性的 map
+// MergeMapsConcurrent 并发安全的合并多个map
 func MergeMapsConcurrent[K comparable, V any](maps ...map[K]V) map[K]V {
 	// 参数校验
 	if len(maps) == 0 {

@@ -1,11 +1,9 @@
 package gcommon
 
 import (
-	"context"
 	"net/http"
 	"time"
 
-	slog "github.com/qiafan666/gotato/commons/log"
 	"github.com/valyala/fasthttp"
 )
 
@@ -15,7 +13,7 @@ type ProxyRequestHeader struct {
 
 var TimeOut = time.Second * 5
 
-func ProxyRequest(ctx context.Context, method string, header http.Header, url string, body []byte) (response []byte, respHeader ProxyRequestHeader, err error) {
+func ProxyRequest(method string, header http.Header, url string, body []byte) (response []byte, respHeader ProxyRequestHeader, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 	req.SetBody(body)
@@ -25,17 +23,14 @@ func ProxyRequest(ctx context.Context, method string, header http.Header, url st
 		}
 	}
 	req.Header.SetMethod(method)
-	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
 	req.SetRequestURI(url)
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
-		slog.Slog.InfoF(ctx, "Http Request Do Error %s", err.Error())
 		return nil, ProxyRequestHeader{}, err
 	}
 
 	return resp.Body(), ProxyRequestHeader{ContentType: string(resp.Header.ContentType())}, nil
-
 }
 
 // GetRequestURL append request url
