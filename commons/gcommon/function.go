@@ -1,13 +1,7 @@
 package gcommon
 
 import (
-	"context"
-	"encoding/json"
 	"github.com/hashicorp/go-version"
-	"github.com/kataras/iris/v12"
-	"github.com/qiafan666/gotato/commons"
-	"github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/commons/utils"
 	"gorm.io/gorm"
 	"reflect"
 	"strings"
@@ -21,21 +15,6 @@ func RetryFunction(c func() bool, times int) bool {
 		}
 	}
 	return false
-}
-
-// ValidateAndBindCtxParameters iris v2版本参数验证
-func ValidateAndBindCtxParameters(entity interface{}, ctx iris.Context, info string) (commons.ResponseCode, string) {
-	err := json.Unmarshal(ctx.Values().Get(commons.CtxValueParameter).([]byte), entity)
-	if err != nil {
-		log.Slog.ErrorF(ctx.Values().Get("ctx").(context.Context), "%s error %s", info, err.Error())
-		return commons.ParameterError, err.Error()
-	}
-	if err := utils.Validate(entity); err != nil {
-		log.Slog.ErrorF(ctx.Values().Get("ctx").(context.Context), "%s error %s", info, err.Error())
-		return commons.ValidateError, err.Error()
-	}
-
-	return commons.OK, ""
 }
 
 // VersionCompare 语义化的版本比较，支持：>, >=, =, !=, <, <=, | (or), & (and).
@@ -60,13 +39,16 @@ func VersionCompare(rangeVer, curVer string) (bool, error) {
 	return false, nil
 }
 
-// StructToMapWithFilter 筛选出非nil的字段，转换成map,跳过指定字段，json标签为空的字段，json标签为数据库字段
-func StructToMapWithFilter(inputStruct interface{}, JumpString ...string) map[string]interface{} {
+// StructToMap 筛选出非nil的字段，转换成map,跳过指定字段，json标签为空的字段，json标签为数据库字段
+func StructToMap(inputStruct interface{}, JumpString ...string) map[string]interface{} {
 
 	structValue := reflect.ValueOf(inputStruct)
 	structType := structValue.Type()
 
 	resultMap := make(map[string]interface{}, structType.Len())
+	if structType.Kind() != reflect.Struct {
+		return resultMap
+	}
 
 	for i := 0; i < structValue.NumField(); i++ {
 		fieldValue := structValue.Field(i)
