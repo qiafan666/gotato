@@ -80,17 +80,18 @@ type Config struct {
 }
 
 type OssConfig struct {
-	OssBucket       string `yaml:"ossBucket"`
-	AccessKeyID     string `yaml:"accessKeyID"`
-	AccessKeySecret string `yaml:"accessKeySecret"`
-	OssEndPoint     string `yaml:"ossEndPoint"`
+	OssBucket       string `yaml:"oss_bucket"`
+	AccessKeyID     string `yaml:"access_key_id"`
+	AccessKeySecret string `yaml:"access_key_secret"`
+	OssEndPoint     string `yaml:"oss_end_point"`
 	Name            string `yaml:"name"`
 }
 
 type MongoConfig struct {
-	Url  string `yaml:"url"`
-	Name string `yaml:"name"`
-	Tls  string `yaml:"tls"`
+	Url        string `yaml:"url"`
+	Name       string `yaml:"name"`
+	SessionNum int    `yaml:"session_num"`
+	Tls        string `yaml:"tls"`
 }
 
 type SmtpConfig struct {

@@ -35,21 +35,23 @@ redis:
     name: test2
 oss:
   - name: test1
-    ossBucket: test1
-    ossEndpoint: test1
-    accessKeyID: test1
-    accessKeySecret: test1
+    oss_bucket: test1
+    oss_endpoint: test1
+    access_key_id: test1
+    access_key_secret: test1
   - name: test2
-    ossBucket: test2
-    ossEndpoint: test2
-    accessKeyID: test2
-    accessKeySecret: test2
+    oss_bucket: test2
+    oss_endpoint: test2
+    access_key_id: test2
+    access_key_secret: test2
 mongo:
   - url: mongodb://test1:root@192.168.1.181:27000/test1
     name: test1
+    session_num: 10
     tls: test1
   - url: mongodb://test2:root@192.168.1.181:27000/test1
     name: test2
+    session_num: 10
     tls: test2
 smtp:
   - host: test@qq.com

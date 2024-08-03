@@ -37,7 +37,7 @@ func Instance() Dao {
 }
 
 // Insert 向指定集合插入单个文档
-func (i Imp) Insert(collection string, docs any) (err error) {
+func (i *Imp) Insert(collection string, docs any) (err error) {
 	s := i.mongo.c.Ref()
 	defer i.mongo.c.UnRef(s)
 	return s.DB(i.mongo.DB).C(collection).Insert(docs)

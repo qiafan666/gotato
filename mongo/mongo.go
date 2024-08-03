@@ -30,10 +30,13 @@ func (slf *Mongo) StartMongo(config config.MongoConfig) (err error) {
 		panic(errors.New("url format error"))
 	}
 
+	if config.SessionNum <= 0 {
+		config.SessionNum = 10
+	}
 	if len(config.Tls) > 0 {
-		slf.c, err = dialTLS(config.Url, 10, config.Tls)
+		slf.c, err = dialTLS(config.Url, config.SessionNum, config.Tls)
 	} else {
-		slf.c, err = dial(config.Url, 10)
+		slf.c, err = dial(config.Url, config.SessionNum)
 	}
 	if err != nil {
 		panic(fmt.Sprintf("mongo connetc error %s", err.Error()))
