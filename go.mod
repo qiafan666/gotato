@@ -6,6 +6,7 @@ require (
 	github.com/IBM/sarama v1.41.2
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.7+incompatible
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
+	github.com/frankban/quicktest v1.14.6
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -71,6 +72,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20231222211730-1d6d20845b47 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -96,6 +98,7 @@ require (
 	github.com/kataras/tunnel v0.0.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mailgun/raymond/v2 v2.0.48 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
