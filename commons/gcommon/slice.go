@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-// SliceContain 返回指定元素是否在集合中
+// SliceContain 返回切片是否包含指定元素
 func SliceContain[T ~[]E, E comparable](list T, elem E) bool {
 	if len(list) == 0 {
 		return false
@@ -17,6 +17,25 @@ func SliceContain[T ~[]E, E comparable](list T, elem E) bool {
 	}
 	return false
 }
+
+// SliceContains 返回A集合是否包含B集合里的任意元素
+func SliceContains[T ~[]E, E comparable](list1 T, list2 T) bool {
+	if len(list1) == 0 || len(list2) == 0 {
+		return false
+	}
+	m := make(map[E]struct{}, len(list2))
+	for _, v := range list2 {
+		m[v] = struct{}{}
+	}
+	for _, v := range list1 {
+		if _, ok := m[v]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+// SliceDeleteIndexs 删除多个元素的索引
 
 // SliceUniq 集合去重
 func SliceUniq[T ~[]E, E comparable](list T) T {
