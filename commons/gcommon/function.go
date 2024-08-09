@@ -45,7 +45,7 @@ func StructToMap(inputStruct interface{}, JumpString ...string) map[string]inter
 	structValue := reflect.ValueOf(inputStruct)
 	structType := structValue.Type()
 
-	resultMap := make(map[string]interface{}, structType.Len())
+	resultMap := make(map[string]interface{})
 	if structType.Kind() != reflect.Struct {
 		return resultMap
 	}

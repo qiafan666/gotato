@@ -2,6 +2,7 @@ package gcommon
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -46,6 +47,11 @@ func GetRequestURL(url string, params map[string]string) string {
 		if len(k) != 0 && len(v) != 0 {
 			urlAddress = urlAddress + k + "=" + v + "&"
 		}
+	}
+
+	// 移除最后一个 '&' 符号
+	if strings.HasSuffix(urlAddress, "&") {
+		urlAddress = urlAddress[:len(urlAddress)-1]
 	}
 	return urlAddress
 }
