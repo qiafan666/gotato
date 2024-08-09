@@ -40,6 +40,7 @@ func VersionCompare(rangeVer, curVer string) (bool, error) {
 }
 
 // StructToMap 筛选出非nil的字段，转换成map,跳过指定字段，json标签为空的字段，json标签为数据库字段
+// JumpString 跳过指定字段 不解析第二层struct
 func StructToMap(inputStruct interface{}, JumpString ...string) map[string]interface{} {
 
 	structValue := reflect.ValueOf(inputStruct)
