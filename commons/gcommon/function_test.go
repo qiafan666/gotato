@@ -31,3 +31,8 @@ func TestSliceContains(t *testing.T) {
 	t.Log(SliceContains(arr, []string{"apple1", "orange2"}))
 	t.Log(SliceContains(arr, []string{"apple", "orange"}))
 }
+
+func TestFunc(t *testing.T) {
+	t.Log(GenerateUUID())
+	t.Log(len(GenerateUUID()))
+}
