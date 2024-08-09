@@ -27,7 +27,7 @@ func ProxyRequest(method string, header http.Header, url string, body []byte) (r
 	req.SetRequestURI(url)
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
-	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
+	if err = fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		return nil, ProxyRequestHeader{}, err
 	}
 
