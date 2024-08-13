@@ -32,6 +32,15 @@ var CodeMsg = map[string]map[ResponseCode]string{
 		TokenError:     "Token error",
 		CheckAuthError: "check auth error",
 	},
+	"chinese": {
+		OK:             "成功",
+		UnKnowError:    "未知错误",
+		HttpNotFound:   "404",
+		ParameterError: "参数错误",
+		ValidateError:  "验证错误",
+		TokenError:     "Token错误",
+		CheckAuthError: "检查认证错误",
+	},
 }
 
 // GetCodeAndMsg construct the code and msg
