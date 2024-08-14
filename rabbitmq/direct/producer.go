@@ -3,7 +3,7 @@ package direct
 import (
 	"context"
 	"fmt"
-	"github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -16,7 +16,7 @@ func CreateProducer(config ProducerConfig, options ...OptionsProd) (*Producer, e
 	// 获取配置信息
 	conn, err := amqp.Dial(config.Addr)
 	if err != nil {
-		log.Slog.ErrorF(config.Ctx, "rabbitmq producer connect error: %s", err.Error())
+		glog.Slog.ErrorF(config.Ctx, "rabbitmq producer connect error: %s", err.Error())
 		return nil, err
 	}
 
@@ -52,7 +52,7 @@ func (p *Producer) Send(routeKey string, data []byte, delayMillisecond int) bool
 	// 获取一个频道
 	ch, err := p.connect.Channel()
 	if err != nil {
-		log.Slog.ErrorF(p.ctx, "rabbitmq channel error: %s", err.Error())
+		glog.Slog.ErrorF(p.ctx, "rabbitmq channel error: %s", err.Error())
 		return false
 	}
 	defer func() {
@@ -70,7 +70,7 @@ func (p *Producer) Send(routeKey string, data []byte, delayMillisecond int) bool
 		p.args,
 	)
 	if err != nil {
-		log.Slog.ErrorF(p.ctx, "rabbitmq exchange declare error: %s", err.Error())
+		glog.Slog.ErrorF(p.ctx, "rabbitmq exchange declare error: %s", err.Error())
 		return false
 	}
 
@@ -95,7 +95,7 @@ func (p *Producer) Send(routeKey string, data []byte, delayMillisecond int) bool
 			},
 		})
 	if err != nil {
-		log.Slog.ErrorF(p.ctx, "rabbitmq publish error: %s", err.Error())
+		glog.Slog.ErrorF(p.ctx, "rabbitmq publish error: %s", err.Error())
 		return false
 	}
 

@@ -5,11 +5,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	"io"
 	"net/http"
 	"runtime"
+	"sync/atomic"
 	"time"
 )
 
@@ -18,6 +20,8 @@ func Default(ctx *gin.Context) {
 	value := context.WithValue(ctx, "trace_id", uuid)
 	ctx.Set("trace_id", uuid)
 	ctx.Set("ctx", value)
+	atomic.AddInt64(&commons.ActiveRequests, 1)
+	defer atomic.AddInt64(&commons.ActiveRequests, -1)
 	defer func() {
 		if err := recover(); err != nil {
 			var stacktrace string
@@ -32,7 +36,7 @@ func Default(ctx *gin.Context) {
 			logMessage := fmt.Sprintf("Recovered from a route's Handler('%s')\n", ctx.HandlerName())
 			logMessage += fmt.Sprintf("Trace: %s", err)
 			logMessage += fmt.Sprintf("\n%s", stacktrace)
-			slog.Slog.ErrorF(ctx, logMessage)
+			glog.Slog.ErrorF(ctx, logMessage)
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 		}
 	}()
@@ -47,7 +51,7 @@ func Default(ctx *gin.Context) {
 		if ctx.Request.Method == http.MethodPost {
 			bodyBytes, err = io.ReadAll(ctx.Request.Body)
 			if err != nil {
-				slog.Slog.ErrorF(ctx, "ReadAll %s", err)
+				glog.Slog.ErrorF(ctx, "ReadAll %s", err)
 			} else if len(bodyBytes) > 0 {
 				requestBody = bytes.NewBuffer(bodyBytes)
 				ctx.Request.Body = io.NopCloser(requestBody)
@@ -63,7 +67,7 @@ func Default(ctx *gin.Context) {
 		if ctx.Request.URL.RawQuery != "" {
 			path += "?" + ctx.Request.URL.RawQuery
 		}
-		slog.Slog.InfoF(ctx, "[%s:%s] [%s] [%dms] [response code:%d] [request:%s] [response:%s]", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), requestBody.String(), blw.body.String())
+		glog.Slog.InfoF(ctx, "[%s:%s] [%s] [%dms] [response code:%d] [request:%s] [response:%s]", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), requestBody.String(), blw.body.String())
 	} else {
 		ctx.Next()
 	}

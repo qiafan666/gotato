@@ -6,7 +6,7 @@ import (
 	"fmt"
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/qiafan666/gotato/commons"
-	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
 	"github.com/qiafan666/gotato/mongo"
@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -53,8 +54,8 @@ func init() {
 }
 
 func (slf *Server) SetMysqlLogCallerSkip(skip int) {
-	slog.GormSkip = skip
-	slog.ReInit()
+	glog.GormSkip = skip
+	glog.ReInit()
 }
 
 // GetGotatoInstance create the single object
@@ -68,7 +69,7 @@ func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.Resp
 func (slf *Server) WaitClose() {
 	defer func(ZapLog *zap.SugaredLogger) {
 		_ = ZapLog.Sync()
-	}(slog.ZapLog)
+	}(glog.ZapLog)
 	//创建HTTP服务器
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", gconfig.SC.SConfigure.Port),
@@ -88,7 +89,7 @@ func (slf *Server) WaitClose() {
 	)
 	select {
 	case <-ch:
-		slog.Slog.InfoF(context.Background(), "wait for close server")
+		glog.Slog.InfoF(context.Background(), "wait for close server")
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		for _, db := range slf.db {
@@ -97,9 +98,15 @@ func (slf *Server) WaitClose() {
 		for _, stopRedis := range slf.redis {
 			_ = stopRedis.StopRedis()
 		}
+		for {
+			if atomic.LoadInt64(&commons.ActiveRequests) == 0 {
+				break
+			}
+			time.Sleep(time.Second)
+		}
 		err := server.Shutdown(ctx)
 		if err != nil {
-			slog.Slog.ErrorF(context.Background(), err.Error())
+			glog.Slog.ErrorF(context.Background(), err.Error())
 		}
 	}
 }
@@ -201,7 +208,7 @@ func (slf *Server) gin() {
 
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Slog.ErrorF(context.Background(), err.Error())
+			glog.Slog.ErrorF(context.Background(), err.Error())
 		}
 	}()
 }
@@ -234,7 +241,7 @@ func (slf *Server) ginInit() {
 
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Slog.ErrorF(context.Background(), err.Error())
+			glog.Slog.ErrorF(context.Background(), err.Error())
 		}
 	}()
 }

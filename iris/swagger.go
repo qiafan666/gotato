@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/kataras/iris/v12"
-	"github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"html/template"
 	"io/ioutil"
@@ -17,7 +17,7 @@ func SwaggerUI(ctx iris.Context) {
 	if err != nil {
 		ctx.Header("Content-Type", "text/plain; charset=utf-8")
 		ctx.StatusCode(http.StatusInternalServerError)
-		log.Slog.ErrorF(context.Background(), "read file failed err:%s", err.Error())
+		glog.Slog.ErrorF(context.Background(), "read file failed err:%s", err.Error())
 		_, _ = ctx.WriteString("read file failed")
 	}
 
@@ -25,13 +25,13 @@ func SwaggerUI(ctx iris.Context) {
 
 	var payload bytes.Buffer
 	if err := swaggerTemplate.Execute(&payload, struct{}{}); err != nil {
-		log.Slog.ErrorF(context.Background(), "Could not render Swagger")
+		glog.Slog.ErrorF(context.Background(), "Could not render Swagger")
 
 		ctx.Header("Content-Type", "text/plain; charset=utf-8")
 		ctx.StatusCode(http.StatusInternalServerError)
 		_, err := ctx.Write([]byte("Could not render Swagger"))
 		if err != nil {
-			log.Slog.ErrorF(context.Background(), "Failed to write response")
+			glog.Slog.ErrorF(context.Background(), "Failed to write response")
 		}
 	}
 
@@ -39,7 +39,7 @@ func SwaggerUI(ctx iris.Context) {
 	ctx.StatusCode(http.StatusOK)
 	_, err = ctx.Write(payload.Bytes())
 	if err != nil {
-		log.Slog.ErrorF(context.Background(), "Failed to write response")
+		glog.Slog.ErrorF(context.Background(), "Failed to write response")
 	}
 }
 
@@ -49,13 +49,13 @@ func SwaggerJson(ctx iris.Context) {
 	if err != nil {
 		ctx.Header("Content-Type", "text/plain; charset=utf-8")
 		ctx.StatusCode(http.StatusInternalServerError)
-		log.Slog.ErrorF(context.Background(), "read file failed err:%s", err.Error())
+		glog.Slog.ErrorF(context.Background(), "read file failed err:%s", err.Error())
 		_, _ = ctx.WriteString("read file failed")
 	}
 
 	ctx.Header("Content-Type", "application/json; charset=utf-8")
 	ctx.StatusCode(http.StatusOK)
 	if _, err := ctx.Write(file); err != nil {
-		log.Slog.ErrorF(context.Background(), "Failed to write response")
+		glog.Slog.ErrorF(context.Background(), "Failed to write response")
 	}
 }

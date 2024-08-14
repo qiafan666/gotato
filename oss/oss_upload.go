@@ -3,7 +3,6 @@ package oss
 import (
 	"context"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	slog "github.com/qiafan666/gotato/commons/log"
 	"io"
 	"io/ioutil"
 	"time"
@@ -12,7 +11,7 @@ import (
 type Client interface {
 	HealthCheck(ctx context.Context) (health bool, err error)
 	UploadAndSignUrl(ctx context.Context, fileReader io.Reader, objectName string, expiredInSec int64) (string, error)
-	DeleteByObjectName(ctx context.Context, objectName string)
+	DeleteByObjectName(ctx context.Context, objectName string) error
 	UploadByReader(ctx context.Context, fileReader io.Reader, fileName string) (err error)
 	DownloadFile(ctx context.Context, fileName string) (data []byte, err error)
 	IsFileExist(ctx context.Context, fileName string) (isExist bool, err error)
@@ -32,7 +31,6 @@ type ClientImp struct {
 func (slf *ClientImp) HealthCheck(ctx context.Context) (health bool, err error) {
 	_, err = oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "ClientImp HealthCheck Error:%s", err)
 		return false, err
 	}
 	health = true
@@ -41,12 +39,10 @@ func (slf *ClientImp) HealthCheck(ctx context.Context) (health bool, err error) 
 func (slf *ClientImp) GetFileURL(ctx context.Context, fileName string, expireTime time.Duration) (url string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "ClientImp IsFileExist Error:%s", err)
 		return "", err
 	}
 	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "ClientImp IsFileExist  Error:%s", err)
 		return "", err
 	}
 	url, err = bucket.SignURL(fileName, oss.HTTPGet, int64(expireTime))
@@ -69,12 +65,10 @@ func ClientInstance(ossBucket, accessKeyID, accessKeySecret, ossEndPoint string)
 func (slf *ClientImp) IsFileExist(ctx context.Context, fileName string) (isExist bool, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "ClientImp IsFileExist Error:%s", err)
 		return false, err
 	}
 	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "ClientImp IsFileExist  Error:%s", err)
 		return false, err
 	}
 	return bucket.IsObjectExist(fileName)
@@ -84,108 +78,98 @@ func (slf *ClientImp) UploadAndSignUrl(ctx context.Context, fileReader io.Reader
 	// 创建OSSClient实例。
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
 		return "", err
 	}
 	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
 		return "", err
 	}
 	err = bucket.PutObject(objectName, fileReader)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
 		return "", err
 	}
 	//oss.Process("image/format,png")
 	signedURL, err := bucket.SignURL(objectName, oss.HTTPGet, expiredInSec)
 	if err != nil {
-		bucket.DeleteObject(objectName)
+		err = bucket.DeleteObject(objectName)
+		if err != nil {
+			return "", err
+		}
 		return "", err
 	}
 	return signedURL, nil
 }
 
-func (slf *ClientImp) DeleteByObjectName(ctx context.Context, objectName string) {
+func (slf *ClientImp) DeleteByObjectName(ctx context.Context, objectName string) error {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return err
 	}
 	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return err
 	}
 	err = bucket.DeleteObject(objectName)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
+		return err
 	}
+	return nil
 }
 
 func (slf *ClientImp) UploadByReader(ctx context.Context, fileReader io.Reader, fileName string) (err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return err
 	}
 
 	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return err
 	}
 
 	err = bucket.PutObject(fileName, fileReader)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return err
 	}
-	return
+	return nil
 }
 
 func (slf *ClientImp) DownloadFile(ctx context.Context, fileName string) (data []byte, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return nil, err
 	}
 
 	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return nil, err
 	}
 
 	body, err := bucket.GetObject(fileName)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return nil, err
 	}
 	// 数据读取完成后，获取的流必须关闭，否则会造成连接泄漏，导致请求无连接可用，程序无法正常工作。
 	defer body.Close()
 
 	data, err = ioutil.ReadAll(body)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return nil, err
 	}
-	return
+	return data, nil
 }
 func (slf *ClientImp) MemoryParameter(ctx context.Context) (memoryParameters MemoryParameter, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return MemoryParameter{}, err
 	}
 
 	stat, err := client.GetBucketStat(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "Error:%s", err)
-		return
+		return MemoryParameter{}, err
 	}
 	memoryParameters.Storage = stat.Storage
 	memoryParameters.ObjectCount = stat.ObjectCount
@@ -210,24 +194,21 @@ func (slf *ClientImp) GetClient(ctx context.Context) (client *oss.Client, err er
 
 	client, err = oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "client Error:%s", err)
-		return
+		return nil, err
 	}
 
-	return
+	return client, nil
 }
 
 func (slf *ClientImp) GetBucket(ctx context.Context) (bucket *oss.Bucket, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "client Error:%s", err)
-		return
+		return nil, err
 	}
 	bucket, err = client.Bucket(slf.ossBucket)
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "bucket Error:%s", err)
-		return
+		return nil, err
 	}
-	return
+	return bucket, nil
 }

@@ -7,6 +7,8 @@ import (
 // ResponseCode define the error code
 type ResponseCode int
 
+var ActiveRequests int64
+
 const (
 	HttpNotFound   ResponseCode = -2
 	UnKnowError    ResponseCode = -1

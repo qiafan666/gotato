@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/olivere/elastic/v7"
-	"github.com/qiafan666/gotato/commons/log"
 )
 
 // ElasticClient 定义了需要实现的方法的接口
@@ -32,7 +31,6 @@ type elasticClient struct {
 func NewEsClient(ctx context.Context, options ...elastic.ClientOptionFunc) (ElasticClient, error) {
 	client, err := elastic.NewClient(options...)
 	if err != nil {
-		log.Slog.ErrorF(ctx, "Failed to create Elasticsearch client: %v", err)
 		return nil, err
 	}
 	return &elasticClient{client: client}, nil

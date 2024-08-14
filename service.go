@@ -13,7 +13,7 @@ import (
 	redisv8 "github.com/go-redis/redis/v8"
 	irisV12 "github.com/kataras/iris/v12"
 	"github.com/qiafan666/gotato/commons"
-	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
 	"github.com/qiafan666/gotato/iris"
@@ -66,7 +66,7 @@ func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.Resp
 }
 
 func (slf *Server) WaitClose(params ...irisV12.Configurator) {
-	defer slog.ZapLog.Sync()
+	defer glog.ZapLog.Sync()
 	go func() {
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch,
@@ -82,7 +82,7 @@ func (slf *Server) WaitClose(params ...irisV12.Configurator) {
 		)
 		select {
 		case <-ch:
-			slog.Slog.InfoF(context.Background(), "wait for close server")
+			glog.Slog.InfoF(context.Background(), "wait for close server")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			for _, db := range slf.db {

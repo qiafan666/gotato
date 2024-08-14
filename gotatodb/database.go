@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/glebarez/sqlite"
-	slog "github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	serveries "github.com/qiafan666/gotato/gconfig"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -37,14 +37,14 @@ func (slf *GotatoDB) StartPgsql(dbConfig serveries.DataBaseConfig) (err error) {
 		SingularTable: true,
 	}, Logger: nil})
 	if err != nil {
-		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		glog.Slog.InfoF(context.Background(), "conn database error %s", err)
 		return err
 	}
 
 	slf.name = dbConfig.Name
 	db, err := slf.db.DB()
 	if err != nil {
-		slog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
+		glog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
 		return err
 	}
 	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)
@@ -63,9 +63,9 @@ func (slf *GotatoDB) StartSqlite(dbConfig serveries.DataBaseConfig) error {
 	slf.db, err = gorm.Open(sqlite.Open(dbConfig.DBFilePath), &gorm.Config{PrepareStmt: true,
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
-		}, Logger: &slog.Gorm})
+		}, Logger: &glog.Gorm})
 	if err != nil {
-		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		glog.Slog.InfoF(context.Background(), "conn database error %s", err)
 		return err
 	}
 
@@ -95,15 +95,15 @@ func (slf *GotatoDB) StartMysql(dbConfig serveries.DataBaseConfig) error {
 	slf.db, err = gorm.Open(mysql.Open(Dsn), &gorm.Config{PrepareStmt: true,
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
-		}, Logger: &slog.Gorm})
+		}, Logger: &glog.Gorm})
 	if err != nil {
-		slog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		glog.Slog.InfoF(context.Background(), "conn database error %s", err)
 		return err
 	}
 
 	db, err := slf.db.DB()
 	if err != nil {
-		slog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
+		glog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
 		return err
 	}
 	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)

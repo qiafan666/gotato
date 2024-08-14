@@ -3,7 +3,7 @@ package hello_world
 import (
 	"context"
 	"fmt"
-	"github.com/qiafan666/gotato/commons/log"
+	"github.com/qiafan666/gotato/commons/glog"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
 )
@@ -22,7 +22,7 @@ func CreateConsumer(config ConsumerConfig) (*Consumer, error) {
 	conn, err := amqp.Dial(config.Addr)
 
 	if err != nil {
-		log.Slog.ErrorF(config.Ctx, "rabbitmq consumer connect error:%v", err)
+		glog.Slog.ErrorF(config.Ctx, "rabbitmq consumer connect error:%v", err)
 		return nil, err
 	}
 	cons := &Consumer{
@@ -71,7 +71,7 @@ func (c *Consumer) Received(callbackFunDealMsg func(receivedData []byte)) {
 func (c *Consumer) handleChannel(chanNo int) {
 	ch, err := c.connect.Channel()
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "create channel error:%v, channel number:%d", err, chanNo)
+		glog.Slog.ErrorF(c.ctx, "create channel error:%v, channel number:%d", err, chanNo)
 		return
 	}
 	defer ch.Close() // 确保在函数退出时关闭通道
@@ -81,14 +81,14 @@ func (c *Consumer) handleChannel(chanNo int) {
 	// 声明并初始化队列
 	queue, err := c.declareQueue(ch)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "declare queue error:%v, channel number:%d", err, chanNo)
+		glog.Slog.ErrorF(c.ctx, "declare queue error:%v, channel number:%d", err, chanNo)
 		return
 	}
 
 	// 开始消费消息
 	msgs, err := c.consumeQueue(ch, queue.Name)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "consume queue error:%v, channel number:%d", err, chanNo)
+		glog.Slog.ErrorF(c.ctx, "consume queue error:%v, channel number:%d", err, chanNo)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (c *Consumer) SetQos(prefetchCount int, prefetchSize int, global bool) erro
 		global,        // 全局应用
 	)
 	if err != nil {
-		log.Slog.ErrorF(c.ctx, "设置Qos失败: %s", err.Error())
+		glog.Slog.ErrorF(c.ctx, "设置Qos失败: %s", err.Error())
 	}
 	return err
 }
@@ -158,7 +158,7 @@ func (c *Consumer) handleConnectionError(err *amqp.Error) {
 	for attempts <= c.config.RetryTimes {
 		attempts++
 		time.Sleep(c.config.ReconnectInterval * time.Second)
-		log.Slog.ErrorF(c.ctx, "RabbitMQ consumer connection error: %s, retry attempt: %d", err, attempts)
+		glog.Slog.ErrorF(c.ctx, "RabbitMQ consumer connection error: %s, retry attempt: %d", err, attempts)
 
 		if c.status == 1 {
 			c.receivedMsgBlocking <- struct{}{}
@@ -166,7 +166,7 @@ func (c *Consumer) handleConnectionError(err *amqp.Error) {
 
 		newConsumer, err := CreateConsumer(c.config)
 		if err != nil {
-			log.Slog.ErrorF(c.ctx, "RabbitMQ consumer connection error: %s", err)
+			glog.Slog.ErrorF(c.ctx, "RabbitMQ consumer connection error: %s", err)
 			continue
 		}
 
