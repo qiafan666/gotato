@@ -8,9 +8,11 @@ import (
 
 const WindowSize = 8 << 10 // 8kiB
 
+var EncoderLevel = zstd.SpeedFastest
+
 var zstdEncoderPool = &sync.Pool{
 	New: func() any {
-		encoder, err := newEncoder(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
+		encoder, err := newEncoder(nil, zstd.WithEncoderLevel(EncoderLevel))
 		if err != nil {
 			panic(err)
 		}
