@@ -6,7 +6,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 	"github.com/qiafan666/gotato/commons"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/middleware"
 	"net/http"
 	_ "net/http/pprof"
@@ -29,7 +29,7 @@ func (slf *App) Default() {
 			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefaultLanguage, ""))
 		}
 	})
-	slf.app.Logger().SetLevel(config.SC.SConfigure.ZapLogLevel)
+	slf.app.Logger().SetLevel(gconfig.SC.SConfigure.ZapLogLevel)
 	slf.app.Logger().SetOutput(os.Stdout)
 }
 
@@ -43,7 +43,7 @@ func (slf *App) New() {
 			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefaultLanguage, ""))
 		}
 	})
-	slf.app.Logger().SetLevel(config.SC.SConfigure.ZapLogLevel)
+	slf.app.Logger().SetLevel(gconfig.SC.SConfigure.ZapLogLevel)
 	slf.app.Logger().SetOutput(os.Stdout)
 }
 
@@ -74,19 +74,19 @@ func (slf *App) Get(relativePath string, handlers ...context.Handler) {
 
 // start server
 func (slf *App) Start(params ...iris.Configurator) error {
-	server := fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port)
+	server := fmt.Sprintf("%s:%d", gconfig.SC.SConfigure.Addr, gconfig.SC.SConfigure.Port)
 	if slf.app == nil {
 		return errors.New("Server not init")
 	}
 	//开启swagger
-	if config.SC.SwaggerConfig.Enable == true {
+	if gconfig.SC.SwaggerConfig.Enable == true {
 		slf.app.Get("/swagger", SwaggerUI)
 		slf.app.Get("/docs/swagger.json", SwaggerJson)
 	}
 	//开启pprof
-	if config.SC.PProfConfig.Enable == true {
+	if gconfig.SC.PProfConfig.Enable == true {
 		go func() {
-			fmt.Printf("pprof error %s:", http.ListenAndServe(":"+config.SC.PProfConfig.Port, nil))
+			fmt.Printf("pprof error %s:", http.ListenAndServe(":"+gconfig.SC.PProfConfig.Port, nil))
 		}()
 	}
 

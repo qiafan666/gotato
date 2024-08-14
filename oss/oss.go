@@ -3,7 +3,7 @@ package oss
 import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 )
 
 type Oss struct {
@@ -23,7 +23,7 @@ func (slf *Oss) Name() string {
 	return slf.name
 }
 
-func (slf *Oss) StartOss(config config.OssConfig) error {
+func (slf *Oss) StartOss(config gconfig.OssConfig) error {
 
 	slf.name = config.Name
 

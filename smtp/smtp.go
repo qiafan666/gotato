@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"net"
 	"net/smtp"
 	"strings"
@@ -19,8 +19,8 @@ import (
 // content 为可变参数，可以传入多个内容，会依次替换body中的$replace变量
 func Sendmail(smtpConfigName string, receive, subject string, body string, content ...string) error {
 
-	var configContent config.SmtpConfig
-	for _, smtpConfig := range config.Configs.Smtp {
+	var configContent gconfig.SmtpConfig
+	for _, smtpConfig := range gconfig.Configs.Smtp {
 		if smtpConfig.Name == smtpConfigName {
 			configContent = smtpConfig
 		}

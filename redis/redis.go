@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	redisv8 "github.com/go-redis/redis/v8"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"time"
 )
 
@@ -22,7 +22,7 @@ func (slf *Redis) Name() string {
 	return slf.name
 }
 
-func (slf *Redis) StartRedis(config config.RedisConfig) error {
+func (slf *Redis) StartRedis(config gconfig.RedisConfig) error {
 	if slf.redisSource != nil {
 		return errors.New("redis already opened")
 	}

@@ -14,7 +14,7 @@ import (
 	irisV12 "github.com/kataras/iris/v12"
 	"github.com/qiafan666/gotato/commons"
 	slog "github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
 	"github.com/qiafan666/gotato/iris"
 	"github.com/qiafan666/gotato/redis"
@@ -148,7 +148,7 @@ func (slf *Server) OssBucket(name string) *alioss.Bucket {
 }
 
 func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
-	err := config.LoadCustomizeConfig(slfConfig)
+	err := gconfig.LoadCustomizeConfig(slfConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -161,7 +161,7 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 		switch v {
 		case DatabaseService:
 			slf.db = make([]gotatodb.GotatoDB, 0)
-			for _, v := range config.Configs.DataBase {
+			for _, v := range gconfig.Configs.DataBase {
 				if v.Type == "sqlite" {
 					db := gotatodb.GotatoDB{}
 					err = db.StartSqlite(v)
@@ -188,24 +188,24 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 				}
 			}
 		case RedisService:
-			slf.redis = make([]redis.Redis, len(config.Configs.Redis))
-			for i, v := range config.Configs.Redis {
+			slf.redis = make([]redis.Redis, len(gconfig.Configs.Redis))
+			for i, v := range gconfig.Configs.Redis {
 				err = slf.redis[i].StartRedis(v)
 				if err != nil {
 					panic(err)
 				}
 			}
 		case OssService:
-			slf.oss = make([]oss.Oss, len(config.Configs.Oss))
-			for i, v := range config.Configs.Oss {
+			slf.oss = make([]oss.Oss, len(gconfig.Configs.Oss))
+			for i, v := range gconfig.Configs.Oss {
 				err = slf.oss[i].StartOss(v)
 				if err != nil {
 					panic(err)
 				}
 			}
 		case MongoService:
-			slf.mongo = make([]mongo.Mongo, len(config.Configs.Mongo))
-			for i, mongoConfig := range config.Configs.Mongo {
+			slf.mongo = make([]mongo.Mongo, len(gconfig.Configs.Mongo))
+			for i, mongoConfig := range gconfig.Configs.Mongo {
 				err = slf.mongo[i].StartMongo(mongoConfig)
 				if err != nil {
 					panic(err)

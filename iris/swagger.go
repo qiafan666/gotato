@@ -5,7 +5,7 @@ import (
 	"context"
 	"github.com/kataras/iris/v12"
 	"github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 
 func SwaggerUI(ctx iris.Context) {
 
-	file, err := ioutil.ReadFile(config.SC.SwaggerConfig.UiPath)
+	file, err := ioutil.ReadFile(gconfig.SC.SwaggerConfig.UiPath)
 	if err != nil {
 		ctx.Header("Content-Type", "text/plain; charset=utf-8")
 		ctx.StatusCode(http.StatusInternalServerError)
@@ -45,7 +45,7 @@ func SwaggerUI(ctx iris.Context) {
 
 func SwaggerJson(ctx iris.Context) {
 
-	file, err := ioutil.ReadFile(config.SC.SwaggerConfig.JsonPath)
+	file, err := ioutil.ReadFile(gconfig.SC.SwaggerConfig.JsonPath)
 	if err != nil {
 		ctx.Header("Content-Type", "text/plain; charset=utf-8")
 		ctx.StatusCode(http.StatusInternalServerError)

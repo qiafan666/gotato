@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/IBM/sarama"
 	slog "github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"strconv"
 	"sync"
 )
@@ -15,7 +15,7 @@ func Receiver(ctx context.Context, topic string, callBackChan chan []byte) {
 	go func() {
 		wg := sync.WaitGroup{}
 		// 根据给定的代理地址和配置创建一个消费者
-		consumer, err := sarama.NewConsumer([]string{config.Configs.Kafka.Host + ":" + strconv.Itoa(config.Configs.Kafka.Port)}, nil)
+		consumer, err := sarama.NewConsumer([]string{gconfig.Configs.Kafka.Host + ":" + strconv.Itoa(gconfig.Configs.Kafka.Port)}, nil)
 
 		if err != nil {
 			return

@@ -7,7 +7,7 @@ import (
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/qiafan666/gotato/commons"
 	slog "github.com/qiafan666/gotato/commons/log"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
 	"github.com/qiafan666/gotato/mongo"
 	"github.com/qiafan666/gotato/oss"
@@ -71,7 +71,7 @@ func (slf *Server) WaitClose() {
 	}(slog.ZapLog)
 	//创建HTTP服务器
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.SC.SConfigure.Port),
+		Addr:    fmt.Sprintf(":%d", gconfig.SC.SConfigure.Port),
 		Handler: slf.app,
 	}
 	ch := make(chan os.Signal, 1)
@@ -151,16 +151,16 @@ func (slf *Server) OssBucket(name string) *alioss.Bucket {
 }
 
 func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
-	err := config.LoadCustomizeConfig(slfConfig)
+	err := gconfig.LoadCustomizeConfig(slfConfig)
 	if err != nil {
 		panic(err)
 	}
 }
 func (slf *Server) gin() {
 	//设置模式
-	if config.SC.SConfigure.Profile == "prod" {
+	if gconfig.SC.SConfigure.Profile == "prod" {
 		gin.SetMode(gin.ReleaseMode)
-	} else if config.SC.SConfigure.Profile == "test" {
+	} else if gconfig.SC.SConfigure.Profile == "test" {
 		gin.SetMode(gin.TestMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
@@ -183,16 +183,16 @@ func (slf *Server) gin() {
 	slf.app.Use(middleware.Default)
 
 	slf.httpServer = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port),
+		Addr:    fmt.Sprintf("%s:%d", gconfig.SC.SConfigure.Addr, gconfig.SC.SConfigure.Port),
 		Handler: slf.App(),
 	}
 	//开启pprof
-	if config.SC.PProfConfig.Enable == true {
+	if gconfig.SC.PProfConfig.Enable == true {
 		slf.app.GET("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
 	}
 
 	//开启swagger
-	if config.SC.SwaggerConfig.Enable == true {
+	if gconfig.SC.SwaggerConfig.Enable == true {
 		slf.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
@@ -208,9 +208,9 @@ func (slf *Server) gin() {
 func (slf *Server) ginInit() {
 
 	//设置模式
-	if config.SC.SConfigure.Profile == "prod" {
+	if gconfig.SC.SConfigure.Profile == "prod" {
 		gin.SetMode(gin.ReleaseMode)
-	} else if config.SC.SConfigure.Profile == "test" {
+	} else if gconfig.SC.SConfigure.Profile == "test" {
 		gin.SetMode(gin.TestMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
@@ -219,16 +219,16 @@ func (slf *Server) ginInit() {
 	slf.app = gin.New()
 
 	slf.httpServer = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port),
+		Addr:    fmt.Sprintf("%s:%d", gconfig.SC.SConfigure.Addr, gconfig.SC.SConfigure.Port),
 		Handler: slf.App(),
 	}
 	//开启pprof
-	if config.SC.PProfConfig.Enable == true {
+	if gconfig.SC.PProfConfig.Enable == true {
 		slf.app.GET("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
 	}
 
 	//开启swagger
-	if config.SC.SwaggerConfig.Enable == true {
+	if gconfig.SC.SwaggerConfig.Enable == true {
 		slf.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
@@ -250,7 +250,7 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 			slf.ginInit()
 		case DatabaseService:
 			slf.db = make([]gotatodb.GotatoDB, 0)
-			for _, v := range config.Configs.DataBase {
+			for _, v := range gconfig.Configs.DataBase {
 				if v.Type == "sqlite" {
 					db := gotatodb.GotatoDB{}
 					err = db.StartSqlite(v)
@@ -277,24 +277,24 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 				}
 			}
 		case RedisService:
-			slf.redis = make([]redis.Redis, len(config.Configs.Redis))
-			for i, v := range config.Configs.Redis {
+			slf.redis = make([]redis.Redis, len(gconfig.Configs.Redis))
+			for i, v := range gconfig.Configs.Redis {
 				err = slf.redis[i].StartRedis(v)
 				if err != nil {
 					panic(err)
 				}
 			}
 		case OssService:
-			slf.oss = make([]oss.Oss, len(config.Configs.Oss))
-			for i, v := range config.Configs.Oss {
+			slf.oss = make([]oss.Oss, len(gconfig.Configs.Oss))
+			for i, v := range gconfig.Configs.Oss {
 				err = slf.oss[i].StartOss(v)
 				if err != nil {
 					panic(err)
 				}
 			}
 		case MongoService:
-			slf.mongo = make([]mongo.Mongo, len(config.Configs.Mongo))
-			for i, mongoConfig := range config.Configs.Mongo {
+			slf.mongo = make([]mongo.Mongo, len(gconfig.Configs.Mongo))
+			for i, mongoConfig := range gconfig.Configs.Mongo {
 				err = slf.mongo[i].StartMongo(mongoConfig)
 				if err != nil {
 					panic(err)

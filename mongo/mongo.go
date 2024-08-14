@@ -3,7 +3,7 @@ package mongo
 import (
 	"errors"
 	"fmt"
-	"github.com/qiafan666/gotato/config"
+	"github.com/qiafan666/gotato/gconfig"
 	"strings"
 )
 
@@ -18,7 +18,7 @@ func (slf *Mongo) Name() string {
 	return slf.name
 }
 
-func (slf *Mongo) StartMongo(config config.MongoConfig) (err error) {
+func (slf *Mongo) StartMongo(config gconfig.MongoConfig) (err error) {
 	if slf.c != nil {
 		return errors.New("mongo already opened")
 	}
