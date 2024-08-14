@@ -35,7 +35,22 @@ func SliceContains[T ~[]E, E comparable](list1 T, list2 T) bool {
 	return false
 }
 
-// SliceDeleteIndexs 删除多个元素的索引
+// SliceDeleteIndex 删除多个元素的索引
+func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
+	if len(indexes) == 0 {
+		return list
+	}
+	if len(list) == 0 {
+		return list
+	}
+	for _, index := range indexes {
+		if index < 0 || index >= len(list) {
+			continue
+		}
+		list = append(list[:index], list[index+1:]...)
+	}
+	return list
+}
 
 // SliceUniq 集合去重
 func SliceUniq[T ~[]E, E comparable](list T) T {
