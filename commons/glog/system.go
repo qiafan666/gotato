@@ -10,6 +10,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"os"
+	"time"
 )
 
 var Slog Logger
@@ -17,7 +18,11 @@ var Gorm GormLogger
 var ZapLog *zap.SugaredLogger
 var GormLog *zap.SugaredLogger
 
-var GormSkip int
+// GormSkip gorm日志调用函数栈的层数, 默认为5
+var GormSkip = 5
+
+// GormSlowSqlDuration 慢sql日志打印的阈值
+var GormSlowSqlDuration = time.Second * 3
 
 type Logger struct {
 }
@@ -28,6 +33,7 @@ func init() {
 	Gorm = GormLogger{
 		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
 		IgnoreRecordNotFoundError: true,
+		SlowSqlTime:               GormSlowSqlDuration,
 	}
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
 	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
@@ -42,6 +48,7 @@ func ReInit() {
 	Gorm = GormLogger{
 		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
 		IgnoreRecordNotFoundError: true,
+		SlowSqlTime:               GormSlowSqlDuration,
 	}
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
 	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
