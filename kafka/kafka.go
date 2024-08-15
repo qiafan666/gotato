@@ -63,23 +63,23 @@ func GroupReceiver(ctx context.Context, brokers []string, group string, topics [
 	configK := sarama.NewConfig()
 	configK.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.BalanceStrategyRange}
 	configK.Consumer.Offsets.Initial = sarama.OffsetOldest
-	glog.Slog.InfoF(ctx, "Error creating consumer group client connecting brokers %+v", brokers)
+	glog.Slog.InfoF(ctx, "creating consumer group client connecting brokers %+v", brokers)
 	consumer, err := sarama.NewConsumerGroup(brokers, group, configK)
 	if err != nil {
-		glog.Slog.InfoF(ctx, "Error creating consumer group client: %+v", err)
+		glog.Slog.ErrorF(ctx, "Error creating consumer group client: %+v", err)
 		return err
 	}
-	glog.Slog.InfoF(ctx, "Error creating consumer group client connected")
+	glog.Slog.InfoF(ctx, "consumer group client created successfully")
 	defer func() {
 		if err = consumer.Close(); err != nil {
-			glog.Slog.InfoF(ctx, "Error creating consumer group client: %+v", err)
+			glog.Slog.ErrorF(ctx, "Error creating consumer group client: %+v", err)
 		}
 	}()
 	go func() {
 		defer wg.Done()
 		for {
-			if err := consumer.Consume(ctx, topics, handler); err != nil {
-				glog.Slog.InfoF(ctx, "Error creating consumer group client: %+v", err)
+			if err = consumer.Consume(ctx, topics, handler); err != nil {
+				glog.Slog.ErrorF(ctx, "Error creating consumer group client: %+v", err)
 			}
 
 			if ctx.Done() != nil {
@@ -103,17 +103,17 @@ func Send(topic string, key string, data []byte, host string, port uint) error {
 	msg.Key = sarama.StringEncoder(key)
 	client, err := sarama.NewSyncProducer([]string{fmt.Sprintf("%s:%d", host, port)}, saramaConf)
 	if err != nil {
-		glog.Slog.ErrorF(context.Background(), "kafka connection err["+err.Error()+"]")
+		glog.Slog.ErrorF(nil, "kafka connection err["+err.Error()+"]")
 		return err
 	}
 	defer func(client sarama.SyncProducer) {
 		err = client.Close()
 		if err != nil {
-			glog.Slog.ErrorF(context.Background(), "kafka close err["+err.Error()+"]")
+			glog.Slog.ErrorF(nil, "kafka close err["+err.Error()+"]")
 		}
 	}(client)
 	if _, _, err = client.SendMessage(msg); err != nil {
-		glog.Slog.ErrorF(context.Background(), "kafka send failed["+err.Error()+"]")
+		glog.Slog.ErrorF(nil, "kafka send failed["+err.Error()+"]")
 		return err
 	}
 	return nil

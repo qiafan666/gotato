@@ -5,6 +5,7 @@ import (
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/qiafan666/gotato/mongo"
 	"github.com/qiafan666/gotato/oss"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
@@ -66,7 +67,12 @@ func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.Resp
 }
 
 func (slf *Server) WaitClose(params ...irisV12.Configurator) {
-	defer glog.ZapLog.Sync()
+	defer func(ZapLog *zap.SugaredLogger) {
+		err := ZapLog.Sync()
+		if err != nil {
+			glog.Slog.ErrorF(nil, "sync zap log failed")
+		}
+	}(glog.ZapLog)
 	go func() {
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch,
@@ -82,13 +88,21 @@ func (slf *Server) WaitClose(params ...irisV12.Configurator) {
 		)
 		select {
 		case <-ch:
-			glog.Slog.InfoF(context.Background(), "wait for close server")
+			glog.Slog.InfoF(nil, "wait for close server")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			for _, db := range slf.db {
-				db.StopDb()
+				err := db.StopDb()
+				if err != nil {
+					glog.Slog.ErrorF(nil, "stop db failed:%s", err.Error())
+					return
+				}
 			}
-			slf.app.GetIrisApp().Shutdown(ctx)
+			err := slf.app.GetIrisApp().Shutdown(ctx)
+			if err != nil {
+				glog.Slog.ErrorF(nil, "shutdown server failed:%s", err.Error())
+				return
+			}
 		}
 	}()
 	err := slf.app.Start(params...)

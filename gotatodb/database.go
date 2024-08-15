@@ -1,7 +1,6 @@
 package gotatodb
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/glebarez/sqlite"
@@ -37,14 +36,14 @@ func (slf *GotatoDB) StartPgsql(dbConfig serveries.DataBaseConfig) (err error) {
 		SingularTable: true,
 	}, Logger: nil})
 	if err != nil {
-		glog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		glog.Slog.ErrorF(nil, "conn database error %s", err)
 		return err
 	}
 
 	slf.name = dbConfig.Name
 	db, err := slf.db.DB()
 	if err != nil {
-		glog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
+		glog.Slog.ErrorF(nil, "conn slf.db.DB() error %s", err)
 		return err
 	}
 	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)
@@ -65,7 +64,7 @@ func (slf *GotatoDB) StartSqlite(dbConfig serveries.DataBaseConfig) error {
 			SingularTable: true,
 		}, Logger: &glog.Gorm})
 	if err != nil {
-		glog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		glog.Slog.ErrorF(nil, "conn database error %s", err)
 		return err
 	}
 
@@ -97,13 +96,13 @@ func (slf *GotatoDB) StartMysql(dbConfig serveries.DataBaseConfig) error {
 			SingularTable: true,
 		}, Logger: &glog.Gorm})
 	if err != nil {
-		glog.Slog.InfoF(context.Background(), "conn database error %s", err)
+		glog.Slog.ErrorF(nil, "conn database error %s", err)
 		return err
 	}
 
 	db, err := slf.db.DB()
 	if err != nil {
-		glog.Slog.InfoF(context.Background(), "conn slf.db.DB() error %s", err)
+		glog.Slog.ErrorF(nil, "conn slf.db.DB() error %s", err)
 		return err
 	}
 	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)
@@ -123,6 +122,7 @@ func (slf *GotatoDB) StopDb() error {
 		}
 		return err
 	} else {
+		glog.Slog.ErrorF(nil, "db is nil")
 		return errors.New("db is nil")
 	}
 }

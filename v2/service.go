@@ -89,7 +89,7 @@ func (slf *Server) WaitClose() {
 	)
 	select {
 	case <-ch:
-		glog.Slog.InfoF(context.Background(), "wait for close server")
+		glog.Slog.InfoF(nil, "wait for close server")
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		for _, db := range slf.db {
@@ -106,7 +106,7 @@ func (slf *Server) WaitClose() {
 		}
 		err := server.Shutdown(ctx)
 		if err != nil {
-			glog.Slog.ErrorF(context.Background(), err.Error())
+			glog.Slog.ErrorF(nil, "server shutdown error: %s", err.Error())
 		}
 	}
 }
@@ -208,7 +208,7 @@ func (slf *Server) gin() {
 
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			glog.Slog.ErrorF(context.Background(), err.Error())
+			glog.Slog.ErrorF(nil, "listen and serve error: %s", err.Error())
 		}
 	}()
 }
@@ -241,7 +241,7 @@ func (slf *Server) ginInit() {
 
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			glog.Slog.ErrorF(context.Background(), err.Error())
+			glog.Slog.ErrorF(nil, "listen and serve error: %s", err.Error())
 		}
 	}()
 }

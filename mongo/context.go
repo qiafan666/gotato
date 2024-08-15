@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/glog"
 	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	"net"
@@ -23,6 +24,7 @@ type session struct {
 // session heap
 type sessionHeap []*session
 
+// Len 返回堆的长度
 func (h sessionHeap) Len() int {
 	return len(h)
 }
@@ -56,7 +58,6 @@ type DialContext struct {
 }
 
 // goroutine safe
-
 func dial(url string, sessionNum int) (*DialContext, error) {
 	c, err := dialWithTimeout(url, sessionNum, 10*time.Second, 0)
 	return c, err
@@ -71,7 +72,7 @@ func dialTLS(url string, sessionNum int, caFilePath string) (*DialContext, error
 func dialWithTimeout(url string, sessionNum int, dialTimeout time.Duration, timeout time.Duration) (*DialContext, error) {
 	if sessionNum <= 0 {
 		sessionNum = 100
-		//log.Release("invalid sessionNum, reset to %v", sessionNum)
+		glog.Slog.WarnF(nil, "sessionNum should be greater than 0, use default value: %v", sessionNum)
 	}
 
 	s, err := mgo.DialWithTimeout(url, dialTimeout)
@@ -98,7 +99,6 @@ func dialWithTimeout(url string, sessionNum int, dialTimeout time.Duration, time
 func dialWithInfo(url string, sessionNum int, caFilePath string) (*DialContext, error) {
 	if sessionNum <= 0 {
 		sessionNum = 100
-		//log.Release("invalid sessionNum, reset to %v", sessionNum)
 	}
 
 	dialInfo, err := mgo.ParseURL(url)
@@ -135,19 +135,19 @@ func dialWithInfo(url string, sessionNum int, caFilePath string) (*DialContext, 
 	return c, nil
 }
 
-// goroutine safe
+// Close goroutine safe
 func (c *DialContext) Close() {
 	c.Lock()
 	for _, s := range c.sessions {
 		s.Close()
 		if s.ref != 0 {
-			//			log.Error("session ref = %v", s.ref)
+			glog.Slog.WarnF(nil, "session ref not zero: %v", s.ref)
 		}
 	}
 	c.Unlock()
 }
 
-// goroutine safe
+// Ref goroutine safe
 func (c *DialContext) Ref() *session {
 	c.Lock()
 	s := c.sessions[0]
@@ -161,7 +161,7 @@ func (c *DialContext) Ref() *session {
 	return s
 }
 
-// goroutine safe
+// UnRef goroutine safe
 func (c *DialContext) UnRef(s *session) {
 	c.Lock()
 	s.ref--
@@ -181,7 +181,7 @@ func getCustomTLSConfig(caFile string) (*tls.Config, error) {
 	ok := tlsConfig.RootCAs.AppendCertsFromPEM(certs)
 
 	if !ok {
-		return tlsConfig, errors.New("Failed parsing pem file")
+		return tlsConfig, errors.New("failed parsing pem file")
 	}
 
 	return tlsConfig, nil
