@@ -46,9 +46,9 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		l.Error(ctx, "【sql:%s】【time:%.3f】【error:%s】", sql, float64(elapsed.Nanoseconds())/1e6, err.Error())
 	case l.LogLevel <= commons.Info:
 		sql, rows := fc()
-		l.Info(ctx, "【sql:%s】,【affected:%d】,【time:%.3f ms】", sql, rows, float64(elapsed.Nanoseconds())/1e6)
+		l.Info(ctx, "【sql:%s】【affected:%d】【time:%.3f ms】", sql, rows, float64(elapsed.Nanoseconds())/1e6)
 	case elapsed > l.SlowSqlTime && l.SlowSqlTime != 0 && l.LogLevel <= commons.Warn:
 		sql, rows := fc()
-		l.Warn(ctx, "【slow sql:%s】,【affected:%d】,【time:%.3f ms】", sql, rows, float64(elapsed.Nanoseconds())/1e6)
+		l.Warn(ctx, "【slow sql:%s】【affected:%d】【time:%.3f ms】", sql, rows, float64(elapsed.Nanoseconds())/1e6)
 	}
 }
