@@ -70,7 +70,7 @@ func getLogWriter(logPath string) zapcore.WriteSyncer {
 }
 func getTraceId(ctx context.Context) string {
 	if traceId, ok := ctx.Value("trace_id").(string); ok {
-		return fmt.Sprintf("trace_id: %s ", traceId)
+		return fmt.Sprintf("【trace_id:%s】", traceId)
 	} else {
 		return ""
 	}

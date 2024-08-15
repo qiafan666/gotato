@@ -67,7 +67,7 @@ func Default(ctx *gin.Context) {
 		if ctx.Request.URL.RawQuery != "" {
 			path += "?" + ctx.Request.URL.RawQuery
 		}
-		glog.Slog.InfoF(ctx, "[%s:%s] [%s] [%dms] [response code:%d] [request:%s] [response:%s]", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), requestBody.String(), blw.body.String())
+		glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】【request:%s】【response:%s】", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), requestBody.String(), blw.body.String())
 	} else {
 		ctx.Next()
 	}
