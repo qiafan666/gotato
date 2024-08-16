@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var SimpleStdout bool
+
 func Default(ctx *gin.Context) {
 	uuid := gcommon.GenerateUUID()
 	value := context.WithValue(ctx, "trace_id", uuid)
@@ -57,7 +59,6 @@ func Default(ctx *gin.Context) {
 				ctx.Request.Body = io.NopCloser(requestBody)
 			} else {
 				requestBody = bytes.NewBuffer([]byte(""))
-				bodyBytes = []byte("")
 			}
 		}
 		start := time.Now()
@@ -67,7 +68,12 @@ func Default(ctx *gin.Context) {
 		if ctx.Request.URL.RawQuery != "" {
 			path += "?" + ctx.Request.URL.RawQuery
 		}
-		glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】【request:%s】【response:%s】", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), requestBody.String(), blw.body.String())
+
+		if SimpleStdout {
+			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
+		} else {
+			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】【request:%s】【response:%s】", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), string(bodyBytes), blw.body.String())
+		}
 	} else {
 		ctx.Next()
 	}
