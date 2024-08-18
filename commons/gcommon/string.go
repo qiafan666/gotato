@@ -1,7 +1,6 @@
 package gcommon
 
 import (
-	"crypto/md5"
 	cryptoRand "crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -16,14 +15,6 @@ import (
 // GenerateUUID 生成UUID
 func GenerateUUID() string {
 	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
-}
-
-// StringToMd5 字符串转MD5
-func StringToMd5(str string) string {
-	data := []byte(str)
-	has := md5.Sum(data)
-	md5str := fmt.Sprintf("%x", has)
-	return md5str
 }
 
 // StringsToString 字符串数组转字符串

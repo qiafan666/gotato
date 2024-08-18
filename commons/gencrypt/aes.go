@@ -4,10 +4,24 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 )
+
+// Md5 returns the md5 hash of the input string.
+func Md5(s string, salt ...string) string {
+	h := md5.New()
+	h.Write([]byte(s))
+	if len(salt) > 0 {
+		h.Write([]byte(salt[0]))
+	}
+
+	cipher := h.Sum(nil)
+	return hex.EncodeToString(cipher)
+}
 
 func GenerateAESKey(keySize int) (string, error) {
 	switch keySize {
