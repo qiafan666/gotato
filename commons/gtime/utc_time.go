@@ -38,8 +38,8 @@ func SetZone(name string) error {
 	return nil
 }
 
-// Now UTC时间
-func Now() time.Time {
+// NowUTC 获取当前 UTC时间
+func NowUTC() time.Time {
 	realNow := time.Now()
 	offsetVal := GetTimeOffset()
 	if offsetVal == 0 {
@@ -61,27 +61,27 @@ func AddTimeOffset(val time.Duration) {
 }
 
 func Since(t time.Time) time.Duration {
-	return Now().Sub(t)
+	return NowUTC().Sub(t)
 }
 
 // NowMs 毫秒级时间戳
 func NowMs() int64 {
-	return Now().UnixNano() / 1e6
+	return NowUTC().UnixNano() / 1e6
 }
 
 // NowFrame 十分之一秒
 func NowFrame() int64 {
-	return Now().UnixNano() / 1e8
+	return NowUTC().UnixNano() / 1e8
 }
 
 // NowUs 微秒级时间戳
 func NowUs() int64 {
-	return Now().UnixNano() / 1e3
+	return NowUTC().UnixNano() / 1e3
 }
 
 // NowNs 纳秒级时间戳
 func NowNs() int64 {
-	return Now().UnixNano()
+	return NowUTC().UnixNano()
 }
 
 // TodayMs 计算本地今天0点ms
@@ -133,7 +133,7 @@ func NextMonthMs(nowMs int64) int64 {
 
 // NowSec 秒级时间戳
 func NowSec() int64 {
-	return Now().UnixNano() / 1e9
+	return NowUTC().UnixNano() / 1e9
 }
 
 // SameDay 是否是同一天，参数毫秒
@@ -222,14 +222,14 @@ func TimeHourIndex(timeMillSec int64) int64 {
 
 // NowMonthIndex 从2000.1.1累计月数 不是精确的
 func NowMonthIndex() int64 {
-	year, _ := Now().Local().ISOWeek()
-	month := Now().Local().Month()
+	year, _ := NowUTC().Local().ISOWeek()
+	month := NowUTC().Local().Month()
 	return (int64(year)-YearsBegin)*YearPerMonth + int64(month)
 }
 
 // NowWeekIndex 从2000.1.1累计周数 不是精确的
 func NowWeekIndex() int64 {
-	year, week := Now().Local().ISOWeek()
+	year, week := NowUTC().Local().ISOWeek()
 	return int64((year-YearsBegin)*WeekPerMonth + week)
 }
 
