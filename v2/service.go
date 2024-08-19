@@ -66,7 +66,7 @@ func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.Resp
 	commons.RegisterCodeAndMsg(language, arr)
 }
 
-func (slf *Server) WaitClose() {
+func (slf *Server) WaitClose(stopFunc ...func()) {
 	defer func(ZapLog *zap.SugaredLogger) {
 		_ = ZapLog.Sync()
 	}(glog.ZapLog)
@@ -104,6 +104,14 @@ func (slf *Server) WaitClose() {
 			}
 			time.Sleep(time.Second)
 		}
+
+		//关闭HTTP服务器之前关闭传入的stopFunc
+		if len(stopFunc) > 0 {
+			for _, f := range stopFunc {
+				f()
+			}
+		}
+
 		err := server.Shutdown(ctx)
 		if err != nil {
 			glog.Slog.ErrorF(nil, "server shutdown error: %s", err.Error())

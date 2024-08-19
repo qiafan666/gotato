@@ -2,6 +2,7 @@ package gcommon
 
 import (
 	"github.com/hashicorp/go-version"
+	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 	"reflect"
 	"strings"
@@ -88,4 +89,9 @@ func Paginate(pageNum int, pageSize int) func(db *gorm.DB) *gorm.DB {
 		offset := (pageNum - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
 	}
+}
+
+// CopyStructFields 复制结构体字段
+func CopyStructFields(from any, to any) (err error) {
+	return copier.Copy(to, from)
 }

@@ -71,3 +71,21 @@ func MergeMapsConcurrent[K comparable, V any](maps ...map[K]V) map[K]V {
 	wg.Wait()
 	return mergedMap
 }
+
+// Keys get map keys
+func Keys[K comparable, V any](kv map[K]V) []K {
+	ks := make([]K, 0, len(kv))
+	for k := range kv {
+		ks = append(ks, k)
+	}
+	return ks
+}
+
+// Values get map values
+func Values[K comparable, V any](kv map[K]V) []V {
+	vs := make([]V, 0, len(kv))
+	for k := range kv {
+		vs = append(vs, kv[k])
+	}
+	return vs
+}
