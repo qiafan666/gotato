@@ -11,7 +11,6 @@ type lfuItem struct {
 	key   string      // 键
 	value interface{} // 值，空接口类型可以存储任意类型的值
 	freq  int         // 访问频率
-
 }
 
 // LFUCache least frequently used cache 最不经常使用缓存

@@ -1,6 +1,7 @@
 package gcommon
 
 import (
+	"bytes"
 	cryptoRand "crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -10,6 +11,8 @@ import (
 	mathRand "math/rand"
 	"strings"
 	"time"
+	"unicode"
+	"unsafe"
 )
 
 // GenerateUUID 生成UUID
@@ -57,8 +60,8 @@ func RandomLowerUpperNumberMixed(stringSize int) string {
 	mathRand.Seed(time.Now().UnixNano())
 	b := make([]byte, stringSize)
 	for i := 0; i < stringSize; i++ {
-		for i := range b {
-			b[i] = randomLowerUpperNumberMixed[mathRand.Intn(len(randomLowerUpperNumberMixed))]
+		for j := range b {
+			b[j] = randomLowerUpperNumberMixed[mathRand.Intn(len(randomLowerUpperNumberMixed))]
 		}
 	}
 	return string(b)
@@ -70,8 +73,8 @@ func RandomLower(stringSize int) string {
 	mathRand.Seed(time.Now().UnixNano())
 	b := make([]byte, stringSize)
 	for i := 0; i < stringSize; i++ {
-		for i := range b {
-			b[i] = randomLower[mathRand.Intn(len(randomLower))]
+		for j := range b {
+			b[j] = randomLower[mathRand.Intn(len(randomLower))]
 		}
 	}
 	return string(b)
@@ -83,8 +86,8 @@ func RandomUpper(stringSize int) string {
 	mathRand.Seed(time.Now().UnixNano())
 	b := make([]byte, stringSize)
 	for i := 0; i < stringSize; i++ {
-		for i := range b {
-			b[i] = randomUpper[mathRand.Intn(len(randomUpper))]
+		for j := range b {
+			b[j] = randomUpper[mathRand.Intn(len(randomUpper))]
 		}
 	}
 	return string(b)
@@ -96,8 +99,8 @@ func RandomNumber(stringSize int) string {
 	mathRand.Seed(time.Now().UnixNano())
 	b := make([]byte, stringSize)
 	for i := 0; i < stringSize; i++ {
-		for i := range b {
-			b[i] = randomNumber[mathRand.Intn(len(randomNumber))]
+		for j := range b {
+			b[j] = randomNumber[mathRand.Intn(len(randomNumber))]
 		}
 	}
 	return string(b)
@@ -109,8 +112,8 @@ func RandomLowerUpperMixed(stringSize int) string {
 	mathRand.Seed(time.Now().UnixNano())
 	b := make([]byte, stringSize)
 	for i := 0; i < stringSize; i++ {
-		for i := range b {
-			b[i] = randomLowerUpper[mathRand.Intn(len(randomLowerUpper))]
+		for j := range b {
+			b[j] = randomLowerUpper[mathRand.Intn(len(randomLowerUpper))]
 		}
 	}
 	return string(b)
@@ -127,4 +130,60 @@ func DataCheck(input ...string) []int {
 	}
 
 	return nullIndices
+}
+
+// StringToBytes 原地转换
+func StringToBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(
+		&struct {
+			string
+			Cap int
+		}{s, len(s)},
+	))
+}
+
+func BytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+// String2BytesNoCopy
+// 无拷贝 string 转 []byte
+func String2BytesNoCopy(s string) []byte {
+	tmp := (*[2]uintptr)(unsafe.Pointer(&s))
+	h := [3]uintptr{tmp[0], tmp[1], tmp[1]}
+	return *(*[]byte)(unsafe.Pointer(&h))
+}
+
+// UnderscoreName 驼峰式写法转为下划线写法
+func UnderscoreName(name string) string {
+	buffer := NewBuffer()
+	for i, r := range name {
+		if unicode.IsUpper(r) {
+			if i != 0 {
+				buffer.Append('_')
+			}
+			buffer.Append(unicode.ToLower(r))
+		} else {
+			buffer.Append(r)
+		}
+	}
+
+	return buffer.String()
+}
+
+// Byte2Uint32 字节数组转uint32
+func Byte2Uint32(b []byte) uint32 {
+	seed := uint32(131)
+	hash := uint32(0)
+
+	for _, v := range b {
+		hash = hash*seed + uint32(v)
+	}
+	return hash
+}
+
+// String2Uint32 string 转 uint32
+func String2Uint32(s string) uint32 {
+	b := bytes.NewBufferString(s).Bytes()
+	return Byte2Uint32(b)
 }

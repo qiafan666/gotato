@@ -19,8 +19,8 @@ func Md5(s string, salt ...string) string {
 		h.Write([]byte(salt[0]))
 	}
 
-	cipher := h.Sum(nil)
-	return hex.EncodeToString(cipher)
+	sum := h.Sum(nil)
+	return hex.EncodeToString(sum)
 }
 
 func GenerateAESKey(keySize int) (string, error) {
