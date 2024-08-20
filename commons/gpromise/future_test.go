@@ -1,60 +1,62 @@
 package gpromise_test
 
 import (
+	"fmt"
 	"github.com/qiafan666/gotato/commons/gpromise"
-	"github.com/stretchr/testify/assert"
+	"github.com/qiafan666/gotato/commons/gtime"
 	"log"
 	"testing"
+	"time"
 )
 
 func TestCommonFutureAfter(t *testing.T) {
+	now := time.Now()
 	pm := gpromise.NewManager(1, func() int { return 100 })
 
-	p := pm.NewPromise("testPromise", nil)
-	cf1 := gpromise.NewCommonFuture("future1")
-	cf2 := gpromise.NewCommonFuture("future2")
-	cf3 := gpromise.NewCommonFuture("future3")
+	p := pm.NewPromise("testPromise", func(context *gpromise.Context) {
+		if context.Err != nil {
 
-	cf1.OnDo = func() error {
-		log.Println("cf1 OnDo executed")
+			if context.Err != nil {
+				log.Println("Promise testPromise error:", context.Err.Error())
+			}
+		}
+	})
+
+	//实际业务逻辑
+	safeFinish := func(res []int) {
+		var total int
+		for _, re := range res {
+			total += re
+		}
+		fmt.Println("Promise testPromise result:", total)
+	}
+
+	future := gpromise.NewCommonFuture("testFuture")
+
+	future.OnDo = func() error {
+		log.Println("Future testFuture do")
+		futureOndoCallback(pm, gpromise.GetPfId(p.Id, future.Id()))
 		return nil
 	}
 
-	cf1.OnCallBack = func(args []interface{}) error {
-		log.Println("cf1 OnCallBack executed:" + args[0].(string))
+	fmt.Println("逻辑异步")
+	future.OnCallBack = func(result []interface{}) error {
+		log.Println("Future testFuture callback:", result)
+		resultInt := make([]int, len(result))
+		for i, re := range result {
+			resultInt[i] = re.(int)
+		}
+		safeFinish(resultInt)
 		return nil
 	}
 
-	cf2.OnDo = func() error {
-		log.Println("cf2 OnDo executed")
-		return nil
-	}
-
-	cf2.OnCallBack = func(args []interface{}) error {
-		log.Println("cf2 OnCallBack executed:" + args[0].(string))
-		return nil
-	}
-
-	cf3.OnDo = func() error {
-		log.Println("cf3 OoDo executed")
-		return nil
-	}
-
-	cf3.OnCallBack = func(args []interface{}) error {
-		log.Println("cf3 OnCallBack executed:" + args[0].(string))
-		return nil
-	}
-
-	cf1.After(cf2).After(cf3)
-	p.Push(cf1)
-
+	p.Push(future)
 	p.Start()
 
-	pm.Process(gpromise.GetPfId(p.Id, cf1.Id()), []interface{}{"test"}, nil)
-	pm.Process(gpromise.GetPfId(p.Id, cf2.Id()), []interface{}{"test"}, nil)
-	pm.Process(gpromise.GetPfId(p.Id, cf3.Id()), []interface{}{"test"}, nil)
+	fmt.Println(gtime.Since(now))
+}
 
-	assert.Equal(t, gpromise.FutureStatusFinish, cf1.GetStatus())
-	assert.Equal(t, gpromise.FutureStatusFinish, cf2.GetStatus())
-	assert.Equal(t, gpromise.FutureStatusFinish, cf3.GetStatus())
+func futureOndoCallback(pm *gpromise.Manager, pfId uint64) {
+	//回调
+	pm.Process(pfId, []interface{}{1, 2, 3}, nil)
 }
