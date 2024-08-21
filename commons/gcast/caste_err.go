@@ -980,6 +980,11 @@ func ToStringE(i interface{}) (string, error) {
 	}
 }
 
+// ToByteE casts an interface to a JSON byte array.
+func ToByteE(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
+}
+
 // ToStringMapStringE casts an interface to a map[string]string type.
 func ToStringMapStringE(i interface{}) (map[string]string, error) {
 	var m = map[string]string{}

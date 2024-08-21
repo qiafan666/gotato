@@ -103,6 +103,12 @@ func ToString(i interface{}) string {
 	return v
 }
 
+// ToByte casts an interface to a []byte type.
+func ToByte(i interface{}) []byte {
+	v, _ := ToByteE(i)
+	return v
+}
+
 // ToStringMapString casts an interface to a map[string]string type.
 func ToStringMapString(i interface{}) map[string]string {
 	v, _ := ToStringMapStringE(i)

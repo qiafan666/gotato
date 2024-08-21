@@ -1,6 +1,8 @@
 package gcommon
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
@@ -94,4 +96,31 @@ func Paginate(pageNum int, pageSize int) func(db *gorm.DB) *gorm.DB {
 // CopyStructFields 复制结构体字段
 func CopyStructFields(from any, to any) (err error) {
 	return copier.Copy(to, from)
+}
+
+func Kv2String(msg string, kv ...any) string {
+	if len(kv) == 0 {
+		return msg
+	} else {
+		var buf bytes.Buffer
+		buf.WriteString(msg)
+
+		for i := 0; i < len(kv); i += 2 {
+			if buf.Len() > 0 {
+				buf.WriteString(", ")
+			}
+
+			key := fmt.Sprintf("%v", kv[i])
+			buf.WriteString(key)
+			buf.WriteString("=")
+
+			if i+1 < len(kv) {
+				value := fmt.Sprintf("%v", kv[i+1])
+				buf.WriteString(value)
+			} else {
+				buf.WriteString("MISSING")
+			}
+		}
+		return buf.String()
+	}
 }
