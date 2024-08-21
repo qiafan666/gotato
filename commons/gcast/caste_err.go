@@ -976,7 +976,15 @@ func ToStringE(i interface{}) (string, error) {
 	case error:
 		return s.Error(), nil
 	default:
-		return "", fmt.Errorf("unable to cast %#v of type %T to string", i, i)
+		e, err := ToByteE(s)
+		if err != nil {
+			return "", err
+		}
+		stringE, err := ToStringE(e)
+		if err != nil {
+			return "", err
+		}
+		return stringE, nil
 	}
 }
 
