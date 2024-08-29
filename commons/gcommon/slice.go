@@ -273,15 +273,15 @@ func SliceSet[E comparable](es []E) map[E]struct{} {
 	})
 }
 
-func paginate[E any](es []E, pageNumber int, showNumber int) []E {
+func paginate[E any](es []E, pageNumber int, pageSize int) []E {
 	if pageNumber <= 0 {
 		return []E{}
 	}
-	if showNumber <= 0 {
+	if pageSize <= 0 {
 		return []E{}
 	}
-	start := (pageNumber - 1) * showNumber
-	end := start + showNumber
+	start := (pageSize - 1) * pageSize
+	end := start + pageSize
 	if start >= len(es) {
 		return []E{}
 	}
@@ -291,8 +291,8 @@ func paginate[E any](es []E, pageNumber int, showNumber int) []E {
 	return es[start:end]
 }
 
-func SlicePaginate[E any](es []E, pageNumber int, showNumber int) []E {
-	return paginate(es, pageNumber, showNumber)
+func SlicePaginate[E any](es []E, pageNumber int, pageSize int) []E {
+	return paginate(es, pageNumber, pageSize)
 }
 
 // SortAny custom sort method

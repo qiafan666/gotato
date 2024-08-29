@@ -9,7 +9,6 @@ import (
 	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
-	"github.com/qiafan666/gotato/mongo"
 	"github.com/qiafan666/gotato/oss"
 	"github.com/qiafan666/gotato/redis"
 	"github.com/qiafan666/gotato/v2/middleware"
@@ -36,7 +35,6 @@ type Server struct {
 	db         []gotatodb.GotatoDB
 	httpServer *http.Server
 	oss        []oss.Oss
-	mongo      []mongo.Mongo
 }
 type ServerOption int
 
@@ -46,7 +44,6 @@ const (
 	GinService
 	GinInitService
 	OssService
-	MongoService
 )
 
 func init() {
@@ -131,6 +128,7 @@ func (slf *Server) FeatureDB(name string) *gotatodb.GotatoDB {
 	}
 	return nil
 }
+
 func (slf *Server) Redis(name string) *redisV8.Client {
 	for _, v := range slf.redis {
 		if v.Name() == name {
@@ -139,14 +137,7 @@ func (slf *Server) Redis(name string) *redisV8.Client {
 	}
 	return nil
 }
-func (slf *Server) Mongo(name string) mongo.Mongo {
-	for _, v := range slf.mongo {
-		if v.Name() == name {
-			return v
-		}
-	}
-	return mongo.Mongo{}
-}
+
 func (slf *Server) OssClient(name string) *alioss.Client {
 	for _, v := range slf.oss {
 		if v.Name() == name {
@@ -184,12 +175,12 @@ func (slf *Server) gin() {
 	slf.app = gin.New()
 
 	slf.app.NoRoute(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusNotFound, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.JSON(http.StatusOK, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
 	slf.app.NoMethod(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusNotFound, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.JSON(http.StatusOK, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
@@ -303,14 +294,6 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 			slf.oss = make([]oss.Oss, len(gconfig.Configs.Oss))
 			for i, v := range gconfig.Configs.Oss {
 				err = slf.oss[i].StartOss(v)
-				if err != nil {
-					panic(err)
-				}
-			}
-		case MongoService:
-			slf.mongo = make([]mongo.Mongo, len(gconfig.Configs.Mongo))
-			for i, mongoConfig := range gconfig.Configs.Mongo {
-				err = slf.mongo[i].StartMongo(mongoConfig)
 				if err != nil {
 					panic(err)
 				}

@@ -59,12 +59,10 @@ type DataBaseConfig struct {
 	MaxLifeTime time.Duration `yaml:"max_life_time"`
 	Charset     string        `yaml:"charset"`
 }
-type kafkaConfig struct {
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
-}
+
 type RedisConfig struct {
 	Host     string `yaml:"host"`
+	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	Db       int    `yaml:"db"`
 	Name     string `yaml:"name"`
@@ -73,9 +71,7 @@ type RedisConfig struct {
 type Config struct {
 	DataBase []DataBaseConfig `yaml:"dataSource"`
 	Redis    []RedisConfig    `yaml:"redis"`
-	Kafka    kafkaConfig      `yaml:"kafka"`
 	Oss      []OssConfig      `yaml:"oss"`
-	Mongo    []MongoConfig    `yaml:"mongo"`
 	Smtp     []SmtpConfig     `yaml:"smtp"`
 }
 
@@ -85,13 +81,6 @@ type OssConfig struct {
 	AccessKeySecret string `yaml:"access_key_secret"`
 	OssEndPoint     string `yaml:"oss_end_point"`
 	Name            string `yaml:"name"`
-}
-
-type MongoConfig struct {
-	Url        string `yaml:"url"`
-	Name       string `yaml:"name"`
-	SessionNum int    `yaml:"session_num"`
-	Tls        string `yaml:"tls"`
 }
 
 type SmtpConfig struct {

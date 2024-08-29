@@ -19,17 +19,16 @@ dataSource:
    name: mysql
    type: mysql
    slow_sql: 100 #ms
-kafka :
-  host: 218.0.49.239
-  port: 9092
 redis:
   -
     host: 127.0.0.1:6379
+    username:
     password:
     db: 10
     name: test1
   -
     host: 127.0.0.1:6379
+    username:
     password:
     db: 10
     name: test2
@@ -44,15 +43,6 @@ oss:
     oss_endpoint: test2
     access_key_id: test2
     access_key_secret: test2
-mongo:
-  - url: mongodb://test1:root@192.168.1.181:27000/test1
-    name: test1
-    session_num: 10
-    tls: test1
-  - url: mongodb://test2:root@192.168.1.181:27000/test1
-    name: test2
-    session_num: 10
-    tls: test2
 smtp:
   - host: test@qq.com
     port: 111

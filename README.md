@@ -6,7 +6,7 @@ zh:
   
   1.基于本项目实现的项目模板（https://github.com/qiafan666/framework-go）
   
-  2.通过配置文件快速启动服务，包括zaplog,redis,mysql,mongo,kafka,oss,rabbitmq,es,mongo等...
+  2.通过配置文件快速启动服务，包括zaplog,redis,mysql,mongo,oss,rabbitmq,es,mongo等...
   
   3.国密，代理重加密，数据压缩等多种加解密工具
   

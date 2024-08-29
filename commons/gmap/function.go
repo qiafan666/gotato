@@ -11,7 +11,7 @@ func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 
 	mergedMap := make(map[K]V)
 	for _, m := range maps {
-		if m == nil {
+		if m == nil || len(m) == 0 {
 			continue // 跳过 nil map
 		}
 		for k, v := range m {
@@ -30,7 +30,7 @@ func MergeMapsUnique[K comparable, V any](maps ...map[K]V) map[K]V {
 
 	mergedMap := make(map[K]V)
 	for _, m := range maps {
-		if m == nil {
+		if m == nil || len(m) == 0 {
 			continue // 跳过 nil map
 		}
 		for k, v := range m {
