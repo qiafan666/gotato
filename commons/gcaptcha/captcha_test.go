@@ -1,19 +1,27 @@
 package gcaptcha
 
 import (
-	redisV8 "github.com/go-redis/redis/v8"
+	"context"
 	"github.com/mojocn/base64Captcha"
+	"github.com/qiafan666/gotato/commons/gredis"
 	"testing"
 )
 
 func TestCaptcha(t *testing.T) {
-	rdb := redisV8.NewClient(&redisV8.Options{
-		Addr:     "127.0.0.1:16379",
-		Username: "",
-		Password: "test",
+	client, err := gredis.NewRedisClient(context.Background(), &gredis.Config{
+		ClusterMode: false,
+		Address:     []string{"127.0.0.1:6379"},
+		Username:    "",
+		Password:    "",
+		DB:          0,
+		MaxRetry:    3,
+		PoolSize:    10,
 	})
+	if err != nil {
+		return
+	}
 	store := &RedisStore{
-		Rdb: rdb,
+		Rdb: client,
 	}
 
 	// audioCaptcha := base64Captcha.NewCaptcha(captcha.AudioDrive, store)

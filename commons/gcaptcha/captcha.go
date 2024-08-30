@@ -2,8 +2,8 @@ package gcaptcha
 
 import (
 	"context"
-	redisV8 "github.com/go-redis/redis/v8"
 	"github.com/mojocn/base64Captcha"
+	"github.com/redis/go-redis/v9"
 	"time"
 )
 
@@ -52,7 +52,7 @@ var DigitDrive = &base64Captcha.DriverDigit{
 }
 
 type RedisStore struct {
-	Rdb *redisV8.Client
+	Rdb redis.UniversalClient
 }
 
 func (s *RedisStore) Set(id string, value string) error {
