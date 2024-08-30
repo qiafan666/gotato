@@ -21,7 +21,7 @@ dataSource:
    slow_sql: 100 #ms
 redis:
   -
-    cluster_mode: 127.0.0.1:6379
+    cluster_mode: false
     address:
     username:
     password:
@@ -30,7 +30,7 @@ redis:
     pool_size:
     name: test1
   -
-    cluster_mode: 127.0.0.1:6379
+    cluster_mode: false
     address: ["127.0.0.1:6379"]
     username:
     password:
