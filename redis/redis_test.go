@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/go-redis/redis/v8"
 	"github.com/qiafan666/gotato"
+	"github.com/redis/go-redis/v9"
 	"time"
 )
 
@@ -19,7 +19,7 @@ const (
 )
 
 type Dao interface {
-	Client() *redis.Client
+	Client() redis.UniversalClient
 	Get(ctx context.Context, k string) (out string, err error)
 	Set(ctx context.Context, k string, x interface{}, d time.Duration) (err error)
 	Delete(ctx context.Context, k string) (err error)
@@ -28,14 +28,14 @@ type Dao interface {
 }
 
 type Imp struct {
-	redis *redis.Client
+	redis redis.UniversalClient
 }
 
 func Instance() Dao {
 	return &Imp{redis: gotato.GetGotatoInstance().Redis("test")}
 }
 
-func (i Imp) Client() *redis.Client {
+func (i Imp) Client() redis.UniversalClient {
 	return i.redis
 }
 

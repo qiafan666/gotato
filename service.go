@@ -3,21 +3,20 @@ package gotato
 import (
 	"context"
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/qiafan666/gotato/oss"
-	"go.uber.org/zap"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	redisv8 "github.com/go-redis/redis/v8"
 	irisV12 "github.com/kataras/iris/v12"
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
 	"github.com/qiafan666/gotato/iris"
+	"github.com/qiafan666/gotato/oss"
 	"github.com/qiafan666/gotato/redis"
+	redisV9 "github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 // Instance we need create the single object but thread safe
@@ -124,7 +123,7 @@ func (slf *Server) FeatureDB(name string) *gotatodb.GotatoDB {
 	}
 	return nil
 }
-func (slf *Server) Redis(name string) *redisv8.Client {
+func (slf *Server) Redis(name string) redisV9.UniversalClient {
 	for _, v := range slf.redis {
 		if v.Name() == name {
 			return v.Redis()

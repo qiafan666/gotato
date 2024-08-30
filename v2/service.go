@@ -12,6 +12,8 @@ import (
 	"github.com/qiafan666/gotato/oss"
 	"github.com/qiafan666/gotato/redis"
 	"github.com/qiafan666/gotato/v2/middleware"
+	redisV9 "github.com/redis/go-redis/v9"
+
 	"go.uber.org/zap"
 	"net/http"
 	"os"
@@ -21,7 +23,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	redisV8 "github.com/go-redis/redis/v8"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -129,7 +130,7 @@ func (slf *Server) FeatureDB(name string) *gotatodb.GotatoDB {
 	return nil
 }
 
-func (slf *Server) Redis(name string) *redisV8.Client {
+func (slf *Server) Redis(name string) redisV9.UniversalClient {
 	for _, v := range slf.redis {
 		if v.Name() == name {
 			return v.Redis()

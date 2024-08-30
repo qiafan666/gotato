@@ -21,16 +21,22 @@ dataSource:
    slow_sql: 100 #ms
 redis:
   -
-    host: 127.0.0.1:6379
+    cluster_mode: 127.0.0.1:6379
+    address:
     username:
     password:
+    max_retry:
     db: 10
+    pool_size:
     name: test1
   -
-    host: 127.0.0.1:6379
+    cluster_mode: 127.0.0.1:6379
+    address: ["127.0.0.1:6379"]
     username:
     password:
+    max_retry:
     db: 10
+    pool_size:
     name: test2
 oss:
   - name: test1

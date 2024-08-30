@@ -3,18 +3,17 @@ package redis
 import (
 	"context"
 	"errors"
-	"fmt"
-	redisv8 "github.com/go-redis/redis/v8"
+	"github.com/qiafan666/gotato/commons/gredis"
 	"github.com/qiafan666/gotato/gconfig"
-	"time"
+	"github.com/redis/go-redis/v9"
 )
 
 type Redis struct {
-	redisSource *redisv8.Client
+	redisSource redis.UniversalClient
 	name        string //redis  name
 }
 
-func (slf *Redis) Redis() *redisv8.Client {
+func (slf *Redis) Redis() redis.UniversalClient {
 	return slf.redisSource
 }
 
@@ -23,21 +22,34 @@ func (slf *Redis) Name() string {
 }
 
 func (slf *Redis) StartRedis(config gconfig.RedisConfig) error {
-	if slf.redisSource != nil {
-		return errors.New("redis already opened")
-	}
-	slf.name = config.Name
-	slf.redisSource = redisv8.NewClient(&redisv8.Options{
-		Addr:     config.Host,
-		Password: config.Password, // no password set
-		DB:       config.Db,       // use default Client
+
+	err := gredis.Check(context.Background(), &gredis.Config{
+		ClusterMode: config.ClusterMode,
+		Address:     config.Address,
+		Username:    config.Username,
+		Password:    config.Password,
+		MaxRetry:    config.MaxRetry,
+		DB:          config.DB,
+		PoolSize:    config.PoolSize,
 	})
-	timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	err := slf.redisSource.Ping(timeout).Err()
 	if err != nil {
-		panic(fmt.Sprintf("redis connetc error %s", err.Error()))
+		return err
 	}
+
+	slf.name = config.Name
+	client, err := gredis.NewRedisClient(context.Background(), &gredis.Config{
+		ClusterMode: config.ClusterMode,
+		Address:     config.Address,
+		Username:    config.Username,
+		Password:    config.Password,
+		MaxRetry:    config.MaxRetry,
+		DB:          config.DB,
+		PoolSize:    config.PoolSize,
+	})
+	if err != nil {
+		return err
+	}
+	slf.redisSource = client
 	return nil
 }
 
