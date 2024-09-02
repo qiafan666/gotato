@@ -7,7 +7,20 @@ import (
 )
 
 // SliceContain 返回切片是否包含指定元素
-func SliceContain[T ~[]E, E comparable](list T, elem E) bool {
+func SliceContain[T ~[]E, E comparable](list T, elem ...E) bool {
+	if len(elem) == 0 {
+		return false
+	}
+	for _, v := range elem {
+		if contain(list, v) {
+			return true
+		}
+	}
+	return false
+}
+
+// contain 返回切片是否包含指定元素
+func contain[T ~[]E, E comparable](list T, elem E) bool {
 	if len(list) == 0 {
 		return false
 	}
