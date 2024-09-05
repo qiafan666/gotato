@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	errs "github.com/qiafan666/gotato/commons/gerrs"
-	s3 "github.com/qiafan666/gotato/commons/gs3"
+	"github.com/qiafan666/gotato/commons/gerr"
+	"github.com/qiafan666/gotato/commons/gs3"
 	"io"
 	"net/http"
 	"net/url"
@@ -37,7 +37,7 @@ const (
 
 const successCode = http.StatusOK
 
-var _ s3.Interface = (*OSS)(nil)
+var _ gs3.Interface = (*OSS)(nil)
 
 type Config struct {
 	Endpoint        string
@@ -51,7 +51,7 @@ type Config struct {
 
 func NewOSS(conf Config) (*OSS, error) {
 	if conf.BucketURL == "" {
-		return nil, errs.Wrap(errors.New("bucket url is empty"))
+		return nil, gerr.Wrap(errors.New("bucket url is empty"))
 	}
 	client, err := oss.New(conf.Endpoint, conf.AccessKeyID, conf.AccessKeySecret)
 	if err != nil {
@@ -59,7 +59,7 @@ func NewOSS(conf Config) (*OSS, error) {
 	}
 	bucket, err := client.Bucket(conf.Bucket)
 	if err != nil {
-		return nil, errs.WrapMsg(err, "ali-oss bucket error")
+		return nil, gerr.WrapMsg(err, "ali-oss bucket error")
 	}
 	if conf.BucketURL[len(conf.BucketURL)-1] != '/' {
 		conf.BucketURL += "/"
@@ -85,27 +85,27 @@ func (o *OSS) Engine() string {
 	return "ali-oss"
 }
 
-func (o *OSS) PartLimit() *s3.PartLimit {
-	return &s3.PartLimit{
+func (o *OSS) PartLimit() *gs3.PartLimit {
+	return &gs3.PartLimit{
 		MinPartSize: minPartSize,
 		MaxPartSize: maxPartSize,
 		MaxNumSize:  maxNumSize,
 	}
 }
 
-func (o *OSS) InitiateMultipartUpload(ctx context.Context, name string) (*s3.InitiateMultipartUploadResult, error) {
+func (o *OSS) InitiateMultipartUpload(ctx context.Context, name string) (*gs3.InitiateMultipartUploadResult, error) {
 	result, err := o.bucket.InitiateMultipartUpload(name)
 	if err != nil {
 		return nil, err
 	}
-	return &s3.InitiateMultipartUploadResult{
+	return &gs3.InitiateMultipartUploadResult{
 		UploadID: result.UploadID,
 		Bucket:   result.Bucket,
 		Key:      result.Key,
 	}, nil
 }
 
-func (o *OSS) CompleteMultipartUpload(ctx context.Context, uploadID string, name string, parts []s3.Part) (*s3.CompleteMultipartUploadResult, error) {
+func (o *OSS) CompleteMultipartUpload(ctx context.Context, uploadID string, name string, parts []gs3.Part) (*gs3.CompleteMultipartUploadResult, error) {
 	ossParts := make([]oss.UploadPart, len(parts))
 	for i, part := range parts {
 		ossParts[i] = oss.UploadPart{
@@ -121,7 +121,7 @@ func (o *OSS) CompleteMultipartUpload(ctx context.Context, uploadID string, name
 	if err != nil {
 		return nil, err
 	}
-	return &s3.CompleteMultipartUploadResult{
+	return &gs3.CompleteMultipartUploadResult{
 		Location: result.Location,
 		Bucket:   result.Bucket,
 		Key:      result.Key,
@@ -131,10 +131,10 @@ func (o *OSS) CompleteMultipartUpload(ctx context.Context, uploadID string, name
 
 func (o *OSS) PartSize(ctx context.Context, size int64) (int64, error) {
 	if size <= 0 {
-		return 0, errs.Wrap(errors.New("size must be greater than 0"))
+		return 0, gerr.Wrap(errors.New("size must be greater than 0"))
 	}
 	if size > maxPartSize*maxNumSize {
-		return 0, errs.Wrap(errors.New("size must be less than the maximum allowed limit"))
+		return 0, gerr.Wrap(errors.New("size must be less than the maximum allowed limit"))
 	}
 	if size <= minPartSize*maxNumSize {
 		return minPartSize, nil
@@ -146,12 +146,12 @@ func (o *OSS) PartSize(ctx context.Context, size int64) (int64, error) {
 	return partSize, nil
 }
 
-func (o *OSS) AuthSign(ctx context.Context, uploadID string, name string, expire time.Duration, partNumbers []int) (*s3.AuthSignResult, error) {
-	result := s3.AuthSignResult{
+func (o *OSS) AuthSign(ctx context.Context, uploadID string, name string, expire time.Duration, partNumbers []int) (*gs3.AuthSignResult, error) {
+	result := gs3.AuthSignResult{
 		URL:    o.bucketURL + name,
 		Query:  url.Values{"uploadId": {uploadID}},
 		Header: make(http.Header),
-		Parts:  make([]s3.SignPart, len(partNumbers)),
+		Parts:  make([]gs3.SignPart, len(partNumbers)),
 	}
 	for i, partNumber := range partNumbers {
 		rawURL := fmt.Sprintf(`%s%s?partNumber=%d&uploadId=%s`, o.bucketURL, name, partNumber, uploadID)
@@ -168,7 +168,7 @@ func (o *OSS) AuthSign(ctx context.Context, uploadID string, name string, expire
 		request.Header.Set(oss.HttpHeaderOssDate, now)
 		signHeader(*o.bucket.Client.Conn, request, fmt.Sprintf(`/%s/%s?partNumber=%d&uploadId=%s`, o.bucket.BucketName, name, partNumber, uploadID), o.credentials)
 		delete(request.Header, oss.HTTPHeaderDate)
-		result.Parts[i] = s3.SignPart{
+		result.Parts[i] = gs3.SignPart{
 			PartNumber: partNumber,
 			Query:      url.Values{"partNumber": {strconv.Itoa(partNumber)}},
 			URL:        request.URL.String(),
@@ -182,32 +182,32 @@ func (o *OSS) PresignedPutObject(ctx context.Context, name string, expire time.D
 	return o.bucket.SignURL(name, http.MethodPut, int64(expire/time.Second))
 }
 
-func (o *OSS) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, error) {
+func (o *OSS) StatObject(ctx context.Context, name string) (*gs3.ObjectInfo, error) {
 	header, err := o.bucket.GetObjectMeta(name)
 	if err != nil {
 		return nil, err
 	}
-	res := &s3.ObjectInfo{Key: name}
+	res := &gs3.ObjectInfo{Key: name}
 	if res.ETag = strings.ToLower(strings.ReplaceAll(header.Get("ETag"), `"`, ``)); res.ETag == "" {
-		return nil, errs.Wrap(errors.New("StatObject etag not found"))
+		return nil, gerr.Wrap(errors.New("StatObject etag not found"))
 	}
 	if contentLengthStr := header.Get("Content-Length"); contentLengthStr == "" {
 		return nil, errors.New("StatObject content-length not found")
 	} else {
 		res.Size, err = strconv.ParseInt(contentLengthStr, 10, 64)
 		if err != nil {
-			return nil, errs.WrapMsg(err, "StatObject content-length parse error")
+			return nil, gerr.WrapMsg(err, "StatObject content-length parse error")
 		}
 		if res.Size < 0 {
-			return nil, errs.Wrap(errors.New("StatObject content-length must be greater than 0"))
+			return nil, gerr.Wrap(errors.New("StatObject content-length must be greater than 0"))
 		}
 	}
 	if lastModified := header.Get("Last-Modified"); lastModified == "" {
-		return nil, errs.Wrap(errors.New("StatObject last-modified not found"))
+		return nil, gerr.Wrap(errors.New("StatObject last-modified not found"))
 	} else {
 		res.LastModified, err = time.Parse(http.TimeFormat, lastModified)
 		if err != nil {
-			return nil, errs.WrapMsg(err, "StatObject last-modified parse error")
+			return nil, gerr.WrapMsg(err, "StatObject last-modified parse error")
 		}
 	}
 	return res, nil
@@ -217,19 +217,19 @@ func (o *OSS) DeleteObject(ctx context.Context, name string) error {
 	return o.bucket.DeleteObject(name)
 }
 
-func (o *OSS) CopyObject(ctx context.Context, src string, dst string) (*s3.CopyObjectInfo, error) {
+func (o *OSS) CopyObject(ctx context.Context, src string, dst string) (*gs3.CopyObjectInfo, error) {
 	result, err := o.bucket.CopyObject(src, dst)
 	if err != nil {
-		return nil, errs.WrapMsg(err, "CopyObject error")
+		return nil, gerr.WrapMsg(err, "CopyObject error")
 	}
-	return &s3.CopyObjectInfo{
+	return &gs3.CopyObjectInfo{
 		Key:  dst,
 		ETag: strings.ToLower(strings.ReplaceAll(result.ETag, `"`, ``)),
 	}, nil
 }
 
 func (o *OSS) IsNotFound(err error) bool {
-	switch e := errs.Unwrap(err).(type) {
+	switch e := gerr.Unwrap(err).(type) {
 	case oss.ServiceError:
 		return e.StatusCode == http.StatusNotFound || e.Code == "NoSuchKey"
 	case *oss.ServiceError:
@@ -247,24 +247,24 @@ func (o *OSS) AbortMultipartUpload(ctx context.Context, uploadID string, name st
 	})
 }
 
-func (o *OSS) ListUploadedParts(ctx context.Context, uploadID string, name string, partNumberMarker int, maxParts int) (*s3.ListUploadedPartsResult, error) {
+func (o *OSS) ListUploadedParts(ctx context.Context, uploadID string, name string, partNumberMarker int, maxParts int) (*gs3.ListUploadedPartsResult, error) {
 	result, err := o.bucket.ListUploadedParts(oss.InitiateMultipartUploadResult{
 		UploadID: uploadID,
 		Key:      name,
 		Bucket:   o.bucket.BucketName,
 	}, oss.MaxUploads(100), oss.MaxParts(maxParts), oss.PartNumberMarker(partNumberMarker))
 	if err != nil {
-		return nil, errs.WrapMsg(err, "ListUploadedParts error")
+		return nil, gerr.WrapMsg(err, "ListUploadedParts error")
 	}
-	res := &s3.ListUploadedPartsResult{
+	res := &gs3.ListUploadedPartsResult{
 		Key:           result.Key,
 		UploadID:      result.UploadID,
 		MaxParts:      result.MaxParts,
-		UploadedParts: make([]s3.UploadedPart, len(result.UploadedParts)),
+		UploadedParts: make([]gs3.UploadedPart, len(result.UploadedParts)),
 	}
 	res.NextPartNumberMarker, _ = strconv.Atoi(result.NextPartNumberMarker)
 	for i, part := range result.UploadedParts {
-		res.UploadedParts[i] = s3.UploadedPart{
+		res.UploadedParts[i] = gs3.UploadedPart{
 			PartNumber:   part.PartNumber,
 			LastModified: part.LastModified,
 			ETag:         part.ETag,
@@ -274,7 +274,7 @@ func (o *OSS) ListUploadedParts(ctx context.Context, uploadID string, name strin
 	return res, nil
 }
 
-func (o *OSS) AccessURL(ctx context.Context, name string, expire time.Duration, opt *s3.AccessURLOption) (string, error) {
+func (o *OSS) AccessURL(ctx context.Context, name string, expire time.Duration, opt *gs3.AccessURLOption) (string, error) {
 	var opts []oss.Option
 	if opt != nil {
 		if opt.Image != nil {
@@ -321,13 +321,13 @@ func (o *OSS) AccessURL(ctx context.Context, name string, expire time.Duration, 
 	}
 	rawParams, err := oss.GetRawParams(opts)
 	if err != nil {
-		return "", errs.WrapMsg(err, "AccessURL error")
+		return "", gerr.WrapMsg(err, "AccessURL error")
 	}
 	params := getURLParams(*o.bucket.Client.Conn, rawParams)
 	return getURL(o.um, o.bucket.BucketName, name, params).String(), nil
 }
 
-func (o *OSS) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*s3.FormData, error) {
+func (o *OSS) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*gs3.FormData, error) {
 	// https://help.aliyun.com/zh/oss/developer-reference/postobject?spm=a2c4g.11186623.0.0.1cb83cebkP55nn
 	expires := time.Now().Add(duration)
 	conditions := []any{
@@ -343,14 +343,14 @@ func (o *OSS) FormData(ctx context.Context, name string, size int64, contentType
 	}
 	policyJson, err := json.Marshal(policy)
 	if err != nil {
-		return nil, errs.WrapMsg(err, "Marshal json error")
+		return nil, gerr.WrapMsg(err, "Marshal json error")
 	}
 	policyStr := base64.StdEncoding.EncodeToString(policyJson)
 	h := hmac.New(sha1.New, []byte(o.credentials.GetAccessKeySecret()))
 	if _, err := io.WriteString(h, policyStr); err != nil {
-		return nil, errs.WrapMsg(err, "WriteString error")
+		return nil, gerr.WrapMsg(err, "WriteString error")
 	}
-	fd := &s3.FormData{
+	fd := &gs3.FormData{
 		URL:     o.bucketURL,
 		File:    "file",
 		Expires: expires,

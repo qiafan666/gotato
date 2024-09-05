@@ -1,4 +1,4 @@
-package es
+package ges
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ type elasticClient struct {
 }
 
 // NewEsClient 创建一个新的 Elasticsearch 客户端并返回接口
-func NewEsClient(ctx context.Context, options ...elastic.ClientOptionFunc) (ElasticClient, error) {
+func NewEsClient(options ...elastic.ClientOptionFunc) (ElasticClient, error) {
 	client, err := elastic.NewClient(options...)
 	if err != nil {
 		return nil, err

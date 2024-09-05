@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	errs "github.com/qiafan666/gotato/commons/gerrs"
-	s3 "github.com/qiafan666/gotato/commons/gs3"
+	"github.com/qiafan666/gotato/commons/gerr"
+	"github.com/qiafan666/gotato/commons/gs3"
 	"github.com/tencentyun/cos-go-sdk-v5"
 
 	"net/http"
@@ -36,7 +36,7 @@ const (
 
 const successCode = http.StatusOK
 
-var _ s3.Interface = (*Cos)(nil)
+var _ gs3.Interface = (*Cos)(nil)
 
 type Config struct {
 	BucketURL    string
@@ -77,27 +77,27 @@ func (c *Cos) Engine() string {
 	return "tencent-cos"
 }
 
-func (c *Cos) PartLimit() *s3.PartLimit {
-	return &s3.PartLimit{
+func (c *Cos) PartLimit() *gs3.PartLimit {
+	return &gs3.PartLimit{
 		MinPartSize: minPartSize,
 		MaxPartSize: maxPartSize,
 		MaxNumSize:  maxNumSize,
 	}
 }
 
-func (c *Cos) InitiateMultipartUpload(ctx context.Context, name string) (*s3.InitiateMultipartUploadResult, error) {
+func (c *Cos) InitiateMultipartUpload(ctx context.Context, name string) (*gs3.InitiateMultipartUploadResult, error) {
 	result, _, err := c.client.Object.InitiateMultipartUpload(ctx, name, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &s3.InitiateMultipartUploadResult{
+	return &gs3.InitiateMultipartUploadResult{
 		UploadID: result.UploadID,
 		Bucket:   result.Bucket,
 		Key:      result.Key,
 	}, nil
 }
 
-func (c *Cos) CompleteMultipartUpload(ctx context.Context, uploadID string, name string, parts []s3.Part) (*s3.CompleteMultipartUploadResult, error) {
+func (c *Cos) CompleteMultipartUpload(ctx context.Context, uploadID string, name string, parts []gs3.Part) (*gs3.CompleteMultipartUploadResult, error) {
 	opts := &cos.CompleteMultipartUploadOptions{
 		Parts: make([]cos.Object, len(parts)),
 	}
@@ -111,7 +111,7 @@ func (c *Cos) CompleteMultipartUpload(ctx context.Context, uploadID string, name
 	if err != nil {
 		return nil, err
 	}
-	return &s3.CompleteMultipartUploadResult{
+	return &gs3.CompleteMultipartUploadResult{
 		Location: result.Location,
 		Bucket:   result.Bucket,
 		Key:      result.Key,
@@ -136,12 +136,12 @@ func (c *Cos) PartSize(ctx context.Context, size int64) (int64, error) {
 	return partSize, nil
 }
 
-func (c *Cos) AuthSign(ctx context.Context, uploadID string, name string, expire time.Duration, partNumbers []int) (*s3.AuthSignResult, error) {
-	result := s3.AuthSignResult{
+func (c *Cos) AuthSign(ctx context.Context, uploadID string, name string, expire time.Duration, partNumbers []int) (*gs3.AuthSignResult, error) {
+	result := gs3.AuthSignResult{
 		URL:    c.client.BaseURL.BucketURL.String() + "/" + cos.EncodeURIComponent(name),
 		Query:  url.Values{"uploadId": {uploadID}},
 		Header: make(http.Header),
-		Parts:  make([]s3.SignPart, len(partNumbers)),
+		Parts:  make([]gs3.SignPart, len(partNumbers)),
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, result.URL, nil)
 	if err != nil {
@@ -150,7 +150,7 @@ func (c *Cos) AuthSign(ctx context.Context, uploadID string, name string, expire
 	cos.AddAuthorizationHeader(c.credential.SecretID, c.credential.SecretKey, c.credential.SessionToken, req, cos.NewAuthTime(expire))
 	result.Header = req.Header
 	for i, partNumber := range partNumbers {
-		result.Parts[i] = s3.SignPart{
+		result.Parts[i] = gs3.SignPart{
 			PartNumber: partNumber,
 			Query:      url.Values{"partNumber": {strconv.Itoa(partNumber)}},
 		}
@@ -171,7 +171,7 @@ func (c *Cos) DeleteObject(ctx context.Context, name string) error {
 	return err
 }
 
-func (c *Cos) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, error) {
+func (c *Cos) StatObject(ctx context.Context, name string) (*gs3.ObjectInfo, error) {
 	if name != "" && name[0] == '/' {
 		name = name[1:]
 	}
@@ -179,7 +179,7 @@ func (c *Cos) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, erro
 	if err != nil {
 		return nil, err
 	}
-	res := &s3.ObjectInfo{Key: name}
+	res := &gs3.ObjectInfo{Key: name}
 	if res.ETag = strings.ToLower(strings.ReplaceAll(info.Header.Get("ETag"), `"`, "")); res.ETag == "" {
 		return nil, errors.New("StatObject etag not found")
 	}
@@ -205,13 +205,13 @@ func (c *Cos) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, erro
 	return res, nil
 }
 
-func (c *Cos) CopyObject(ctx context.Context, src string, dst string) (*s3.CopyObjectInfo, error) {
+func (c *Cos) CopyObject(ctx context.Context, src string, dst string) (*gs3.CopyObjectInfo, error) {
 	sourceURL := c.copyURL + src
 	result, _, err := c.client.Object.Copy(ctx, dst, sourceURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &s3.CopyObjectInfo{
+	return &gs3.CopyObjectInfo{
 		Key:  dst,
 		ETag: strings.ReplaceAll(result.ETag, `"`, ``),
 	}, nil
@@ -220,7 +220,7 @@ func (c *Cos) CopyObject(ctx context.Context, src string, dst string) (*s3.CopyO
 func (c *Cos) IsNotFound(err error) bool {
 	var e *cos.ErrorResponse
 	switch {
-	case errors.As(errs.Unwrap(err), &e):
+	case errors.As(gerr.Unwrap(err), &e):
 		return e.Response.StatusCode == http.StatusNotFound || e.Code == "NoSuchKey"
 	default:
 		return false
@@ -232,7 +232,7 @@ func (c *Cos) AbortMultipartUpload(ctx context.Context, uploadID string, name st
 	return err
 }
 
-func (c *Cos) ListUploadedParts(ctx context.Context, uploadID string, name string, partNumberMarker int, maxParts int) (*s3.ListUploadedPartsResult, error) {
+func (c *Cos) ListUploadedParts(ctx context.Context, uploadID string, name string, partNumberMarker int, maxParts int) (*gs3.ListUploadedPartsResult, error) {
 	result, _, err := c.client.Object.ListParts(ctx, name, uploadID, &cos.ObjectListPartsOptions{
 		MaxParts:         strconv.Itoa(maxParts),
 		PartNumberMarker: strconv.Itoa(partNumberMarker),
@@ -240,16 +240,16 @@ func (c *Cos) ListUploadedParts(ctx context.Context, uploadID string, name strin
 	if err != nil {
 		return nil, err
 	}
-	res := &s3.ListUploadedPartsResult{
+	res := &gs3.ListUploadedPartsResult{
 		Key:           result.Key,
 		UploadID:      result.UploadID,
-		UploadedParts: make([]s3.UploadedPart, len(result.Parts)),
+		UploadedParts: make([]gs3.UploadedPart, len(result.Parts)),
 	}
 	res.MaxParts, _ = strconv.Atoi(result.MaxParts)
 	res.NextPartNumberMarker, _ = strconv.Atoi(result.NextPartNumberMarker)
 	for i, part := range result.Parts {
 		lastModified, _ := time.Parse(http.TimeFormat, part.LastModified)
-		res.UploadedParts[i] = s3.UploadedPart{
+		res.UploadedParts[i] = gs3.UploadedPart{
 			PartNumber:   part.PartNumber,
 			LastModified: lastModified,
 			ETag:         part.ETag,
@@ -259,7 +259,7 @@ func (c *Cos) ListUploadedParts(ctx context.Context, uploadID string, name strin
 	return res, nil
 }
 
-func (c *Cos) AccessURL(ctx context.Context, name string, expire time.Duration, opt *s3.AccessURLOption) (string, error) {
+func (c *Cos) AccessURL(ctx context.Context, name string, expire time.Duration, opt *gs3.AccessURLOption) (string, error) {
 	var imageMogr string
 	var option cos.PresignedURLOptions
 	if opt != nil {
@@ -326,7 +326,7 @@ func (c *Cos) getPresignedURL(ctx context.Context, name string, expire time.Dura
 	return c.client.Object.GetObjectURL(name), nil
 }
 
-func (c *Cos) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*s3.FormData, error) {
+func (c *Cos) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*gs3.FormData, error) {
 	// https://cloud.tencent.com/document/product/436/14690
 	now := time.Now()
 	expiration := now.Add(duration)
@@ -352,7 +352,7 @@ func (c *Cos) FormData(ctx context.Context, name string, size int64, contentType
 	strToSign := sha1val(string(policyJson))
 	signature := hmacSha1val(signKey, strToSign)
 
-	fd := &s3.FormData{
+	fd := &gs3.FormData{
 		URL:     c.client.BaseURL.BucketURL.String(),
 		File:    "file",
 		Expires: expiration,

@@ -1,6 +1,6 @@
 package cont
 
-import s3 "github.com/qiafan666/gotato/commons/gs3"
+import "github.com/qiafan666/gotato/commons/gs3"
 
 type InitiateUploadResult struct {
 	// UploadID uniquely identifies the upload session for tracking and management purposes.
@@ -10,7 +10,7 @@ type InitiateUploadResult struct {
 	PartSize int64 `json:"partSize"`
 
 	// Sign contains the authentication and signature information necessary for securely uploading each part. This could include signed URLs or tokens.
-	Sign *s3.AuthSignResult `json:"sign"`
+	Sign *gs3.AuthSignResult `json:"sign"`
 }
 
 type UploadResult struct {

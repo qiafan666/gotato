@@ -1,17 +1,3 @@
-// Copyright © 2023 OpenIM. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package minio
 
 import (
@@ -19,9 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/minio/minio-go/v7"
-	errs "github.com/qiafan666/gotato/commons/gerrs"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/glog"
-	s3 "github.com/qiafan666/gotato/commons/gs3"
+	"github.com/qiafan666/gotato/commons/gs3"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -32,7 +18,7 @@ import (
 	"time"
 )
 
-func (m *Minio) getImageThumbnailURL(ctx context.Context, name string, expire time.Duration, opt *s3.Image) (string, error) {
+func (m *Minio) getImageThumbnailURL(ctx context.Context, name string, expire time.Duration, opt *gs3.Image) (string, error) {
 	var img image.Image
 	info, err := m.cache.GetImageObjectKeyInfo(ctx, name, func(ctx context.Context) (info *ImageInfo, err error) {
 		info, img, err = m.getObjectImageInfo(ctx, name)
@@ -42,7 +28,7 @@ func (m *Minio) getImageThumbnailURL(ctx context.Context, name string, expire ti
 		return "", err
 	}
 	if !info.IsImg {
-		return "", errs.New("object not image").Wrap()
+		return "", gerr.New("object not image").Wrap()
 	}
 	if opt.Width > info.Width || opt.Width <= 0 {
 		opt.Width = info.Width
@@ -118,7 +104,7 @@ func (m *Minio) getObjectImageInfo(ctx context.Context, name string) (*ImageInfo
 		return nil, nil, err
 	}
 	if fileInfo.Size > maxImageSize {
-		return nil, nil, errs.New("file size too large").Wrap()
+		return nil, nil, gerr.New("file size too large").Wrap()
 	}
 	imageData, err := m.getObjectData(ctx, name, fileInfo.Size)
 	if err != nil {

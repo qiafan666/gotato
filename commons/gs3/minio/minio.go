@@ -7,8 +7,8 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/signer"
-	errs "github.com/qiafan666/gotato/commons/gerrs"
-	s3 "github.com/qiafan666/gotato/commons/gs3"
+	"github.com/qiafan666/gotato/commons/gerr"
+	"github.com/qiafan666/gotato/commons/gs3"
 	"io"
 	"net/http"
 	"net/url"
@@ -40,7 +40,7 @@ const (
 
 const successCode = http.StatusOK
 
-var _ s3.Interface = (*Minio)(nil)
+var _ gs3.Interface = (*Minio)(nil)
 
 type Config struct {
 	Bucket          string
@@ -138,7 +138,7 @@ func (m *Minio) initMinio(ctx context.Context) error {
 	}
 	if m.conf.PublicRead {
 		policy := fmt.Sprintf(
-			`{"Version": "2012-10-17","Statement": [{"Action": ["s3:GetObject","s3:PutObject"],"Effect": "Allow","Principal": {"AWS": ["*"]},"Resource": ["arn:aws:s3:::%s/*"],"Sid": ""}]}`,
+			`{"Version": "2012-10-17","Statement": [{"Action": ["gs3:GetObject","gs3:PutObject"],"Effect": "Allow","Principal": {"AWS": ["*"]},"Resource": ["arn:aws:gs3:::%s/*"],"Sid": ""}]}`,
 			m.conf.Bucket,
 		)
 		if err = m.core.Client.SetBucketPolicy(ctx, m.conf.Bucket, policy); err != nil {
@@ -171,15 +171,15 @@ func (m *Minio) Engine() string {
 	return "minio"
 }
 
-func (m *Minio) PartLimit() *s3.PartLimit {
-	return &s3.PartLimit{
+func (m *Minio) PartLimit() *gs3.PartLimit {
+	return &gs3.PartLimit{
 		MinPartSize: minPartSize,
 		MaxPartSize: maxPartSize,
 		MaxNumSize:  maxNumSize,
 	}
 }
 
-func (m *Minio) InitiateMultipartUpload(ctx context.Context, name string) (*s3.InitiateMultipartUploadResult, error) {
+func (m *Minio) InitiateMultipartUpload(ctx context.Context, name string) (*gs3.InitiateMultipartUploadResult, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -187,14 +187,14 @@ func (m *Minio) InitiateMultipartUpload(ctx context.Context, name string) (*s3.I
 	if err != nil {
 		return nil, err
 	}
-	return &s3.InitiateMultipartUploadResult{
+	return &gs3.InitiateMultipartUploadResult{
 		Bucket:   m.bucket,
 		Key:      name,
 		UploadID: uploadID,
 	}, nil
 }
 
-func (m *Minio) CompleteMultipartUpload(ctx context.Context, uploadID string, name string, parts []s3.Part) (*s3.CompleteMultipartUploadResult, error) {
+func (m *Minio) CompleteMultipartUpload(ctx context.Context, uploadID string, name string, parts []gs3.Part) (*gs3.CompleteMultipartUploadResult, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (m *Minio) CompleteMultipartUpload(ctx context.Context, uploadID string, na
 		return nil, err
 	}
 	m.delObjectImageInfoKey(ctx, name, upload.Size)
-	return &s3.CompleteMultipartUploadResult{
+	return &gs3.CompleteMultipartUploadResult{
 		Location: upload.Location,
 		Bucket:   upload.Bucket,
 		Key:      upload.Key,
@@ -235,7 +235,7 @@ func (m *Minio) PartSize(ctx context.Context, size int64) (int64, error) {
 	return partSize, nil
 }
 
-func (m *Minio) AuthSign(ctx context.Context, uploadID string, name string, expire time.Duration, partNumbers []int) (*s3.AuthSignResult, error) {
+func (m *Minio) AuthSign(ctx context.Context, uploadID string, name string, expire time.Duration, partNumbers []int) (*gs3.AuthSignResult, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -243,10 +243,10 @@ func (m *Minio) AuthSign(ctx context.Context, uploadID string, name string, expi
 	if err != nil {
 		return nil, err
 	}
-	result := s3.AuthSignResult{
+	result := gs3.AuthSignResult{
 		URL:   m.signEndpoint + "/" + m.bucket + "/" + name,
 		Query: url.Values{"uploadId": {uploadID}},
-		Parts: make([]s3.SignPart, len(partNumbers)),
+		Parts: make([]gs3.SignPart, len(partNumbers)),
 	}
 	for i, partNumber := range partNumbers {
 		rawURL := result.URL + "?partNumber=" + strconv.Itoa(partNumber) + "&uploadId=" + uploadID
@@ -256,7 +256,7 @@ func (m *Minio) AuthSign(ctx context.Context, uploadID string, name string, expi
 		}
 		request.Header.Set("X-Amz-Content-Sha256", unsignedPayload)
 		request = signer.SignV4Trailer(*request, creds.AccessKeyID, creds.SecretAccessKey, creds.SessionToken, m.location, nil)
-		result.Parts[i] = s3.SignPart{
+		result.Parts[i] = gs3.SignPart{
 			PartNumber: partNumber,
 			Query:      url.Values{"partNumber": {strconv.Itoa(partNumber)}},
 			Header:     request.Header,
@@ -289,7 +289,7 @@ func (m *Minio) DeleteObject(ctx context.Context, name string) error {
 	return m.core.Client.RemoveObject(ctx, m.bucket, name, minio.RemoveObjectOptions{})
 }
 
-func (m *Minio) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, error) {
+func (m *Minio) StatObject(ctx context.Context, name string) (*gs3.ObjectInfo, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func (m *Minio) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, er
 	if err != nil {
 		return nil, err
 	}
-	return &s3.ObjectInfo{
+	return &gs3.ObjectInfo{
 		ETag:         strings.ToLower(info.ETag),
 		Key:          info.Key,
 		Size:         info.Size,
@@ -305,7 +305,7 @@ func (m *Minio) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, er
 	}, nil
 }
 
-func (m *Minio) CopyObject(ctx context.Context, src string, dst string) (*s3.CopyObjectInfo, error) {
+func (m *Minio) CopyObject(ctx context.Context, src string, dst string) (*gs3.CopyObjectInfo, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -319,14 +319,14 @@ func (m *Minio) CopyObject(ctx context.Context, src string, dst string) (*s3.Cop
 	if err != nil {
 		return nil, err
 	}
-	return &s3.CopyObjectInfo{
+	return &gs3.CopyObjectInfo{
 		Key:  dst,
 		ETag: strings.ToLower(result.ETag),
 	}, nil
 }
 
 func (m *Minio) IsNotFound(err error) bool {
-	switch e := errs.Unwrap(err).(type) {
+	switch e := gerr.Unwrap(err).(type) {
 	case minio.ErrorResponse:
 		return e.StatusCode == http.StatusNotFound || e.Code == "NoSuchKey"
 	case *minio.ErrorResponse:
@@ -343,7 +343,7 @@ func (m *Minio) AbortMultipartUpload(ctx context.Context, uploadID string, name 
 	return m.core.AbortMultipartUpload(ctx, m.bucket, name, uploadID)
 }
 
-func (m *Minio) ListUploadedParts(ctx context.Context, uploadID string, name string, partNumberMarker int, maxParts int) (*s3.ListUploadedPartsResult, error) {
+func (m *Minio) ListUploadedParts(ctx context.Context, uploadID string, name string, partNumberMarker int, maxParts int) (*gs3.ListUploadedPartsResult, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -351,15 +351,15 @@ func (m *Minio) ListUploadedParts(ctx context.Context, uploadID string, name str
 	if err != nil {
 		return nil, err
 	}
-	res := &s3.ListUploadedPartsResult{
+	res := &gs3.ListUploadedPartsResult{
 		Key:                  result.Key,
 		UploadID:             result.UploadID,
 		MaxParts:             result.MaxParts,
 		NextPartNumberMarker: result.NextPartNumberMarker,
-		UploadedParts:        make([]s3.UploadedPart, len(result.ObjectParts)),
+		UploadedParts:        make([]gs3.UploadedPart, len(result.ObjectParts)),
 	}
 	for i, part := range result.ObjectParts {
-		res.UploadedParts[i] = s3.UploadedPart{
+		res.UploadedParts[i] = gs3.UploadedPart{
 			PartNumber:   part.PartNumber,
 			LastModified: part.LastModified,
 			ETag:         part.ETag,
@@ -393,7 +393,7 @@ func (m *Minio) PresignedGetObject(ctx context.Context, name string, expire time
 	return rawURL.String(), nil
 }
 
-func (m *Minio) AccessURL(ctx context.Context, name string, expire time.Duration, opt *s3.AccessURLOption) (string, error) {
+func (m *Minio) AccessURL(ctx context.Context, name string, expire time.Duration, opt *gs3.AccessURLOption) (string, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return "", err
 	}
@@ -424,7 +424,7 @@ func (m *Minio) getObjectData(ctx context.Context, name string, limit int64) ([]
 	return io.ReadAll(io.LimitReader(object, limit))
 }
 
-func (m *Minio) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*s3.FormData, error) {
+func (m *Minio) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*gs3.FormData, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -462,7 +462,7 @@ func (m *Minio) FormData(ctx context.Context, name string, size int64, contentTy
 	}
 	u.Scheme = sign.Scheme
 	u.Host = sign.Host
-	return &s3.FormData{
+	return &gs3.FormData{
 		URL:          u.String(),
 		File:         "file",
 		Header:       nil,

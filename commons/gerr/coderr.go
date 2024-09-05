@@ -1,8 +1,7 @@
-package gerrs
+package gerr
 
 import (
 	"github.com/pkg/errors"
-	"strconv"
 	"strings"
 )
 
@@ -13,20 +12,23 @@ type CodeError interface {
 	Msg() string
 	Detail() string
 	WithDetail(detail string) CodeError
+	RequestID() string
 	Error
 }
 
-func NewCodeError(code int, msg string) CodeError {
+func NewCodeError(code int, msg, requestId string) CodeError {
 	return &codeError{
-		code: code,
-		msg:  msg,
+		code:      code,
+		msg:       msg,
+		requestId: requestId,
 	}
 }
 
 type codeError struct {
-	code   int
-	msg    string
-	detail string
+	code      int
+	msg       string
+	detail    string
+	requestId string
 }
 
 func (e *codeError) Code() int {
@@ -44,7 +46,7 @@ func (e *codeError) Detail() string {
 func (e *codeError) WithDetail(detail string) CodeError {
 	var d string
 	if e.detail == "" {
-		d = detail
+		d = ";detail=" + detail
 	} else {
 		d = e.detail + ", " + detail
 	}
@@ -53,6 +55,10 @@ func (e *codeError) WithDetail(detail string) CodeError {
 		msg:    e.msg,
 		detail: d,
 	}
+}
+
+func (e *codeError) RequestID() string {
+	return e.requestId
 }
 
 func (e *codeError) Wrap() error {
@@ -86,7 +92,7 @@ const initialCapacity = 3
 
 func (e *codeError) Error() string {
 	v := make([]string, 0, initialCapacity)
-	v = append(v, strconv.Itoa(e.code), e.msg)
+	v = append(v, e.msg)
 
 	if e.detail != "" {
 		v = append(v, e.detail)

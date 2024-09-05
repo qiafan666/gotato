@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/qiafan666/gotato/commons/glog"
-	s3 "github.com/qiafan666/gotato/commons/gs3"
+	"github.com/qiafan666/gotato/commons/gs3"
 	"path"
 	"strings"
 	"time"
 )
 
-func New(cache S3Cache, impl s3.Interface) *Controller {
+func New(cache S3Cache, impl gs3.Interface) *Controller {
 	return &Controller{
 		cache: cache,
 		impl:  impl,
@@ -23,7 +23,7 @@ func New(cache S3Cache, impl s3.Interface) *Controller {
 
 type Controller struct {
 	cache S3Cache
-	impl  s3.Interface
+	impl  gs3.Interface
 }
 
 func (c *Controller) Engine() string {
@@ -55,15 +55,15 @@ func (c *Controller) PartSize(ctx context.Context, size int64) (int64, error) {
 	return c.impl.PartSize(ctx, size)
 }
 
-func (c *Controller) PartLimit() *s3.PartLimit {
+func (c *Controller) PartLimit() *gs3.PartLimit {
 	return c.impl.PartLimit()
 }
 
-func (c *Controller) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, error) {
+func (c *Controller) StatObject(ctx context.Context, name string) (*gs3.ObjectInfo, error) {
 	return c.cache.GetKey(ctx, c.impl.Engine(), name)
 }
 
-func (c *Controller) GetHashObject(ctx context.Context, hash string) (*s3.ObjectInfo, error) {
+func (c *Controller) GetHashObject(ctx context.Context, hash string) (*gs3.ObjectInfo, error) {
 	return c.StatObject(ctx, c.HashPath(hash))
 }
 
@@ -109,8 +109,8 @@ func (c *Controller) InitiateUpload(ctx context.Context, hash string, size int64
 				Hash: hash,
 			}),
 			PartSize: partSize,
-			Sign: &s3.AuthSignResult{
-				Parts: []s3.SignPart{
+			Sign: &gs3.AuthSignResult{
+				Parts: []gs3.SignPart{
 					{
 						PartNumber: 1,
 						URL:        rawURL,
@@ -127,7 +127,7 @@ func (c *Controller) InitiateUpload(ctx context.Context, hash string, size int64
 		if maxParts < 0 {
 			maxParts = partNumber
 		}
-		var authSign *s3.AuthSignResult
+		var authSign *gs3.AuthSignResult
 		if maxParts > 0 {
 			partNumbers := make([]int, maxParts)
 			for i := 0; i < maxParts; i++ {
@@ -179,9 +179,9 @@ func (c *Controller) CompleteUpload(ctx context.Context, uploadID string, partHa
 	var targetKey string
 	switch upload.Type {
 	case UploadTypeMultipart:
-		parts := make([]s3.Part, len(partHashs))
+		parts := make([]gs3.Part, len(partHashs))
 		for i, part := range partHashs {
-			parts[i] = s3.Part{
+			parts[i] = gs3.Part{
 				PartNumber: i + 1,
 				ETag:       part,
 			}
@@ -234,7 +234,7 @@ func (c *Controller) CompleteUpload(ctx context.Context, uploadID string, partHa
 	}, nil
 }
 
-func (c *Controller) AuthSign(ctx context.Context, uploadID string, partNumbers []int) (*s3.AuthSignResult, error) {
+func (c *Controller) AuthSign(ctx context.Context, uploadID string, partNumbers []int) (*gs3.AuthSignResult, error) {
 	upload, err := parseMultipartUploadID(uploadID)
 	if err != nil {
 		return nil, err
@@ -250,10 +250,10 @@ func (c *Controller) AuthSign(ctx context.Context, uploadID string, partNumbers 
 }
 
 func (c *Controller) IsNotFound(err error) bool {
-	return c.impl.IsNotFound(err) || errors.Is(err, s3.ErrRecordNotFound)
+	return c.impl.IsNotFound(err) || errors.Is(err, gs3.ErrRecordNotFound)
 }
 
-func (c *Controller) AccessURL(ctx context.Context, name string, expire time.Duration, opt *s3.AccessURLOption) (string, error) {
+func (c *Controller) AccessURL(ctx context.Context, name string, expire time.Duration, opt *gs3.AccessURLOption) (string, error) {
 	if opt.Image != nil {
 		opt.Filename = ""
 		opt.ContentType = ""
@@ -261,6 +261,6 @@ func (c *Controller) AccessURL(ctx context.Context, name string, expire time.Dur
 	return c.impl.AccessURL(ctx, name, expire, opt)
 }
 
-func (c *Controller) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*s3.FormData, error) {
+func (c *Controller) FormData(ctx context.Context, name string, size int64, contentType string, duration time.Duration) (*gs3.FormData, error) {
 	return c.impl.FormData(ctx, name, size, contentType, duration)
 }
