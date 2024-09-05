@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/IBM/sarama"
-	"github.com/pkg/errors"
 	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gerr"
 )
 
 func Check(ctx context.Context, conf *Config, topics []string) error {
@@ -15,13 +15,13 @@ func Check(ctx context.Context, conf *Config, topics []string) error {
 	}
 	cli, err := sarama.NewClient(conf.Addr, kfk)
 	if err != nil {
-		return errors.Wrapf(err, "NewClient failed,config: %s", gcast.ToString(conf))
+		return gerr.WrapMsg(err, "Failed to create kafka client", "config", gcast.ToString(conf))
 	}
 	defer cli.Close()
 
 	existingTopics, err := cli.Topics()
 	if err != nil {
-		return errors.Wrap(err, "Failed to list topics")
+		return gerr.WrapMsg(err, "Failed to list topics")
 	}
 
 	existingTopicsMap := make(map[string]bool)
@@ -31,7 +31,7 @@ func Check(ctx context.Context, conf *Config, topics []string) error {
 
 	for _, topic := range topics {
 		if !existingTopicsMap[topic] {
-			return errors.New(fmt.Sprintf("Topic %s not exist", topic))
+			return gerr.New(fmt.Sprintf("Topic %s not exist", topic))
 		}
 	}
 	return nil

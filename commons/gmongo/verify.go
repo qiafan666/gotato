@@ -2,7 +2,7 @@ package gmongo
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -16,7 +16,7 @@ func Check(ctx context.Context, config *Config) error {
 	clientOpts := options.Client().ApplyURI(config.Uri)
 	mongoClient, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
-		return errors.Wrapf(err, "MongoDB connect failed, URI: %s, Database: %s, MaxPoolSize: %d", config.Uri, config.Database, config.MaxPoolSize)
+		return gerr.WrapMsg(err, "MongoDB connect failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
 	}
 
 	defer func() {
@@ -26,7 +26,7 @@ func Check(ctx context.Context, config *Config) error {
 	}()
 
 	if err = mongoClient.Ping(ctx, nil); err != nil {
-		return errors.Wrapf(err, "MongoDB ping failed, URI: %s, Database: %s, MaxPoolSize: %d", config.Uri, config.Database, config.MaxPoolSize)
+		return gerr.WrapMsg(err, "MongoDB connect failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
 	}
 
 	return nil
@@ -35,10 +35,10 @@ func Check(ctx context.Context, config *Config) error {
 // ValidateAndSetDefaults 验证配置并设置默认值
 func (c *Config) ValidateAndSetDefaults() error {
 	if c.Uri == "" && len(c.Address) == 0 {
-		return errors.New("either Uri or Address must be provided")
+		return gerr.New("either Uri or Address must be provided")
 	}
 	if c.Database == "" {
-		return errors.New("database is required")
+		return gerr.New("database is required")
 	}
 	if c.MaxPoolSize <= 0 {
 		c.MaxPoolSize = defaultMaxPoolSize

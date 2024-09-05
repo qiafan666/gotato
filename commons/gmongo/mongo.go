@@ -2,12 +2,11 @@ package gmongo
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/gmongo/tx"
-	"time"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 // Config represents the MongoDB configuration.
@@ -53,7 +52,7 @@ func NewMongoDB(ctx context.Context, config *Config) (*Client, error) {
 		break
 	}
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to connect to MongoDB after %d retries,uri=%s", config.MaxRetry, config.Uri)
+		return nil, gerr.WrapMsg(err, "failed to connect to MongoDB", "uri", config.Uri, "max_retry", config.MaxRetry)
 	}
 	mtx, err := NewMongoTx(ctx, cli)
 	if err != nil {
@@ -71,7 +70,7 @@ func connectMongo(ctx context.Context, opts *options.ClientOptions) (*mongo.Clie
 		return nil, err
 	}
 	if err = cli.Ping(ctx, nil); err != nil {
-		return nil, errors.Wrap(err, "failed to ping MongoDB")
+		return nil, gerr.WrapMsg(err, "failed to ping MongoDB")
 	}
 	return cli, nil
 }

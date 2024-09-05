@@ -1,7 +1,7 @@
 package gtime
 
 import (
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"strconv"
 	"time"
 )
@@ -82,7 +82,7 @@ func TimeStringFormatTimeUnix(timeFormat string, timeSrc string) int64 {
 // TimeStringToTime 转换时间格式字符串为time.Time类型
 func TimeStringToTime(timeString string) (time.Time, error) {
 	t, err := time.Parse("2006-01-02", timeString)
-	return t, errors.Wrap(err, "error parsing time string")
+	return t, gerr.WrapMsg(err, "error parsing time string")
 }
 
 // TimeToString 转换time.Time类型为字符串
@@ -100,7 +100,7 @@ func GetTimestampByTimezone(timezone string) (int64, error) {
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return 0, errors.Wrap(err, "error loading location")
+		return 0, gerr.WrapMsg(err, "error loading location")
 	}
 	// get current time
 	currentTime := time.Now().In(location)
@@ -114,7 +114,7 @@ func DaysBetweenTimestamps(timezone string, timestamp int64) (int, error) {
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return 0, errors.Wrap(err, "error loading location")
+		return 0, gerr.WrapMsg(err, "error loading location")
 	}
 	// get current time
 	now := time.Now().In(location)
@@ -132,7 +132,7 @@ func IsSameWeekday(timezone string, timestamp int64) (bool, error) {
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return false, errors.Wrap(err, "error loading location")
+		return false, gerr.WrapMsg(err, "error loading location")
 	}
 	// get current weekday
 	currentWeekday := time.Now().In(location).Weekday()
@@ -148,7 +148,7 @@ func IsSameDayOfMonth(timezone string, timestamp int64) (bool, error) {
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return false, errors.Wrap(err, "error loading location")
+		return false, gerr.WrapMsg(err, "error loading location")
 	}
 	// Get the current day of the month
 	currentDay := time.Now().In(location).Day()
@@ -173,12 +173,12 @@ func IsNthDayCycle(timezone string, startTimestamp int64, n int) (bool, error) {
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return false, errors.Wrap(err, "error loading location")
+		return false, gerr.WrapMsg(err, "error loading location")
 	}
 	// Parse the start date
 	startTime := time.Unix(startTimestamp, 0)
 	if err != nil {
-		return false, errors.Wrap(err, "invalid start timestamp format")
+		return false, gerr.WrapMsg(err, "invalid start timestamp format")
 	}
 	// Get the current time
 	now := time.Now().In(location)
@@ -193,7 +193,7 @@ func IsNthWeekCycle(timezone string, startTimestamp int64, n int) (bool, error) 
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return false, errors.Wrap(err, "error loading location")
+		return false, gerr.WrapMsg(err, "error loading location")
 	}
 
 	// Get the current time
@@ -202,7 +202,7 @@ func IsNthWeekCycle(timezone string, startTimestamp int64, n int) (bool, error) 
 	// Parse the start timestamp
 	startTime := time.Unix(startTimestamp, 0)
 	if err != nil {
-		return false, errors.Wrap(err, "invalid start timestamp format")
+		return false, gerr.WrapMsg(err, "invalid start timestamp format")
 	}
 
 	// Calculate the difference in days between the current time and the start time
@@ -220,7 +220,7 @@ func IsNthMonthCycle(timezone string, startTimestamp int64, n int) (bool, error)
 	// set time zone
 	location, err := time.LoadLocation(timezone)
 	if err != nil {
-		return false, errors.Wrap(err, "error loading location")
+		return false, gerr.WrapMsg(err, "error loading location")
 	}
 
 	// Get the current date
@@ -229,7 +229,7 @@ func IsNthMonthCycle(timezone string, startTimestamp int64, n int) (bool, error)
 	// Parse the start timestamp
 	startTime := time.Unix(startTimestamp, 0)
 	if err != nil {
-		return false, errors.Wrap(err, "invalid start timestamp format")
+		return false, gerr.WrapMsg(err, "invalid start timestamp format")
 	}
 
 	// Calculate the difference in months between the current time and the start time

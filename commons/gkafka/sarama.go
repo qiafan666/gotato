@@ -2,9 +2,8 @@ package gkafka
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/IBM/sarama"
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"strings"
 )
 
@@ -33,7 +32,7 @@ func BuildConsumerGroupConfig(conf *Config, initial int64, autoCommitEnable bool
 func NewConsumerGroup(conf *sarama.Config, addr []string, groupID string) (sarama.ConsumerGroup, error) {
 	cg, err := sarama.NewConsumerGroup(addr, groupID, conf)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("NewConsumerGroup failed, addr: %v, groupID: %v, conf: %v"))
+		return nil, gerr.WrapMsg(err, "NewConsumerGroup failed", "addr", addr, "groupID", groupID, "conf", *conf)
 	}
 	return cg, nil
 }
@@ -62,7 +61,7 @@ func BuildProducerConfig(conf Config) (*sarama.Config, error) {
 		kfk.Producer.Compression = sarama.CompressionNone
 	} else {
 		if err := kfk.Producer.Compression.UnmarshalText(bytes.ToLower([]byte(conf.CompressType))); err != nil {
-			return nil, errors.Wrapf(err, "UnmarshalText failed, compressType: %v", conf.CompressType)
+			return nil, gerr.WrapMsg(err, "UnmarshalText failed", "compressType", conf.CompressType)
 		}
 	}
 	if conf.TLS.EnableTLS {
@@ -79,7 +78,7 @@ func BuildProducerConfig(conf Config) (*sarama.Config, error) {
 func NewProducer(conf *sarama.Config, addr []string) (sarama.SyncProducer, error) {
 	producer, err := sarama.NewSyncProducer(addr, conf)
 	if err != nil {
-		return nil, errors.Wrapf(err, "NewSyncProducer failed, addr: %v, conf: %v", addr, *conf)
+		return nil, gerr.WrapMsg(err, "NewSyncProducer failed", "addr", addr, "conf", *conf)
 	}
 	return producer, nil
 }

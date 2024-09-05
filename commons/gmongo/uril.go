@@ -2,7 +2,7 @@ package gmongo
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -34,7 +34,7 @@ func findOptionToCountOption(opts []*options.FindOptions) *options.CountOptions 
 func InsertMany[T any](ctx context.Context, coll *mongo.Collection, val []T, opts ...*options.InsertManyOptions) error {
 	_, err := coll.InsertMany(ctx, anes(val), opts...)
 	if err != nil {
-		return errors.Wrap(err, "gmongo insert many")
+		return gerr.WrapMsg(err, "gmongo insert many")
 	}
 	return nil
 }
@@ -42,10 +42,10 @@ func InsertMany[T any](ctx context.Context, coll *mongo.Collection, val []T, opt
 func UpdateOne(ctx context.Context, coll *mongo.Collection, filter any, update any, notMatchedErr bool, opts ...*options.UpdateOptions) error {
 	res, err := coll.UpdateOne(ctx, filter, update, opts...)
 	if err != nil {
-		return errors.Wrap(err, "gmongo update one")
+		return gerr.WrapMsg(err, "gmongo update one")
 	}
 	if notMatchedErr && res.MatchedCount == 0 {
-		return errors.Wrap(mongo.ErrNoDocuments, "gmongo update not matched")
+		return gerr.WrapMsg(mongo.ErrNoDocuments, "gmongo update not matched")
 	}
 	return nil
 }
@@ -53,7 +53,7 @@ func UpdateOne(ctx context.Context, coll *mongo.Collection, filter any, update a
 func UpdateOneResult(ctx context.Context, coll *mongo.Collection, filter any, update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	res, err := coll.UpdateOne(ctx, filter, update, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "gmongo update one")
+		return nil, gerr.WrapMsg(err, "gmongo update one")
 	}
 	return res, nil
 }
@@ -61,7 +61,7 @@ func UpdateOneResult(ctx context.Context, coll *mongo.Collection, filter any, up
 func UpdateMany(ctx context.Context, coll *mongo.Collection, filter any, update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	res, err := coll.UpdateMany(ctx, filter, update, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "gmongo update many")
+		return nil, gerr.WrapMsg(err, "gmongo update many")
 	}
 	return res, nil
 }
@@ -69,7 +69,7 @@ func UpdateMany(ctx context.Context, coll *mongo.Collection, filter any, update 
 func Find[T any](ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.FindOptions) ([]T, error) {
 	cur, err := coll.Find(ctx, filter, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "gmongo find")
+		return nil, gerr.WrapMsg(err, "gmongo find")
 	}
 	defer func(cur *mongo.Cursor, ctx context.Context) {
 		err = cur.Close(ctx)
@@ -83,7 +83,7 @@ func Find[T any](ctx context.Context, coll *mongo.Collection, filter any, opts .
 func FindOne[T any](ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.FindOneOptions) (res T, err error) {
 	cur := coll.FindOne(ctx, filter, opts...)
 	if err := cur.Err(); err != nil {
-		return res, errors.Wrap(err, "gmongo find one")
+		return res, gerr.WrapMsg(err, "gmongo find one")
 	}
 	return DecodeOne[T](cur.Decode)
 }
@@ -91,7 +91,7 @@ func FindOne[T any](ctx context.Context, coll *mongo.Collection, filter any, opt
 func FindOneAndUpdate[T any](ctx context.Context, coll *mongo.Collection, filter any, update any, opts ...*options.FindOneAndUpdateOptions) (res T, err error) {
 	result := coll.FindOneAndUpdate(ctx, filter, update, opts...)
 	if err := result.Err(); err != nil {
-		return res, errors.Wrap(err, "gmongo find one and update")
+		return res, gerr.WrapMsg(err, "gmongo find one and update")
 	}
 	return DecodeOne[T](result.Decode)
 }
@@ -99,7 +99,7 @@ func FindOneAndUpdate[T any](ctx context.Context, coll *mongo.Collection, filter
 func FindPage[T any](ctx context.Context, coll *mongo.Collection, filter any, pageNum, pageSize int, opts ...*options.FindOptions) (int64, []T, error) {
 	count, err := Count(ctx, coll, filter, findOptionToCountOption(opts))
 	if err != nil {
-		return 0, nil, errors.Wrap(err, "gmongo failed to count documents in collection")
+		return 0, nil, gerr.WrapMsg(err, "gmongo failed to count documents in collection")
 	}
 	if count == 0 {
 		return count, nil, nil
@@ -128,7 +128,7 @@ func FindPageOnly[T any](ctx context.Context, coll *mongo.Collection, filter any
 func Count(ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.CountOptions) (int64, error) {
 	count, err := coll.CountDocuments(ctx, filter, opts...)
 	if err != nil {
-		return 0, errors.Wrap(err, "gmongo count")
+		return 0, gerr.WrapMsg(err, "gmongo count")
 	}
 	return count, nil
 }
@@ -144,7 +144,7 @@ func Exist(ctx context.Context, coll *mongo.Collection, filter any, opts ...*opt
 
 func DeleteOne(ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.DeleteOptions) error {
 	if _, err := coll.DeleteOne(ctx, filter, opts...); err != nil {
-		return errors.Wrap(err, "gmongo delete one")
+		return gerr.WrapMsg(err, "gmongo delete one")
 	}
 	return nil
 }
@@ -152,14 +152,14 @@ func DeleteOne(ctx context.Context, coll *mongo.Collection, filter any, opts ...
 func DeleteOneResult(ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	res, err := coll.DeleteOne(ctx, filter, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "gmongo delete one")
+		return nil, gerr.WrapMsg(err, "gmongo delete one")
 	}
 	return res, nil
 }
 
 func DeleteMany(ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.DeleteOptions) error {
 	if _, err := coll.DeleteMany(ctx, filter, opts...); err != nil {
-		return errors.Wrap(err, "gmongo delete many")
+		return gerr.WrapMsg(err, "gmongo delete many")
 	}
 	return nil
 }
@@ -167,7 +167,7 @@ func DeleteMany(ctx context.Context, coll *mongo.Collection, filter any, opts ..
 func DeleteManyResult(ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	res, err := coll.DeleteMany(ctx, filter, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "gmongo delete many")
+		return nil, gerr.WrapMsg(err, "gmongo delete many")
 	}
 	return res, nil
 }
@@ -175,7 +175,7 @@ func DeleteManyResult(ctx context.Context, coll *mongo.Collection, filter any, o
 func Aggregate[T any](ctx context.Context, coll *mongo.Collection, pipeline any, opts ...*options.AggregateOptions) ([]T, error) {
 	cur, err := coll.Aggregate(ctx, pipeline, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "gmongo aggregate")
+		return nil, gerr.WrapMsg(err, "gmongo aggregate")
 	}
 	defer cur.Close(ctx)
 	return Decodes[T](ctx, cur)
@@ -186,12 +186,12 @@ func Decodes[T any](ctx context.Context, cur *mongo.Cursor) ([]T, error) {
 	if basic[T]() {
 		var temp []map[string]T
 		if err := cur.All(ctx, &temp); err != nil {
-			return nil, errors.Wrap(err, "gmongo decodes")
+			return nil, gerr.WrapMsg(err, "gmongo decodes")
 		}
 		res = make([]T, 0, len(temp))
 		for _, m := range temp {
 			if len(m) != 1 {
-				return nil, errors.New("gmongo find result len(m) != 1")
+				return nil, gerr.New("gmongo find result len(m) != 1")
 			}
 			for _, t := range m {
 				res = append(res, t)
@@ -199,7 +199,7 @@ func Decodes[T any](ctx context.Context, cur *mongo.Cursor) ([]T, error) {
 		}
 	} else {
 		if err := cur.All(ctx, &res); err != nil {
-			return nil, errors.Wrap(err, "gmongo all")
+			return nil, gerr.WrapMsg(err, "gmongo all")
 		}
 	}
 	return res, nil
@@ -209,11 +209,11 @@ func DecodeOne[T any](decoder func(v any) error) (res T, err error) {
 	if basic[T]() {
 		var temp map[string]T
 		if err = decoder(&temp); err != nil {
-			err = errors.Wrap(err, "gmongo decodes one")
+			err = gerr.WrapMsg(err, "gmongo decodes one")
 			return
 		}
 		if len(temp) != 1 {
-			err = errors.New("gmongo find result len(m) != 1")
+			err = gerr.New("gmongo find result len(m) != 1")
 			return
 		}
 		for k := range temp {
@@ -221,7 +221,7 @@ func DecodeOne[T any](decoder func(v any) error) (res T, err error) {
 		}
 	} else {
 		if err = decoder(&res); err != nil {
-			err = errors.Wrap(err, "gmongo decoder")
+			err = gerr.WrapMsg(err, "gmongo decoder")
 			return
 		}
 	}
@@ -234,7 +234,7 @@ func Ignore[T any](_ T, err error) error {
 
 func IgnoreWarp[T any](_ T, err error) error {
 	if err != nil {
-		return errors.Wrap(err, "gmongo ignore")
+		return gerr.WrapMsg(err, "gmongo ignore")
 	}
 	return err
 }

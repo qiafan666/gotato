@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"os"
 )
 
@@ -16,7 +16,7 @@ func decryptPEM(data []byte, passphrase []byte) ([]byte, error) {
 	b, _ := pem.Decode(data)
 	d, err := x509.DecryptPEMBlock(b, passphrase)
 	if err != nil {
-		return nil, errors.Wrap(err, "DecryptPEMBlock failed")
+		return nil, gerr.WrapMsg(err, "DecryptPEMBlock failed")
 	}
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  b.Type,
@@ -27,7 +27,7 @@ func decryptPEM(data []byte, passphrase []byte) ([]byte, error) {
 func readEncryptablePEMBlock(path string, pwd []byte) ([]byte, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "ReadFile failed,path=%s", path)
+		return nil, gerr.WrapMsg(err, "ReadFile failed", "path", path)
 	}
 	return decryptPEM(data, pwd)
 }
@@ -38,7 +38,7 @@ func newTLSConfig(clientCertFile, clientKeyFile, caCertFile string, keyPwd []byt
 	if clientCertFile != "" && clientKeyFile != "" {
 		certPEMBlock, err := os.ReadFile(clientCertFile)
 		if err != nil {
-			return nil, errors.Wrapf(err, "ReadFile failed,clientCertFile=%s", clientCertFile)
+			return nil, gerr.WrapMsg(err, "ReadFile failed", "clientCertFile", clientCertFile)
 		}
 		keyPEMBlock, err := readEncryptablePEMBlock(clientKeyFile, keyPwd)
 		if err != nil {
@@ -47,7 +47,7 @@ func newTLSConfig(clientCertFile, clientKeyFile, caCertFile string, keyPwd []byt
 
 		cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 		if err != nil {
-			return nil, errors.Wrap(err, "X509KeyPair failed")
+			return nil, gerr.WrapMsg(err, "X509KeyPair failed")
 		}
 		tlsConfig.Certificates = []tls.Certificate{cert}
 	}
@@ -55,11 +55,11 @@ func newTLSConfig(clientCertFile, clientKeyFile, caCertFile string, keyPwd []byt
 	if caCertFile != "" {
 		caCert, err := os.ReadFile(caCertFile)
 		if err != nil {
-			return nil, errors.Wrapf(err, "ReadFile failed,caCertFile=%s ", caCertFile)
+			return nil, gerr.WrapMsg(err, "ReadFile failed", "caCertFile", caCertFile)
 		}
 		caCertPool := x509.NewCertPool()
 		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
-			return nil, errors.New("AppendCertsFromPEM failed")
+			return nil, gerr.New("AppendCertsFromPEM failed")
 		}
 		tlsConfig.RootCAs = caCertPool
 	}

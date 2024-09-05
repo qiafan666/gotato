@@ -3,7 +3,7 @@ package gkafka
 import (
 	"context"
 	"github.com/IBM/sarama"
-	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -33,10 +33,10 @@ func (p *Producer) SendMessage(ctx context.Context, key string, msg proto.Messag
 	// Marshal the protobuf message
 	bMsg, err := proto.Marshal(msg)
 	if err != nil {
-		return 0, 0, errors.Wrap(err, "proto.Marshal error")
+		return 0, 0, gerr.WrapMsg(err, "proto.Marshal error")
 	}
 	if len(bMsg) == 0 {
-		return 0, 0, errors.New("SendMessage msg is empty")
+		return 0, 0, gerr.New("SendMessage msg is empty")
 	}
 
 	// 包装消息
@@ -48,7 +48,7 @@ func (p *Producer) SendMessage(ctx context.Context, key string, msg proto.Messag
 
 	// 验证消息
 	if kMsg.Key.Length() == 0 || kMsg.Value.Length() == 0 {
-		return 0, 0, errors.New("SendMessage key or value is empty")
+		return 0, 0, gerr.New("SendMessage key or value is empty")
 	}
 
 	// 添加消息头
@@ -61,7 +61,7 @@ func (p *Producer) SendMessage(ctx context.Context, key string, msg proto.Messag
 	// 发送消息
 	partition, offset, err := p.producer.SendMessage(kMsg)
 	if err != nil {
-		return 0, 0, errors.Wrap(err, "p.producer.SendMessage error")
+		return 0, 0, gerr.WrapMsg(err, "p.producer.SendMessage error")
 	}
 
 	return partition, offset, nil
