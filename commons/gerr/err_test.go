@@ -3,13 +3,13 @@ package gerr
 import "testing"
 
 func TestError(t *testing.T) {
-	testErr := NewCodeError(10000, "test error", "")
+	testErr := NewCodeError(10000, "test error")
 	t.Log(testErr.Error()) // output: test error
 
-	testErr1 := NewCodeError(10001, "test error1", "").Wrap()
+	testErr1 := NewCodeError(10001, "test error1").Wrap()
 	t.Log(testErr1.Error()) // output: test error1
 
-	testErr2 := NewCodeError(10002, "test error2", "").WrapMsg("wrap msg", "key", "value")
+	testErr2 := NewCodeError(10002, "test error2").WrapMsg("wrap msg", "key", "value")
 	t.Log(testErr2.Error()) // output: wrap msg, key=value: test error2
 
 	err := Unwrap(testErr2)
@@ -17,7 +17,7 @@ func TestError(t *testing.T) {
 		t.Log(err.Error()) // output: wrap msg, key=value: test error2
 	}
 
-	testErr3 := NewCodeError(10003, "test error3", "").WithDetail("msg detail")
+	testErr3 := NewCodeError(10003, "test error3").WithDetail("msg detail")
 	t.Log(testErr3.Error()) // output: test error3 ;detail=msg detail
 
 	err = Unwrap(testErr3)

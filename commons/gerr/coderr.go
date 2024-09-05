@@ -16,11 +16,14 @@ type CodeError interface {
 	Error
 }
 
-func NewCodeError(code int, msg, requestId string) CodeError {
+func NewCodeError(code int, msg string, requestId ...string) CodeError {
+	if len(requestId) == 0 {
+		requestId = []string{""}
+	}
 	return &codeError{
 		code:      code,
 		msg:       msg,
-		requestId: requestId,
+		requestId: requestId[0],
 	}
 }
 
@@ -51,9 +54,10 @@ func (e *codeError) WithDetail(detail string) CodeError {
 		d = e.detail + ", " + detail
 	}
 	return &codeError{
-		code:   e.code,
-		msg:    e.msg,
-		detail: d,
+		code:      e.code,
+		msg:       e.msg,
+		detail:    d,
+		requestId: e.requestId,
 	}
 }
 
