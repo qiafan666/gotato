@@ -2,7 +2,7 @@ package gmongo
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/commons/gerrs"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/gmongo/tx"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -32,7 +32,7 @@ type mongoTx struct {
 func (m *mongoTx) init(ctx context.Context) error {
 	var res map[string]any
 	if err := m.client.Database("admin").RunCommand(ctx, bson.M{"isMaster": 1}).Decode(&res); err != nil {
-		return gerrs.WrapMsg(err, "check whether gmongo is deployed in a cluster")
+		return gerr.WrapMsg(err, "check whether gmongo is deployed in a cluster")
 	}
 	if _, allowTx := res["setName"]; !allowTx {
 		return nil // non-clustered transactions are not supported
@@ -40,13 +40,13 @@ func (m *mongoTx) init(ctx context.Context) error {
 	m.tx = func(fnctx context.Context, fn func(ctx context.Context) error) error {
 		sess, err := m.client.StartSession()
 		if err != nil {
-			return gerrs.WrapMsg(err, "mongodb start session failed")
+			return gerr.WrapMsg(err, "mongodb start session failed")
 		}
 		defer sess.EndSession(fnctx)
 		_, err = sess.WithTransaction(fnctx, func(sessCtx mongo.SessionContext) (any, error) {
 			return nil, fn(sessCtx)
 		})
-		return gerrs.WrapMsg(err, "mongodb transaction failed")
+		return gerr.WrapMsg(err, "mongodb transaction failed")
 	}
 	return nil
 }
