@@ -1,4 +1,4 @@
-package apiresp
+package ggin
 
 import (
 	"encoding/json"

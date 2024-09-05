@@ -1,4 +1,4 @@
-package apiresp
+package ggin
 
 import (
 	"github.com/qiafan666/gotato/commons/ggin/jsonutil"
