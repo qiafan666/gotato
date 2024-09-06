@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 	"unsafe"
 )
 
@@ -186,4 +187,28 @@ func Byte2Uint32(b []byte) uint32 {
 func String2Uint32(s string) uint32 {
 	b := bytes.NewBufferString(s).Bytes()
 	return Byte2Uint32(b)
+}
+
+// CountRune 计算包含中文的字符串长度，但是一个中文算2个长度
+func CountRune(str string) int {
+	length := 0
+	for _, runeValue := range str {
+		if utf8.RuneLen(runeValue) > 1 {
+			length += 2
+		} else {
+			length += 1
+		}
+	}
+	return length
+}
+
+// ParseChinese 提取字符串中的中文
+func ParseChinese(str string) string {
+	b := strings.Builder{}
+	for _, v := range str {
+		if unicode.Is(unicode.Han, v) {
+			b.WriteRune(v)
+		}
+	}
+	return b.String()
 }
