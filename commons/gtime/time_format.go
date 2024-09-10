@@ -41,9 +41,10 @@ func GetCurrentTimestampByMill() int64 {
 	return time.Now().UnixNano() / 1e6
 }
 
-// GetCurDayZeroTimestamp 获取当前
+// GetCurDayZeroTimestamp 获取当前0点时间戳
 func GetCurDayZeroTimestamp() int64 {
 	timeStr := time.Now().Format("2006-01-02")
+	// parse 默认为utc时间，所以需要-8小时
 	t, _ := time.Parse("2006-01-02", timeStr)
 	return t.Unix() - TimeOffset
 }

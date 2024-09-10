@@ -65,7 +65,7 @@ func ApiSuccessWithMsg(data any, msg, requestID string) *ApiResponse {
 
 func ParseError(err error) *ApiResponse {
 	if err == nil {
-		return ApiSuccessWithMsg(nil, "no error", "")
+		return ApiSuccessWithMsg(nil, "", "")
 	}
 	unwrap := gerr.Unwrap(err)
 	var codeErr gerr.CodeError

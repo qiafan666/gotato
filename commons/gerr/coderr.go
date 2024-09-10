@@ -49,9 +49,9 @@ func (e *codeError) Detail() string {
 func (e *codeError) WithDetail(detail string) CodeError {
 	var d string
 	if e.detail == "" {
-		d = ";detail=" + detail
+		d = detail
 	} else {
-		d = e.detail + ", " + detail
+		d = e.detail + "," + detail
 	}
 	return &codeError{
 		code:      e.code,
@@ -102,7 +102,7 @@ func (e *codeError) Error() string {
 		v = append(v, e.detail)
 	}
 
-	return strings.Join(v, " ")
+	return strings.Join(v, ";")
 }
 
 func Unwrap(err error) error {

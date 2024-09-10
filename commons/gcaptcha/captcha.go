@@ -3,6 +3,7 @@ package gcaptcha
 import (
 	"context"
 	"github.com/mojocn/base64Captcha"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
@@ -51,14 +52,16 @@ var DigitDrive = &base64Captcha.DriverDigit{
 	DotCount: 8,
 }
 
+var RedisStoreTime = time.Minute * 10
+
 type RedisStore struct {
 	Rdb redis.UniversalClient
 }
 
 func (s *RedisStore) Set(id string, value string) error {
 	key := "captcha:" + id
-	if err := s.Rdb.Set(context.Background(), key, value, time.Minute*10).Err(); err != nil {
-		return err
+	if err := s.Rdb.Set(context.Background(), key, value, RedisStoreTime).Err(); err != nil {
+		return gerr.WrapMsg(err, "captcha redis set error", key, value)
 	}
 	return nil
 }
@@ -70,7 +73,7 @@ func (s *RedisStore) Get(id string, clear bool) string {
 		return ""
 	}
 	if clear {
-		if err := s.Rdb.Del(context.Background(), key).Err(); err != nil {
+		if err = s.Rdb.Del(context.Background(), key).Err(); err != nil {
 			return ""
 		}
 	}

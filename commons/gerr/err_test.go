@@ -1,6 +1,10 @@
 package gerr
 
-import "testing"
+import (
+	"errors"
+	"net/http"
+	"testing"
+)
 
 func TestError(t *testing.T) {
 	testErr := NewCodeError(10000, "test error")
@@ -35,4 +39,68 @@ func TestError(t *testing.T) {
 
 	testErr6 := New("test error6", "key", "value").WrapMsg("wrap msg", "key", "value")
 	t.Log(testErr6.Error()) // output: wrap msg, key=value: test error6, key=value
+
+	testErr7 := WrapMsg(errors.New("test error7"), "wrap msg", "key", "value")
+	t.Log(testErr7.Error()) // output: wrap msg, key=value: test error7
+}
+
+func TestErrorCode(t *testing.T) {
+	testErr := NewCodeError(10000, "test error", "1111111111111111111111111").WrapMsg("wrap msg", "key", "value")
+	err := Unwrap(testErr)
+	if err != nil {
+		t.Log(err) // output: 10000
+	}
+
+	unwrap := Unwrap(err)
+	if codeErr, ok := unwrap.(CodeError); ok {
+		t.Log(codeErr.Code())   // output: 10000
+		t.Log(codeErr.Msg())    // output: wrap msg, key=value: test error
+		t.Log(codeErr.Detail()) // output:
+		t.Log(codeErr.RequestID())
+	}
+}
+
+func TestNew(t *testing.T) {
+	testErr := New("test error")
+	t.Log(testErr.Error()) // output: test error, key=value
+
+	t.Log(testErr.Is(errors.New("test error")))
+
+	err := Unwrap(testErr)
+	t.Log(err == errors.New("test error"))
+}
+
+type ApiResponse struct {
+	Code      int    `json:"code"`
+	Msg       string `json:"msg"`
+	Dlt       string `json:"dlt"`
+	Data      any    `json:"data,omitempty"`
+	RequestID string `json:"request_id"`
+}
+
+func ApiSuccessWithMsg(data any, msg, requestID string) *ApiResponse {
+	return &ApiResponse{Data: data, Msg: msg, RequestID: requestID}
+}
+
+func ParseError(err error) *ApiResponse {
+	if err == nil {
+		return ApiSuccessWithMsg(nil, "", "")
+	}
+	unwrap := Unwrap(err)
+	var codeErr CodeError
+	if errors.As(unwrap, &codeErr) {
+		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail(), RequestID: codeErr.RequestID()}
+		if resp.Dlt == "" {
+			resp.Dlt = err.Error()
+		}
+		return &resp
+	}
+	return &ApiResponse{Code: http.StatusInternalServerError, Msg: err.Error()}
+}
+
+func TestParseError(t *testing.T) {
+	testErr := NewCodeError(10000, "test error", "11").WrapMsg("wrap msg", "key", "value")
+
+	parseError := ParseError(testErr)
+	t.Log(parseError) // output: 10000
 }

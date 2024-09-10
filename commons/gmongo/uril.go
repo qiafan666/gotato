@@ -2,10 +2,15 @@ package gmongo
 
 import (
 	"context"
+	"errors"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+func IsDBNotFound(err error) bool {
+	return errors.Is(mongo.ErrNoDocuments, gerr.Unwrap(err))
+}
 
 func basic[T any]() bool {
 	var t T
@@ -82,7 +87,7 @@ func Find[T any](ctx context.Context, coll *mongo.Collection, filter any, opts .
 
 func FindOne[T any](ctx context.Context, coll *mongo.Collection, filter any, opts ...*options.FindOneOptions) (res T, err error) {
 	cur := coll.FindOne(ctx, filter, opts...)
-	if err := cur.Err(); err != nil {
+	if err = cur.Err(); err != nil {
 		return res, gerr.WrapMsg(err, "gmongo find one")
 	}
 	return DecodeOne[T](cur.Decode)
@@ -90,7 +95,7 @@ func FindOne[T any](ctx context.Context, coll *mongo.Collection, filter any, opt
 
 func FindOneAndUpdate[T any](ctx context.Context, coll *mongo.Collection, filter any, update any, opts ...*options.FindOneAndUpdateOptions) (res T, err error) {
 	result := coll.FindOneAndUpdate(ctx, filter, update, opts...)
-	if err := result.Err(); err != nil {
+	if err = result.Err(); err != nil {
 		return res, gerr.WrapMsg(err, "gmongo find one and update")
 	}
 	return DecodeOne[T](result.Decode)
