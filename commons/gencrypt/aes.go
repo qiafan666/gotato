@@ -8,7 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 )
 
 // Md5 returns the md5 hash of the input string.
@@ -33,7 +33,7 @@ func GenerateAESKey(keySize int) (string, error) {
 		}
 		return base64.StdEncoding.EncodeToString(key), nil
 	default:
-		return "", errors.New("unsupported key size")
+		return "", gerr.New("GenerateAESKey: invalid key size", "keySize", keySize)
 	}
 }
 
@@ -65,7 +65,7 @@ func AesEncrypt(origData, key []byte) (string, error) {
 func AesDecrypt(crypted string, key []byte) (text string, err error) {
 	defer func() {
 		if crash := recover(); crash != nil {
-			err = errors.New("crypted is aes text")
+			err = gerr.WrapMsg(err, "AesDecrypt panic", "cryted", crypted, "key", key)
 		}
 	}()
 	block, err := aes.NewCipher(key)

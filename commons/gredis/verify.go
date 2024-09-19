@@ -2,9 +2,7 @@ package gredis
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gerr"
 )
 
 // Check 检查Redis连接是否正常
@@ -17,7 +15,7 @@ func Check(ctx context.Context, config *Config) error {
 
 	// Ping the Redis server to check connectivity.
 	if err = client.Ping(ctx).Err(); err != nil {
-		return errors.New(fmt.Sprintf("Failed to ping Redis server: %s,config: %s", err, gcast.ToString(config)))
+		return gerr.WrapMsg(err, "Failed to ping Redis server", "config", config)
 	}
 
 	return nil

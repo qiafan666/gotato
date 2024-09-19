@@ -7,7 +7,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 )
 
 const (
@@ -93,16 +93,16 @@ func Rsa2Sign(data []byte, keyBytes []byte, keyType int) (signature []byte, err 
 func Rsa2VerifySign(data [sha256.Size]byte, signData, keyBytes []byte) error {
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
-		return errors.New("public key error")
+		return gerr.New("private key error!")
 	}
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return err
+		return gerr.WrapMsg(err, "public key error!")
 	}
 
 	err = rsa.VerifyPKCS1v15(pubKey.(*rsa.PublicKey), crypto.SHA256, data[:], signData)
 	if err != nil {
-		return err
+		return gerr.WrapMsg(err, "sign verify error!")
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func RsaEncrypt(data, keyBytes []byte) (cipherText []byte, err error) {
 	}
 	pub, ok := pubInterface.(*rsa.PublicKey)
 	if !ok {
-		return nil, errors.New("pubInterface interface error")
+		return nil, gerr.New("public key error!")
 	}
 	cipherText, err = rsa.EncryptPKCS1v15(rand.Reader, pub, data)
 	if err != nil {
@@ -132,7 +132,7 @@ func RsaEncrypt(data, keyBytes []byte) (cipherText []byte, err error) {
 func RsaDecrypt(cipherText, keyBytes []byte, keyType int) (date []byte, err error) {
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
-		return nil, errors.New("private key error!")
+		return nil, gerr.New("private key error!")
 	}
 	var privateKey *rsa.PrivateKey
 
