@@ -2,7 +2,6 @@ package gredis
 
 import (
 	"context"
-	"fmt"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/redis/go-redis/v9"
 )
@@ -55,7 +54,7 @@ func NewRedisClient(ctx context.Context, config *Config) (redis.UniversalClient,
 		cli = redis.NewClient(opt)
 	}
 	if err := cli.Ping(ctx).Err(); err != nil {
-		return nil, gerr.New(fmt.Sprintf("Redis Ping failed: %v, Address: %v, Username: %v, ClusterMode: %v", err, config.Address, config.Username, config.ClusterMode))
+		return nil, gerr.WrapMsg(err, "Redis Ping failed", "Address", config.Address, "Username", config.Username, "ClusterMode", config.ClusterMode)
 	}
 	return cli, nil
 }

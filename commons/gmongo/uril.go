@@ -9,7 +9,7 @@ import (
 )
 
 func IsDBNotFound(err error) bool {
-	return errors.Is(mongo.ErrNoDocuments, gerr.Unwrap(err))
+	return errors.Is(gerr.Wrap(mongo.ErrNoDocuments), gerr.Unwrap(err))
 }
 
 func basic[T any]() bool {
@@ -34,6 +34,20 @@ func anes[T any](ts []T) []any {
 
 func findOptionToCountOption(opts []*options.FindOptions) *options.CountOptions {
 	return options.Count()
+}
+
+func CreateIndex(ctx context.Context, coll *mongo.Collection, modelKey mongo.IndexModel, opts ...*options.CreateIndexesOptions) error {
+	if _, err := coll.Indexes().CreateOne(ctx, modelKey, opts...); err != nil {
+		return gerr.WrapMsg(err, "gmongo create index")
+	}
+	return nil
+}
+
+func CreateIndexes(ctx context.Context, coll *mongo.Collection, models []mongo.IndexModel, opts ...*options.CreateIndexesOptions) error {
+	if _, err := coll.Indexes().CreateMany(ctx, models, opts...); err != nil {
+		return gerr.WrapMsg(err, "gmongo create indexes")
+	}
+	return nil
 }
 
 func InsertMany[T any](ctx context.Context, coll *mongo.Collection, val []T, opts ...*options.InsertManyOptions) error {

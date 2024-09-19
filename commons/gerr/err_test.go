@@ -21,7 +21,7 @@ func TestError(t *testing.T) {
 		t.Log(err.Error()) // output: wrap msg, key=value: test error2
 	}
 
-	testErr3 := NewCodeError(10003, "test error3").WithDetail("msg detail")
+	testErr3 := NewCodeError(10003, "test error3").WithDetail("msg detail").WrapMsg("wrap msg", "key", "value")
 	t.Log(testErr3.Error()) // output: test error3 ;detail=msg detail
 
 	err = Unwrap(testErr3)
@@ -61,13 +61,15 @@ func TestErrorCode(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	testErr := New("test error")
+	testErr := New("test error").WrapMsg("wrap msg", "key", "value")
 	t.Log(testErr.Error()) // output: test error, key=value
 
-	t.Log(testErr.Is(errors.New("test error")))
+	testErr1 := New("test error")
+	t.Log(Unwrap(testErr))
+	t.Log(testErr1.Is(Unwrap(testErr)))
 
 	err := Unwrap(testErr)
-	t.Log(err == errors.New("test error"))
+	t.Log(errors.Is(err, New(errors.New("test error").Error())))
 }
 
 type ApiResponse struct {
