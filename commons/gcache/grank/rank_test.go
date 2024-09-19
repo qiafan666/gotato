@@ -1,7 +1,10 @@
 package grank
 
 import (
+	"context"
 	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gmongo"
+	"go.mongodb.org/mongo-driver/bson"
 	"math/rand"
 	"testing"
 )
@@ -56,22 +59,28 @@ func TestInsertDB(t *testing.T) {
 	for _, rank := range mgr.Ranks {
 		docs = append(docs, rank)
 	}
-	//_, err := gmongo.InsertMany("mongodb://127.0.0.1:27017/", "test", "rank_test", docs)
-	//if err != nil {
-	//	t.Error("err")
-	//}
+
+	db, err := gmongo.NewMongoDB(context.Background(), &gmongo.Config{})
+	if err != nil {
+		return
+	}
+	err = gmongo.InsertMany(context.Background(), db.GetDB().Collection("test"), docs)
+	if err != nil {
+		t.Error(err)
+	}
 	t.Log("insert success")
 }
 
 func TestLoadDB(t *testing.T) {
-	//cursor, err := gmongo.Find("mongodb://127.0.0.1:27017/", "meta", "rank_test", bson.D{})
-	//if err != nil {
-	//	t.Errorf("%v", err)
-	//	return
-	//}
-	//ranks := make([]*List, 0)
-	//if err = cursor.All(context.Background(), &ranks); err != nil {
-	//	t.Errorf("%v", err)
-	//}
-	//t.Logf("load successL:%v", len(ranks))
+	db, err := gmongo.NewMongoDB(context.Background(), &gmongo.Config{})
+	if err != nil {
+		return
+	}
+	lists, err := gmongo.Find[*List](context.Background(), db.GetDB().Collection("test"), bson.D{})
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+
+	t.Logf("load successL:%v", len(lists))
 }

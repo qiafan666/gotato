@@ -19,8 +19,8 @@ const (
 )
 
 var (
-	ERR_INVALID_FORMAT  = errors.New("invalid format")
-	ERR_INVALID_IMG_URL = errors.New("invalid img url")
+	ErrInvalidFormat = errors.New("invalid format")
+	ErrInvalidImgUrl = errors.New("invalid img url")
 )
 
 var imgMap = map[string]Image{
@@ -58,17 +58,17 @@ func (gifStruct) Decode(reader io.Reader) (image.Image, error) {
 func DecodeImg(imgUrl string) (image.Image, error) {
 	formatIndex := strings.LastIndex(imgUrl, ".")
 	if formatIndex < 0 {
-		return nil, ERR_INVALID_FORMAT
+		return nil, ErrInvalidFormat
 	}
 	format := imgUrl[formatIndex:]
 	i, ok := imgMap[format]
 	if !ok {
-		return nil, ERR_INVALID_FORMAT
+		return nil, ErrInvalidFormat
 	}
 
 	rsp, err := http.Get(imgUrl)
 	if rsp == nil || err != nil {
-		return nil, ERR_INVALID_IMG_URL
+		return nil, ErrInvalidImgUrl
 	}
 	defer rsp.Body.Close()
 
