@@ -1,4 +1,4 @@
-package gmap
+package gcache
 
 import (
 	"encoding/json"

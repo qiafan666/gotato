@@ -1,9 +1,9 @@
-package gmap
+package gcommon
 
 import "sync"
 
-// MergeMaps 函数用于合并多个map
-func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
+// MapMerge 函数用于合并多个map
+func MapMerge[K comparable, V any](maps ...map[K]V) map[K]V {
 	// 参数校验
 	if len(maps) == 0 {
 		return nil
@@ -21,8 +21,8 @@ func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 	return mergedMap
 }
 
-// MergeMapsUnique 函数用于合并多个map, 并确保每个 key 只出现一次（保留第一个出现的键值对）
-func MergeMapsUnique[K comparable, V any](maps ...map[K]V) map[K]V {
+// MapMergeUnique 函数用于合并多个map, 并确保每个 key 只出现一次（保留第一个出现的键值对）
+func MapMergeUnique[K comparable, V any](maps ...map[K]V) map[K]V {
 	// 参数校验
 	if len(maps) == 0 {
 		return nil
@@ -42,8 +42,8 @@ func MergeMapsUnique[K comparable, V any](maps ...map[K]V) map[K]V {
 	return mergedMap
 }
 
-// MergeMapsConcurrent 并发安全的合并多个map
-func MergeMapsConcurrent[K comparable, V any](maps ...map[K]V) map[K]V {
+// MapMergeConcurrent 并发安全的合并多个map
+func MapMergeConcurrent[K comparable, V any](maps ...map[K]V) map[K]V {
 	// 参数校验
 	if len(maps) == 0 {
 		return nil
@@ -72,8 +72,8 @@ func MergeMapsConcurrent[K comparable, V any](maps ...map[K]V) map[K]V {
 	return mergedMap
 }
 
-// Keys get map keys
-func Keys[K comparable, V any](kv map[K]V) []K {
+// MapKeys 获取map的key列表
+func MapKeys[K comparable, V any](kv map[K]V) []K {
 	ks := make([]K, 0, len(kv))
 	for k := range kv {
 		ks = append(ks, k)
@@ -81,8 +81,8 @@ func Keys[K comparable, V any](kv map[K]V) []K {
 	return ks
 }
 
-// Values get map values
-func Values[K comparable, V any](kv map[K]V) []V {
+// MapValues 获取map的value列表
+func MapValues[K comparable, V any](kv map[K]V) []V {
 	vs := make([]V, 0, len(kv))
 	for k := range kv {
 		vs = append(vs, kv[k])

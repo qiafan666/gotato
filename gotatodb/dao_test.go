@@ -2,8 +2,8 @@ package gotatodb
 
 import (
 	"context"
-	gotato "github.com/qiafan666/gotato"
-	"github.com/qiafan666/gotato/commons/gcache/gmap"
+	"github.com/qiafan666/gotato"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -42,7 +42,7 @@ func (s Imp) Save(input interface{}) error {
 func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
 
 	if len(s.defaultWhere) > 0 {
-		where = gmap.MergeMapsUnique(where, s.defaultWhere)
+		where = gcommon.MapMergeUnique(where, s.defaultWhere)
 	}
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
@@ -58,7 +58,7 @@ func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(
 func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
 
 	if len(s.defaultWhere) > 0 {
-		where = gmap.MergeMapsUnique(where, s.defaultWhere)
+		where = gcommon.MapMergeUnique(where, s.defaultWhere)
 	}
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
@@ -74,7 +74,7 @@ func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*
 func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 
 	if len(s.defaultWhere) > 0 {
-		where = gmap.MergeMapsUnique(where, s.defaultWhere)
+		where = gcommon.MapMergeUnique(where, s.defaultWhere)
 	}
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
@@ -94,7 +94,7 @@ func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*
 func (s Imp) UpdateMap(info map[string]interface{}, table string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 
 	if len(s.defaultWhere) > 0 {
-		where = gmap.MergeMapsUnique(where, s.defaultWhere)
+		where = gcommon.MapMergeUnique(where, s.defaultWhere)
 	}
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
@@ -109,7 +109,7 @@ func (s Imp) UpdateMap(info map[string]interface{}, table string, where map[stri
 func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
 
 	if len(s.defaultWhere) > 0 {
-		where = gmap.MergeMapsUnique(where, s.defaultWhere)
+		where = gcommon.MapMergeUnique(where, s.defaultWhere)
 	}
 	if scope != nil {
 		s.db = s.db.Scopes(scope)

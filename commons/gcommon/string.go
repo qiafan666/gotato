@@ -157,18 +157,45 @@ func String2BytesNoCopy(s string) []byte {
 
 // UnderscoreName 驼峰式写法转为下划线写法
 func UnderscoreName(name string) string {
-	buffer := NewBuffer()
+	// 使用 strings.Builder 代替自定义的 NewBuffer
+	var buffer strings.Builder
 	for i, r := range name {
 		if unicode.IsUpper(r) {
 			if i != 0 {
-				buffer.Append('_')
+				buffer.WriteRune('_') // 使用 WriteRune 追加下划线字符
 			}
-			buffer.Append(unicode.ToLower(r))
+			buffer.WriteRune(unicode.ToLower(r)) // 将大写字母转为小写
 		} else {
-			buffer.Append(r)
+			buffer.WriteRune(r) // 保持非大写字母原样追加
 		}
 	}
 
+	return buffer.String()
+}
+
+// CamelName 下划线写法转为驼峰式写法
+func CamelName(name string, firstUpper bool) string {
+	var buffer strings.Builder
+	skipNext := false
+	for i, r := range name {
+		if skipNext {
+			skipNext = false
+			continue
+		}
+		if r == '_' {
+			if i+1 < len(name) {
+				buffer.WriteRune(unicode.ToUpper(rune(name[i+1])))
+				skipNext = true // 跳过下划线后的字符
+			}
+		} else {
+			// 对于首字母的处理
+			if i == 0 && firstUpper {
+				buffer.WriteRune(unicode.ToUpper(r))
+			} else {
+				buffer.WriteRune(r)
+			}
+		}
+	}
 	return buffer.String()
 }
 
