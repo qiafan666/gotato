@@ -189,15 +189,11 @@ func String2Uint32(s string) uint32 {
 	return Byte2Uint32(b)
 }
 
-// CountRune 计算包含中文的字符串长度，但是一个中文算2个长度
+// CountRune 计算包含中文的字符串长度，但是一个中文算3个长度
 func CountRune(str string) int {
 	length := 0
 	for _, runeValue := range str {
-		if utf8.RuneLen(runeValue) > 1 {
-			length += 2
-		} else {
-			length += 1
-		}
+		length += utf8.RuneLen(runeValue)
 	}
 	return length
 }

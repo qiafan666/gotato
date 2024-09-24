@@ -3,7 +3,7 @@ package gotatodb
 import (
 	"context"
 	gotato "github.com/qiafan666/gotato"
-	"github.com/qiafan666/gotato/commons/gmap"
+	"github.com/qiafan666/gotato/commons/gcache/gmap"
 	"gorm.io/gorm"
 	"sync"
 )

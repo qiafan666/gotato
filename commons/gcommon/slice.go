@@ -259,7 +259,7 @@ func SliceSetAny[E any, K comparable](es []E, fn func(e E) K) map[K]struct{} {
 	})
 }
 
-func Filter[E, T any](es []E, fn func(e E) (T, bool)) []T {
+func SliceFilter[E, T any](es []E, fn func(e E) (T, bool)) []T {
 	rs := make([]T, 0, len(es))
 	for i := 0; i < len(es); i++ {
 		e := es[i]
@@ -270,8 +270,8 @@ func Filter[E, T any](es []E, fn func(e E) (T, bool)) []T {
 	return rs
 }
 
-// Slice 转换切片
-func Slice[E any, T any](es []E, fn func(e E) T) []T {
+// SliceConvert 转换切片
+func SliceConvert[E any, T any](es []E, fn func(e E) T) []T {
 	v := make([]T, len(es))
 	for i := 0; i < len(es); i++ {
 		v[i] = fn(es[i])

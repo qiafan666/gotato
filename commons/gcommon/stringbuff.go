@@ -2,7 +2,8 @@ package gcommon
 
 import (
 	"bytes"
-	"strconv"
+	"github.com/qiafan666/gotato/commons/gcast"
+	"strings"
 )
 
 // Buffer 内嵌bytes.Buffer，支持连写
@@ -16,27 +17,16 @@ func NewBuffer() *Buffer {
 }
 
 // Append 追加数据对象
-func (b *Buffer) Append(i any) *Buffer {
-	switch val := i.(type) {
-	case int:
-		b.append(strconv.Itoa(val))
-	case int64:
-		b.append(strconv.FormatInt(val, 10))
-	case uint:
-		b.append(strconv.FormatUint(uint64(val), 10))
-	case uint64:
-		b.append(strconv.FormatUint(val, 10))
-	case string:
-		b.append(val)
-	case []byte:
-		_, _ = b.Write(val)
-	case rune:
-		_, _ = b.WriteRune(val)
+func (b *Buffer) Append(i ...any) *Buffer {
+	if len(i) == 0 {
+		return b
 	}
 
-	return b
-}
+	var builder strings.Builder
+	for _, v := range i {
+		builder.WriteString(gcast.ToString(v))
+	}
+	b.WriteString(builder.String())
 
-func (b *Buffer) append(s string) {
-	_, _ = b.WriteString(s)
+	return b
 }
