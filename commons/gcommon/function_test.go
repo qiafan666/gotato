@@ -144,3 +144,18 @@ func TestSliceFilter(t *testing.T) {
 	t.Log(filter)
 
 }
+
+func TestSliceBatch(t *testing.T) {
+	var struct1 = TestStruct{Id: 2, Age: 20, Score: 80.5, Name: "apple"}
+	var struct2 = TestStruct{Id: 1, Age: 18, Score: 90.5, Name: "banana"}
+	var struct3 = TestStruct{Id: 3, Age: 22, Score: 70.5, Name: "orange"}
+
+	var sliceStruct = []TestStruct{struct1, struct2, struct3}
+
+	//分批处理
+	batch := SliceBatch(sliceStruct, func(t TestStruct) TestStruct {
+		t.Name = strings.ToUpper(t.Name)
+		return t
+	})
+	t.Log(batch)
+}

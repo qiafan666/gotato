@@ -4,6 +4,7 @@ import (
 	mathRand "math/rand"
 	"reflect"
 	"sort"
+	"sync"
 )
 
 // SliceContain 返回切片是否包含指定元素
@@ -310,16 +311,53 @@ func ToPtr[T any](t T) *T {
 	return &t
 }
 
-// SliceBatch 批量处理切片
-func SliceBatch[T any, V any](ts []T, fn func(T) V) []V {
+// SliceBatch 批量处理切片 numWorkers为0或1时，串行处理；numWorkers大于1时，并行处理
+func SliceBatch[T any, V any](ts []T, fn func(T) V, numWorkers ...int) []V {
 	if ts == nil {
 		return nil
 	}
-	res := make([]V, 0, len(ts))
-	for i := range ts {
-		res = append(res, fn(ts[i]))
+
+	if len(numWorkers) <= 1 {
+		res := make([]V, 0, len(ts))
+		for i := range ts {
+			res = append(res, fn(ts[i]))
+		}
+		return res
+	} else {
+		var wg sync.WaitGroup
+		chunkSize := (len(ts) + numWorkers[0] - 1) / numWorkers[0]
+
+		// 通道用于收集结果
+		resultChan := make(chan V, len(ts))
+
+		for i := 0; i < numWorkers[0]; i++ {
+			wg.Add(1)
+			go func(start int) {
+				defer wg.Done()
+				end := start + chunkSize
+				if end > len(ts) {
+					end = len(ts)
+				}
+				for j := start; j < end; j++ {
+					resultChan <- fn(ts[j])
+				}
+			}(i * chunkSize)
+		}
+
+		// 等待所有协程完成并关闭通道
+		go func() {
+			wg.Wait()
+			close(resultChan)
+		}()
+
+		// 收集所有结果
+		res := make([]V, 0, len(ts))
+		for r := range resultChan {
+			res = append(res, r)
+		}
+
+		return res
 	}
-	return res
 }
 
 // Equal 比较两个切片是否相等，元素顺序相关
