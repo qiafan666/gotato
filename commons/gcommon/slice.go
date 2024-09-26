@@ -1,9 +1,11 @@
 package gcommon
 
 import (
+	"github.com/qiafan666/gotato/commons/gcast"
 	mathRand "math/rand"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -47,6 +49,25 @@ func SliceContains[T ~[]E, E comparable](list1 T, list2 T) bool {
 		}
 	}
 	return false
+}
+
+// Slice2String 将切片转换为分隔符分隔的字符串
+func Slice2String[T any](list []T, sep string) string {
+	if len(list) == 0 {
+		return ""
+	}
+	convert := SliceConvert(list, func(e T) string {
+		return gcast.ToString(e)
+	})
+	return strings.Join(convert, sep)
+}
+
+// String2Slice 将字符串转换为切片
+func String2Slice(str string, sep string) []string {
+	if str == "" {
+		return nil
+	}
+	return strings.Split(str, sep)
 }
 
 // SliceDeleteIndex 删除多个元素的索引

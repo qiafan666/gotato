@@ -159,3 +159,14 @@ func TestSliceBatch(t *testing.T) {
 	})
 	t.Log(batch)
 }
+
+func TestSlice2String(t *testing.T) {
+
+	var slice1 = []int{1, 2, 3, 4, 5}
+	t.Log(Slice2String(slice1, ","))
+	t.Log(String2Slice(Slice2String(slice1, ","), ","))
+
+	var slice2 = []string{"apple", "banana", "orange"}
+	t.Log(Slice2String(slice2, ","))
+	t.Log(String2Slice(Slice2String(slice2, ","), ","))
+}

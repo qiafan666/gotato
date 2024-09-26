@@ -21,22 +21,6 @@ func GenerateUUID() string {
 	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
 }
 
-// StringsToString 字符串数组转字符串
-func StringsToString(stringArray []string) string {
-	if len(stringArray) <= 0 {
-		return ""
-	}
-	return strings.Join(stringArray, ",")
-}
-
-// StringToStrings 字符串转字符串数组;,逗号分隔
-func StringToStrings(param string) []string {
-	if len(param) <= 0 {
-		return []string{}
-	}
-	return strings.Split(param, ",")
-}
-
 // StringToSha256 字符串转SHA256
 func StringToSha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
