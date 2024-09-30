@@ -1,4 +1,4 @@
-package gcommon
+package xlsx
 
 import "testing"
 

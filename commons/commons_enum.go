@@ -25,7 +25,7 @@ const (
 
 // CodeMsg global code and msg
 var CodeMsg = map[string]map[ResponseCode]string{
-	"english": {
+	MsgLanguageEnglish: {
 		OK:             "suc",
 		UnKnowError:    "unknown error",
 		HttpNotFound:   "404",
@@ -34,7 +34,7 @@ var CodeMsg = map[string]map[ResponseCode]string{
 		TokenError:     "Token error",
 		CheckAuthError: "check auth error",
 	},
-	"chinese": {
+	MsgLanguageChinese: {
 		OK:             "成功",
 		UnKnowError:    "未知错误",
 		HttpNotFound:   "404",
@@ -51,10 +51,10 @@ func GetCodeAndMsg(code ResponseCode, language string) string {
 		if value, ok := languageValue[code]; ok {
 			return value
 		} else {
-			return "{}"
+			return ""
 		}
 	} else {
-		return "{}"
+		return ""
 	}
 }
 

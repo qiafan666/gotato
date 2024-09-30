@@ -18,10 +18,17 @@ import (
 var SimpleStdout bool
 
 func Default(ctx *gin.Context) {
-	uuid := gcommon.GenerateUUID()
-	value := context.WithValue(ctx, "trace_id", uuid)
-	ctx.Set("trace_id", uuid)
-	ctx.Set("ctx", value)
+	header := ctx.GetHeader("trace_id")
+	if header != "" {
+		ctx.Set("trace_id", header)
+		ctx.Set("ctx", context.WithValue(ctx, "trace_id", header))
+	} else {
+		uuid := gcommon.GenerateUUID()
+		value := context.WithValue(ctx, "trace_id", uuid)
+		ctx.Set("trace_id", uuid)
+		ctx.Set("ctx", value)
+	}
+
 	atomic.AddInt64(&commons.ActiveRequests, 1)
 	defer atomic.AddInt64(&commons.ActiveRequests, -1)
 	defer func() {
@@ -70,9 +77,11 @@ func Default(ctx *gin.Context) {
 		}
 
 		if SimpleStdout {
-			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
+			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】",
+				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
 		} else {
-			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】【request:%s】【response:%s】", ctx.Request.Method, path, ctx.ClientIP(), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), string(bodyBytes), blw.body.String())
+			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】【request:%s】【response:%s】",
+				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), string(bodyBytes), blw.body.String())
 		}
 	} else {
 		ctx.Next()

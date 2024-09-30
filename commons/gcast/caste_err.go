@@ -980,11 +980,7 @@ func ToStringE(i interface{}) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		stringE, err := ToStringE(e)
-		if err != nil {
-			return "", err
-		}
-		return stringE, nil
+		return string(e), nil
 	}
 }
 

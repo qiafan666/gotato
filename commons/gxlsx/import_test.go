@@ -23,6 +23,18 @@ func (User) SheetName() string {
 	return "user"
 }
 
+type User1 struct {
+	UserID   string `column:"user_id"`
+	Nickname string `column:"nickname"`
+	FaceURL  string `column:"face_url"`
+	Birth    string `column:"birth"`
+	Gender   string `column:"gender"`
+}
+
+func (User1) SheetName() string {
+	return "user1"
+}
+
 func TestReadXlsx(t *testing.T) {
 	//formFile, err := c.FormFile("data")
 	//if err != nil {
@@ -41,8 +53,10 @@ func TestReadXlsx(t *testing.T) {
 	}
 	//var file multipart.File
 	var users []User
-	if err := ParseAll(file, &users); err != nil {
+	var users1 []User1
+	if err := ParseAll(file, &users, &users1); err != nil {
 		t.Error(err)
 	}
 	t.Log(users)
+	t.Log(users1)
 }
