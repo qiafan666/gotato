@@ -2,7 +2,7 @@ package gmongo
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/commons/gerr"
+	"errors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -16,17 +16,17 @@ func Check(ctx context.Context, config *Config) error {
 	clientOpts := options.Client().ApplyURI(config.Uri)
 	mongoClient, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
-		return gerr.WrapMsg(err, "MongoDB connect failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
+		return err
 	}
 
 	defer func() {
-		if err := mongoClient.Disconnect(ctx); err != nil {
+		if err = mongoClient.Disconnect(ctx); err != nil {
 			_ = mongoClient.Disconnect(ctx)
 		}
 	}()
 
 	if err = mongoClient.Ping(ctx, nil); err != nil {
-		return gerr.WrapMsg(err, "MongoDB connect failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
+		return err
 	}
 
 	return nil
@@ -35,10 +35,10 @@ func Check(ctx context.Context, config *Config) error {
 // ValidateAndSetDefaults 验证配置并设置默认值
 func (c *Config) ValidateAndSetDefaults() error {
 	if c.Uri == "" && len(c.Address) == 0 {
-		return gerr.New("either Uri or Address must be provided")
+		return errors.New("uri or address is required")
 	}
 	if c.Database == "" {
-		return gerr.New("database is required")
+		return errors.New("database is required")
 	}
 	if c.MaxPoolSize <= 0 {
 		c.MaxPoolSize = defaultMaxPoolSize

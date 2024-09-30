@@ -89,3 +89,13 @@ func MapValues[K comparable, V any](kv map[K]V) []V {
 	}
 	return vs
 }
+
+// MapClone 深拷贝map
+func MapClone[K comparable, V any](m map[K]V) map[K]V {
+	// 创建一个新的 map
+	cloned := make(map[K]V, len(m))
+	for key, value := range m {
+		cloned[key] = value // 复制每个键值对
+	}
+	return cloned
+}

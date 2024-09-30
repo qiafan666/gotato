@@ -70,6 +70,11 @@ func String2Slice(str string, sep string) []string {
 	return strings.Split(str, sep)
 }
 
+// SliceClone 深拷贝切片
+func SliceClone[S ~[]E, E any](s S) S {
+	return append(s[:0:0], s...)
+}
+
 // SliceDeleteIndex 删除多个元素的索引
 func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
 	if len(indexes) == 0 {

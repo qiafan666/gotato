@@ -10,15 +10,10 @@ type TLSConfig struct {
 	InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
 }
 
-// RequiredAcks 生产者确认模式
-// NoResponse doesn't send any response, the TCP ACK is all you get.
-//NoResponse RequiredAcks = 0
-// WaitForLocal waits for only the local commit to succeed before responding.
-//WaitForLocal RequiredAcks = 1
-// WaitForAll waits for all in-sync replicas to commit before responding.
-// The minimum number of in-sync replicas is configured on the broker via
-// the `min.insync.replicas` configuration key.
-//WaitForAll RequiredAcks = -1
+// producerAck 生产者确认模式,默认wait_for_all
+// no_response
+//wait_for_local
+//wait_for_all
 
 // Config 配置项
 type Config struct {

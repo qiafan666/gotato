@@ -2,7 +2,7 @@ package gredis
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/commons/gerr"
+	"errors"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -22,7 +22,7 @@ type Config struct {
 
 func NewRedisClient(ctx context.Context, config *Config) (redis.UniversalClient, error) {
 	if len(config.Address) == 0 {
-		return nil, gerr.New("redis address is empty")
+		return nil, errors.New("redis address is empty")
 	}
 
 	if config.MaxRetry == 0 {
@@ -54,7 +54,7 @@ func NewRedisClient(ctx context.Context, config *Config) (redis.UniversalClient,
 		cli = redis.NewClient(opt)
 	}
 	if err := cli.Ping(ctx).Err(); err != nil {
-		return nil, gerr.WrapMsg(err, "Redis Ping failed", "Address", config.Address, "Username", config.Username, "ClusterMode", config.ClusterMode)
+		return nil, err
 	}
 	return cli, nil
 }

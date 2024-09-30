@@ -2,7 +2,6 @@ package gmongo
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/gmongo/tx"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,7 +10,7 @@ import (
 
 // Config represents the MongoDB configuration.
 type Config struct {
-	Uri         string
+	Uri         string //填了uri可以不用填其他参数
 	Address     []string
 	Database    string
 	Username    string
@@ -52,7 +51,7 @@ func NewMongoDB(ctx context.Context, config *Config) (*Client, error) {
 		break
 	}
 	if err != nil {
-		return nil, gerr.WrapMsg(err, "failed to connect to MongoDB", "uri", config.Uri, "max_retry", config.MaxRetry)
+		return nil, err
 	}
 	mtx, err := NewMongoTx(ctx, cli)
 	if err != nil {
@@ -70,7 +69,7 @@ func connectMongo(ctx context.Context, opts *options.ClientOptions) (*mongo.Clie
 		return nil, err
 	}
 	if err = cli.Ping(ctx, nil); err != nil {
-		return nil, gerr.WrapMsg(err, "failed to ping MongoDB")
+		return nil, err
 	}
 	return cli, nil
 }
