@@ -278,7 +278,7 @@ func SliceToMap[E any, K comparable](es []E, fn func(e E) K) map[K]E {
 	})
 }
 
-func sliceSetAny[E any, K comparable](es []E, fn func(e E) K) map[K]struct{} {
+func SliceSetAny[E any, K comparable](es []E, fn func(e E) K) map[K]struct{} {
 	return SliceToMapAny(es, func(e E) (K, struct{}) {
 		return fn(e), struct{}{}
 	})
@@ -286,7 +286,7 @@ func sliceSetAny[E any, K comparable](es []E, fn func(e E) K) map[K]struct{} {
 
 // SliceToNilMap 切片转换为空对象的map
 func SliceToNilMap[E comparable](es []E) map[E]struct{} {
-	return sliceSetAny(es, func(e E) E {
+	return SliceSetAny(es, func(e E) E {
 		return e
 	})
 }
