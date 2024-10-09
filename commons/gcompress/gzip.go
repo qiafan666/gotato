@@ -71,8 +71,6 @@ func (g *GzipCompressor) DeCompress(compressedData []byte) ([]byte, error) {
 		return nil, gerr.WrapMsg(err, "GzipCompressor.DeCompress: reading from gzip reader failed")
 	}
 	if err = reader.Close(); err != nil {
-		// Even if closing the reader fails, we've successfully read the data,
-		// so we return the decompressed data and an error indicating the close failure.
 		return decompressedData, gerr.WrapMsg(err, "GzipCompressor.DeCompress: closing gzip reader failed")
 	}
 	return decompressedData, nil
@@ -92,7 +90,6 @@ func (g *GzipCompressor) DecompressWithPool(compressedData []byte) ([]byte, erro
 		return nil, gerr.WrapMsg(err, "GzipCompressor.DecompressWithPool: reading from pooled gzip reader failed")
 	}
 	if err = reader.Close(); err != nil {
-		// Similar to DeCompress, return the data and error for close failure.
 		return decompressedData, gerr.WrapMsg(err, "GzipCompressor.DecompressWithPool: closing pooled gzip reader failed")
 	}
 	return decompressedData, nil

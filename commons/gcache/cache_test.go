@@ -68,7 +68,7 @@ func TestCacheTimes(t *testing.T) {
 
 	tc := NewCache(50*time.Millisecond, 1*time.Millisecond)
 	tc.Set("a", 1, DefaultExpiration)
-	tc.Set("b", 2, NoExpiration)
+	tc.Set("b", 2, DefaultExpiration)
 	tc.Set("c", 3, 20*time.Millisecond)
 	tc.Set("d", 4, 70*time.Millisecond)
 

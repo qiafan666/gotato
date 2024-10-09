@@ -12,26 +12,20 @@ type CodeError interface {
 	Msg() string
 	Detail() string
 	WithDetail(detail string) CodeError
-	RequestID() string
 	Error
 }
 
-func NewCodeError(code int, msg string, requestId ...string) CodeError {
-	if len(requestId) == 0 {
-		requestId = []string{""}
-	}
+func NewCodeError(code int, msg string) CodeError {
 	return &codeError{
-		code:      code,
-		msg:       msg,
-		requestId: requestId[0],
+		code: code,
+		msg:  msg,
 	}
 }
 
 type codeError struct {
-	code      int
-	msg       string
-	detail    string
-	requestId string
+	code   int
+	msg    string
+	detail string
 }
 
 func (e *codeError) Code() int {
@@ -54,15 +48,10 @@ func (e *codeError) WithDetail(detail string) CodeError {
 		d = e.detail + "," + detail
 	}
 	return &codeError{
-		code:      e.code,
-		msg:       e.msg,
-		detail:    d,
-		requestId: e.requestId,
+		code:   e.code,
+		msg:    e.msg,
+		detail: d,
 	}
-}
-
-func (e *codeError) RequestID() string {
-	return e.requestId
 }
 
 func (e *codeError) Wrap() error {
