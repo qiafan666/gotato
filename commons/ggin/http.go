@@ -21,6 +21,6 @@ func HttpError(w http.ResponseWriter, err error) {
 	httpJson(w, ParseError(err))
 }
 
-func HttpSuccess(w http.ResponseWriter, data any, requestID string) {
-	httpJson(w, ApiSuccess(data, requestID))
+func HttpSuccess(w http.ResponseWriter, data any) {
+	httpJson(w, ApiSuccess(data))
 }

@@ -10,11 +10,10 @@ import (
 )
 
 type ApiResponse struct {
-	Code      int    `json:"code"`
-	Msg       string `json:"msg"`
-	Dlt       string `json:"dlt"`
-	Data      any    `json:"data,omitempty"`
-	RequestID string `json:"request_id"`
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Dlt  string `json:"dlt"`
+	Data any    `json:"data"`
 }
 
 func (r *ApiResponse) MarshalJSON() ([]byte, error) {
@@ -55,22 +54,22 @@ func isAllFieldsPrivate(v any) bool {
 	return true
 }
 
-func ApiSuccess(data any, requestID string) *ApiResponse {
-	return &ApiResponse{Data: data, RequestID: requestID}
+func ApiSuccess(data any) *ApiResponse {
+	return &ApiResponse{Data: data}
 }
 
-func ApiSuccessWithMsg(data any, msg, requestID string) *ApiResponse {
-	return &ApiResponse{Data: data, Msg: msg, RequestID: requestID}
+func ApiSuccessWithMsg(data any, msg string) *ApiResponse {
+	return &ApiResponse{Data: data, Msg: msg}
 }
 
 func ParseError(err error) *ApiResponse {
 	if err == nil {
-		return ApiSuccessWithMsg(nil, "", "")
+		return ApiSuccessWithMsg(nil, "")
 	}
 	unwrap := gerr.Unwrap(err)
 	var codeErr gerr.CodeError
 	if errors.As(unwrap, &codeErr) {
-		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail(), RequestID: codeErr.RequestID()}
+		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail()}
 		if resp.Dlt == "" {
 			resp.Dlt = err.Error()
 		}

@@ -45,7 +45,7 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorCode(t *testing.T) {
-	testErr := NewCodeError(10000, "test error", "1111111111111111111111111").WrapMsg("wrap msg", "key", "value")
+	testErr := NewCodeError(10000, "test error").WrapMsg("wrap msg", "key", "value")
 	err := Unwrap(testErr)
 	if err != nil {
 		t.Log(err) // output: 10000
@@ -56,7 +56,6 @@ func TestErrorCode(t *testing.T) {
 		t.Log(codeErr.Code())   // output: 10000
 		t.Log(codeErr.Msg())    // output: wrap msg, key=value: test error
 		t.Log(codeErr.Detail()) // output:
-		t.Log(codeErr.RequestID())
 	}
 }
 
@@ -91,7 +90,7 @@ func ParseError(err error) *ApiResponse {
 	unwrap := Unwrap(err)
 	var codeErr CodeError
 	if errors.As(unwrap, &codeErr) {
-		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail(), RequestID: codeErr.RequestID()}
+		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail()}
 		if resp.Dlt == "" {
 			resp.Dlt = err.Error()
 		}
@@ -101,7 +100,7 @@ func ParseError(err error) *ApiResponse {
 }
 
 func TestParseError(t *testing.T) {
-	testErr := NewCodeError(10000, "test error", "11").WrapMsg("wrap msg", "key", "value")
+	testErr := NewCodeError(10000, "test error").WrapMsg("wrap msg", "key", "value")
 
 	parseError := ParseError(testErr)
 	t.Log(parseError) // output: 10000

@@ -10,9 +10,9 @@ func GinError(c *gin.Context, err error) {
 }
 
 func GinSuccess(c *gin.Context, data any, requestID string) {
-	c.JSON(http.StatusOK, ApiSuccess(data, requestID))
+	c.JSON(http.StatusOK, ApiSuccess(data))
 }
 
-func GinSuccessWithMsg(c *gin.Context, data any, msg, requestID string) {
-	c.JSON(http.StatusOK, ApiSuccessWithMsg(data, msg, requestID))
+func GinSuccessWithMsg(c *gin.Context, data any, msg string) {
+	c.JSON(http.StatusOK, ApiSuccessWithMsg(data, msg))
 }
