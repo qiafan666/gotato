@@ -99,9 +99,9 @@ func (l *Logger) InfoF(ctx context.Context, template string, args ...interface{}
 func (l *Logger) InfoKVs(ctx context.Context, msg string, kv ...any) {
 
 	if ctx != nil {
-		ZapLog.Infof(getTraceId(ctx) + gcommon.Kv2String(msg, kv))
+		ZapLog.Infof(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
-		ZapLog.Infof(gcommon.Kv2String(msg, kv))
+		ZapLog.Infof(gcommon.Kv2String(msg, kv...))
 	}
 }
 
@@ -115,9 +115,9 @@ func (l *Logger) DebugF(ctx context.Context, template string, args ...interface{
 
 func (l *Logger) DebugKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Debugf(getTraceId(ctx) + gcommon.Kv2String(msg, kv))
+		ZapLog.Debugf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
-		ZapLog.Debugf(gcommon.Kv2String(msg, kv))
+		ZapLog.Debugf(gcommon.Kv2String(msg, kv...))
 	}
 }
 
@@ -131,9 +131,9 @@ func (l *Logger) WarnF(ctx context.Context, template string, args ...interface{}
 
 func (l *Logger) WarnKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Warnf(getTraceId(ctx) + gcommon.Kv2String(msg, kv))
+		ZapLog.Warnf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
-		ZapLog.Warnf(gcommon.Kv2String(msg, kv))
+		ZapLog.Warnf(gcommon.Kv2String(msg, kv...))
 	}
 }
 
@@ -147,9 +147,9 @@ func (l *Logger) ErrorF(ctx context.Context, template string, args ...interface{
 
 func (l *Logger) ErrorKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Errorf(getTraceId(ctx) + gcommon.Kv2String(msg, kv))
+		ZapLog.Errorf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
-		ZapLog.Errorf(gcommon.Kv2String(msg, kv))
+		ZapLog.Errorf(gcommon.Kv2String(msg, kv...))
 	}
 }
 
@@ -163,9 +163,9 @@ func (l *Logger) PanicF(ctx context.Context, template string, args ...interface{
 
 func (l *Logger) PanicKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Panicf(getTraceId(ctx) + gcommon.Kv2String(msg, kv))
+		ZapLog.Panicf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
-		ZapLog.Panicf(gcommon.Kv2String(msg, kv))
+		ZapLog.Panicf(gcommon.Kv2String(msg, kv...))
 	}
 }
 
@@ -174,7 +174,7 @@ func (l *Logger) Printf(format string, v ...interface{}) {
 }
 
 func (l *Logger) PrintKvs(msg string, kv ...any) {
-	ZapLog.Info(gcommon.Kv2String(msg, kv))
+	ZapLog.Info(gcommon.Kv2String(msg, kv...))
 }
 
 func (l *Logger) Print(v ...interface{}) {

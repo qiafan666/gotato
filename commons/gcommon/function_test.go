@@ -170,3 +170,8 @@ func TestSlice2String(t *testing.T) {
 	t.Log(Slice2String(slice2, ","))
 	t.Log(String2Slice(Slice2String(slice2, ","), ","))
 }
+
+func TestKV2string(t *testing.T) {
+	t.Log(Kv2String("msg", "key1", "value1", "key2", "value2"))
+
+}
