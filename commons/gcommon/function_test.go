@@ -3,6 +3,7 @@ package gcommon
 import (
 	"encoding/json"
 	"github.com/qiafan666/gotato/commons/gcast"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -171,7 +172,17 @@ func TestSlice2String(t *testing.T) {
 	t.Log(String2Slice(Slice2String(slice2, ","), ","))
 }
 
+type Test1 struct {
+	Id []int `json:"id"`
+}
+
 func TestKV2string(t *testing.T) {
 	t.Log(Kv2String("msg", "key1", "value1", "key2", "value2"))
 
+	test1 := Test1{Id: []int{1, 2, 3}}
+	t.Log(test1)
+
+	t.Log(slices.DeleteFunc(test1.Id, func(val int) bool {
+		return val == 2
+	}))
 }

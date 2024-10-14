@@ -75,23 +75,6 @@ func SliceClone[S ~[]E, E any](s S) S {
 	return append(s[:0:0], s...)
 }
 
-// SliceDeleteIndex 删除多个元素的索引
-func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
-	if len(indexes) == 0 {
-		return list
-	}
-	if len(list) == 0 {
-		return list
-	}
-	for _, index := range indexes {
-		if index < 0 || index >= len(list) {
-			continue
-		}
-		list = append(list[:index], list[index+1:]...)
-	}
-	return list
-}
-
 // SliceUniq 集合去重
 func SliceUniq[T ~[]E, E comparable](list T) T {
 	if len(list) == 0 {
@@ -240,14 +223,51 @@ func SliceAppendUnique[T any](ts []T, t T) []T {
 	return ts
 }
 
-// SliceRemove 使用泛型函数来删除切片中的某个元素
-func SliceRemove[T any](ts []T, t T) []T {
+// SliceDelete 使用泛型函数来删除切片中的某个元素
+func SliceDelete[T any](ts []T, t T) []T {
 	for i, v := range ts {
 		if reflect.DeepEqual(v, t) {
 			return append(ts[:i], ts[i+1:]...)
 		}
 	}
 	return ts // 如果未找到匹配的元素，则返回原始切片
+}
+
+// SliceDeleteF 使用泛型函数来删除切片中的某个元素
+func SliceDeleteF[T any](ts []T, fn func(t T) bool) []T {
+	for i, v := range ts {
+		if fn(v) {
+			return append(ts[:i], ts[i+1:]...)
+		}
+	}
+	return ts // 如果未找到匹配的元素，则返回原始切片
+}
+
+// SliceIndex 返回元素在切片中的索引，不存在返回-1
+func SliceIndex[T any](list []T, elem T) int {
+	for i, v := range list {
+		if reflect.DeepEqual(v, elem) {
+			return i
+		}
+	}
+	return -1
+}
+
+// SliceDeleteIndex 删除多个元素的索引
+func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
+	if len(indexes) == 0 {
+		return list
+	}
+	if len(list) == 0 {
+		return list
+	}
+	for _, index := range indexes {
+		if index < 0 || index >= len(list) {
+			continue
+		}
+		list = append(list[:index], list[index+1:]...)
+	}
+	return list
 }
 
 // sliceToMapOkAny 切片转映射（自定义类型，过滤器）
