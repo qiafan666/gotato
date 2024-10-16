@@ -2,6 +2,8 @@ package gid
 
 import (
 	"fmt"
+	"github.com/qiafan666/gotato/commons/gcast"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -71,4 +73,11 @@ func (w *IDWorker) nextMillisecond(currentTimestamp int64) int64 {
 		currentTimestamp = time.Now().UnixNano() / 1000000
 	}
 	return currentTimestamp
+}
+
+func RandSnowflakeID() int64 {
+	rand.Seed(time.Now().UnixNano())
+	worker, _ := NewIDWorker(int64(rand.Intn(gcast.ToInt(maxWorker))))
+	id, _ := worker.NextID()
+	return id
 }

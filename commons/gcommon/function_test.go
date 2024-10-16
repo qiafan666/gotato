@@ -1,8 +1,10 @@
 package gcommon
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gid"
 	"slices"
 	"strings"
 	"testing"
@@ -185,4 +187,106 @@ func TestKV2string(t *testing.T) {
 	t.Log(slices.DeleteFunc(test1.Id, func(val int) bool {
 		return val == 2
 	}))
+}
+
+// generateKey 使用移位方式生成唯一键
+func generateKey(roleId1, roleId2 int64) int64 {
+	if roleId1 > roleId2 {
+		return (roleId1 << 32) | roleId2
+	}
+	return (roleId2 << 32) | roleId1
+}
+
+func TestInt64(t *testing.T) {
+
+	// 测试用例1: roleId1 < roleId2
+	roleId1 := int64(123456789)
+	roleId2 := int64(987654321)
+	key1 := generateKey(roleId1, roleId2)
+	key2 := generateKey(roleId2, roleId1)
+
+	if key1 != key2 {
+		t.Errorf("Expected key to be equal for (roleId1=%d, roleId2=%d) and (roleId1=%d, roleId2=%d), got key1=%d, key2=%d", roleId1, roleId2, roleId2, roleId1, key1, key2)
+	}
+
+	// 测试用例2: roleId1 > roleId2
+	roleId1 = int64(987654321)
+	roleId2 = int64(123456789)
+	key3 := generateKey(roleId1, roleId2)
+
+	if key3 != key1 {
+		t.Errorf("Expected same key for reversed inputs, got key1=%d, key3=%d", key1, key3)
+	}
+
+	// 测试用例3: roleId1 = roleId2
+	roleId1 = int64(123456789)
+	roleId2 = int64(123456789)
+	key4 := generateKey(roleId1, roleId2)
+
+	if key4 != (roleId1<<32 | roleId2) {
+		t.Errorf("Expected key to be %d for equal roleId1 and roleId2, got %d", (roleId1<<32 | roleId2), key4)
+	}
+
+	// 测试用例4: roleId1 和 roleId2 较小的值
+	roleId1 = int64(1)
+	roleId2 = int64(2)
+	key5 := generateKey(roleId1, roleId2)
+	expectedKey5 := (roleId2 << 32) | roleId1
+
+	if key5 != expectedKey5 {
+		t.Errorf("Expected key to be %d, got %d", expectedKey5, key5)
+	}
+
+	// 测试用例5: roleId1 和 roleId2 较大的值
+	roleId1 = int64(9223372036854775807) // Max int64
+	roleId2 = int64(1)
+	key6 := generateKey(roleId1, roleId2)
+	expectedKey6 := (roleId1 << 32) | roleId2
+
+	if key6 != expectedKey6 {
+		t.Errorf("Expected key to be %d, got %d", expectedKey6, key6)
+	}
+}
+
+type Req struct {
+	SendID    string `json:"send_id"        validate:"required"`
+	RequestID string `json:"request_id"   validate:"required"`
+	GrpID     uint8  `json:"grp_id" validate:"required"` // 消息组id
+	CmdID     uint8  `json:"cmd_id" validate:"required"` // 消息的ID
+	Data      []byte `json:"data"`
+}
+
+func TestEncode(t *testing.T) {
+	req := &Req{
+		SendID:    "123456",
+		RequestID: "abcdefg",
+		GrpID:     2,
+		CmdID:     2,
+		Data:      []byte("hello world"),
+	}
+
+	encoder := NewGobEncoder()
+	encode, err := encoder.Encode(req)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(encode)
+	t.Log(base64.StdEncoding.EncodeToString(encode))
+
+	decodeString, err := base64.StdEncoding.DecodeString(base64.StdEncoding.EncodeToString(encode))
+	if err != nil {
+		t.Error(err)
+	}
+	var decode *Req
+	err = encoder.Decode(decodeString, &decode)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(decode)
+	t.Log(string(decode.Data))
+}
+
+func TestSnowflake(t *testing.T) {
+	t.Log(gid.RandSnowflakeID())
+	t.Log(gid.RandID64())
 }
