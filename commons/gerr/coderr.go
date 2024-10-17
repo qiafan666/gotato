@@ -2,6 +2,7 @@ package gerr
 
 import (
 	"github.com/pkg/errors"
+	"github.com/qiafan666/gotato/commons"
 	"strings"
 )
 
@@ -13,6 +14,13 @@ type CodeError interface {
 	Detail() string
 	WithDetail(detail string) CodeError
 	Error
+}
+
+func NewLangCodeError(code int, lang string) CodeError {
+	return &codeError{
+		code: code,
+		msg:  commons.GetCodeAndMsg(code, lang),
+	}
 }
 
 func NewCodeError(code int, msg string) CodeError {

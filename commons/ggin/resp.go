@@ -3,17 +3,19 @@ package ggin
 import (
 	"encoding/json"
 	"errors"
+	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gerr"
-	"github.com/qiafan666/gotato/commons/ggin/jsonutil"
-	"net/http"
 	"reflect"
+	"time"
 )
 
 type ApiResponse struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg"`
-	Dlt  string `json:"dlt"`
-	Data any    `json:"data"`
+	Code      int    `json:"code"`
+	Msg       string `json:"msg"`
+	Dlt       string `json:"dlt,omitempty"`
+	Data      any    `json:"data"`
+	Time      int64  `json:"time"`
+	RequestId string `json:"request_id"`
 }
 
 func (r *ApiResponse) MarshalJSON() ([]byte, error) {
@@ -23,14 +25,14 @@ func (r *ApiResponse) MarshalJSON() ([]byte, error) {
 		if isAllFieldsPrivate(tmp.Data) {
 			tmp.Data = json.RawMessage(nil)
 		} else {
-			data, err := jsonutil.JsonMarshal(tmp.Data)
+			data, err := gerr.Marshal(tmp.Data)
 			if err != nil {
 				return nil, err
 			}
 			tmp.Data = json.RawMessage(data)
 		}
 	}
-	return jsonutil.JsonMarshal(tmp)
+	return gerr.Marshal(tmp)
 }
 
 func isAllFieldsPrivate(v any) bool {
@@ -54,17 +56,24 @@ func isAllFieldsPrivate(v any) bool {
 	return true
 }
 
-func ApiSuccess(data any) *ApiResponse {
-	return &ApiResponse{Data: data}
+func Api(code int, msg string, data any, requestId string) *ApiResponse {
+	return &ApiResponse{Code: code, Msg: msg, Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
 }
 
-func ApiSuccessWithMsg(data any, msg string) *ApiResponse {
-	return &ApiResponse{Data: data, Msg: msg}
+// ApiSuccess data 数据 strings[1]:requestID strings[2]:msg
+func ApiSuccess(data any, strings ...string) *ApiResponse {
+	if len(strings) == 0 {
+		return &ApiResponse{Code: commons.OK, Data: data}
+	} else if len(strings) == 1 {
+		return &ApiResponse{Code: commons.OK, Data: data, RequestId: strings[0]}
+	} else {
+		return &ApiResponse{Code: commons.OK, Data: data, RequestId: strings[0], Msg: strings[1]}
+	}
 }
 
 func ParseError(err error) *ApiResponse {
 	if err == nil {
-		return ApiSuccessWithMsg(nil, "")
+		return ApiSuccess(nil)
 	}
 	unwrap := gerr.Unwrap(err)
 	var codeErr gerr.CodeError
@@ -75,5 +84,5 @@ func ParseError(err error) *ApiResponse {
 		}
 		return &resp
 	}
-	return &ApiResponse{Code: http.StatusInternalServerError, Msg: err.Error()}
+	return &ApiResponse{Code: commons.ParseError, Msg: err.Error()}
 }

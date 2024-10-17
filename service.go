@@ -53,7 +53,7 @@ func (slf *Server) RegisterController(f func(app *irisV12.Application)) {
 	f(slf.app.GetIrisApp())
 }
 
-func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.ResponseCode]string) {
+func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) {
 	if len(arr) == 0 {
 		return
 	}

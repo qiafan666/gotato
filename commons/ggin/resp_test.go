@@ -1,7 +1,8 @@
 package ggin
 
 import (
-	"github.com/qiafan666/gotato/commons/ggin/jsonutil"
+	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"testing"
 )
@@ -23,19 +24,37 @@ func TestName(t *testing.T) {
 			Remark:        wrapperspb.String("1234567"),
 		},
 	}
+	t.Logf(gcast.ToString(resp))
+	var newResp ApiResponse
+	err := gerr.Unmarshal(gcast.ToByte(resp), &newResp)
+	if err != nil {
+		return
+	}
+	t.Log(newResp)
 	data, err := resp.MarshalJSON()
 	if err != nil {
 		panic(err)
 	}
 	t.Log(string(data))
 
+	err = gerr.Unmarshal(data, &newResp)
+	if err != nil {
+		return
+	}
+	t.Log(newResp)
+
 	var rReso ApiResponse
 	rReso.Data = &UpdateFriendsReq{}
 
-	if err = jsonutil.JsonUnmarshal(data, &rReso); err != nil {
+	if err = gerr.Unmarshal(data, &rReso); err != nil {
 		panic(err)
 	}
 
-	t.Logf("%+v\n", rReso)
+	t.Log(rReso)
 
+	var updateFriendsReq UpdateFriendsReq
+	if err = gerr.Unmarshal(gcast.ToByte(rReso.Data), &updateFriendsReq); err != nil {
+		panic(err)
+	}
+	t.Log(updateFriendsReq)
 }

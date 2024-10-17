@@ -1,12 +1,12 @@
 package ggin
 
 import (
-	"github.com/qiafan666/gotato/commons/ggin/jsonutil"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"net/http"
 )
 
 func httpJson(w http.ResponseWriter, data any) {
-	body, err := jsonutil.JsonMarshal(data)
+	body, err := gerr.Marshal(data)
 	if err != nil {
 		http.Error(w, "json marshal error: "+err.Error(), http.StatusInternalServerError)
 		return

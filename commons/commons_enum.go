@@ -4,19 +4,17 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// ResponseCode define the error code
-type ResponseCode int
-
 var ActiveRequests int64
 
 const (
-	HttpNotFound   ResponseCode = -2
-	UnKnowError    ResponseCode = -1
-	OK             ResponseCode = 0
-	ParameterError ResponseCode = 1
-	ValidateError  ResponseCode = 2
-	TokenError     ResponseCode = 3
-	CheckAuthError ResponseCode = 4
+	ParseError     int = -3
+	HttpNotFound   int = -2
+	UnKnowError    int = -1
+	OK             int = 0
+	ParameterError int = 1
+	ValidateError  int = 2
+	TokenError     int = 3
+	CheckAuthError int = 4
 )
 
 const (
@@ -24,7 +22,7 @@ const (
 )
 
 // CodeMsg global code and msg
-var CodeMsg = map[string]map[ResponseCode]string{
+var CodeMsg = map[string]map[int]string{
 	MsgLanguageEnglish: {
 		OK:             "suc",
 		UnKnowError:    "unknown error",
@@ -46,7 +44,7 @@ var CodeMsg = map[string]map[ResponseCode]string{
 }
 
 // GetCodeAndMsg construct the code and msg
-func GetCodeAndMsg(code ResponseCode, language string) string {
+func GetCodeAndMsg(code int, language string) string {
 	if languageValue, ok := CodeMsg[language]; ok {
 		if value, ok := languageValue[code]; ok {
 			return value
@@ -59,7 +57,7 @@ func GetCodeAndMsg(code ResponseCode, language string) string {
 }
 
 // RegisterCodeAndMsg msg will be used as default msg, and you can change msg with function 'BuildFailedWithMsg' or 'BuildSuccessWithMsg' or 'response.WithMsg' for once.
-func RegisterCodeAndMsg(language string, arr map[ResponseCode]string) {
+func RegisterCodeAndMsg(language string, arr map[int]string) {
 	if len(arr) == 0 {
 		return
 	}

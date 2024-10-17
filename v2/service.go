@@ -60,7 +60,7 @@ func (slf *Server) SetMysqlLogCallerSkip(skip int) {
 func GetGotatoInstance() *Server {
 	return Instance
 }
-func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[commons.ResponseCode]string) {
+func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) {
 	commons.RegisterCodeAndMsg(language, arr)
 }
 
