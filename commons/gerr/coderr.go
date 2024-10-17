@@ -91,7 +91,7 @@ func (e *codeError) Error() string {
 		v = append(v, e.detail)
 	}
 
-	return strings.Join(v, ";")
+	return strings.Join(v, "|")
 }
 
 func Unwrap(err error) error {
