@@ -13,17 +13,32 @@ type CodeError interface {
 	Msg() string
 	Detail() string
 	WithDetail(detail string) CodeError
+	RequestID() string
 	Error
 }
 
-func NewLangCodeError(code int, lang string) CodeError {
-	return &codeError{
-		code: code,
-		msg:  commons.GetCodeAndMsg(code, lang),
+// NewLang 返回多语言的错误信息 strings[0] 为错误码，strings[1] 为request_id
+func NewLang(code int, strings ...string) CodeError {
+	if len(strings) == 0 {
+		return &codeError{
+			code: code,
+			msg:  commons.GetCodeAndMsg(code, commons.DefaultLanguage),
+		}
+	} else if len(strings) == 1 {
+		return &codeError{
+			code: code,
+			msg:  commons.GetCodeAndMsg(code, strings[0]),
+		}
+	} else {
+		return &codeError{
+			code:      code,
+			msg:       commons.GetCodeAndMsg(code, strings[0]),
+			requestID: strings[1],
+		}
 	}
 }
 
-func NewCodeError(code int, msg string) CodeError {
+func NewCode(code int, msg string) CodeError {
 	return &codeError{
 		code: code,
 		msg:  msg,
@@ -31,9 +46,10 @@ func NewCodeError(code int, msg string) CodeError {
 }
 
 type codeError struct {
-	code   int
-	msg    string
-	detail string
+	code      int
+	msg       string
+	detail    string
+	requestID string
 }
 
 func (e *codeError) Code() int {
@@ -46,6 +62,10 @@ func (e *codeError) Msg() string {
 
 func (e *codeError) Detail() string {
 	return e.detail
+}
+
+func (e *codeError) RequestID() string {
+	return e.requestID
 }
 
 func (e *codeError) WithDetail(detail string) CodeError {

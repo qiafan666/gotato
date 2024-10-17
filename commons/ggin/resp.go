@@ -78,7 +78,7 @@ func ParseError(err error) *ApiResponse {
 	unwrap := gerr.Unwrap(err)
 	var codeErr gerr.CodeError
 	if errors.As(unwrap, &codeErr) {
-		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail()}
+		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail(), Time: time.Now().UnixNano() / 1e6, RequestId: codeErr.RequestID()}
 		if resp.Dlt == "" {
 			resp.Dlt = err.Error()
 		}
