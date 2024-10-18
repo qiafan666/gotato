@@ -1,6 +1,7 @@
 package commons
 
 import (
+	"github.com/qiafan666/gotato/commons/gerr"
 	"time"
 )
 
@@ -25,20 +26,20 @@ func BuildResponse(code int, msg string, data interface{}, requestId string) *Ba
 
 func BuildSuccess(data interface{}, language string, requestId string) *BaseResponse {
 
-	return &BaseResponse{Code: OK, Msg: GetCodeAndMsg(OK, language), Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
+	return &BaseResponse{Code: gerr.OK, Msg: gerr.GetCodeAndMsg(gerr.OK, language), Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
 }
 func BuildSuccessWithMsg(msg string, data interface{}, requestId string) *BaseResponse {
 
-	return &BaseResponse{Code: OK, Msg: msg, Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
+	return &BaseResponse{Code: gerr.OK, Msg: msg, Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
 }
 
 func BuildFailed(code int, language string, requestId string) *BaseResponse {
 	if code == 0 {
-		code = UnKnowError
+		code = gerr.UnKnowError
 	}
 	return &BaseResponse{
 		Code:      code,
-		Msg:       GetCodeAndMsg(code, language),
+		Msg:       gerr.GetCodeAndMsg(code, language),
 		Data:      struct{}{},
 		Time:      time.Now().UnixNano() / 1e6,
 		RequestId: requestId,

@@ -76,7 +76,7 @@ func getLogWriter(logPath string) zapcore.WriteSyncer {
 		Compress:   true, // disabled by default
 	}, os.Stdout))
 }
-func getTraceId(ctx context.Context) string {
+func GetTraceId(ctx context.Context) string {
 	if traceId, ok := ctx.Value("trace_id").(string); ok {
 		return fmt.Sprintf("【trace_id:%s】", traceId)
 	} else {
@@ -90,7 +90,7 @@ func SetTraceId(traceId string) context.Context {
 
 func (l *Logger) InfoF(ctx context.Context, template string, args ...interface{}) {
 	if ctx != nil {
-		ZapLog.Infof(getTraceId(ctx)+template, args...)
+		ZapLog.Infof(GetTraceId(ctx)+template, args...)
 	} else {
 		ZapLog.Infof(template, args...)
 	}
@@ -99,7 +99,7 @@ func (l *Logger) InfoF(ctx context.Context, template string, args ...interface{}
 func (l *Logger) InfoKVs(ctx context.Context, msg string, kv ...any) {
 
 	if ctx != nil {
-		ZapLog.Infof(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
+		ZapLog.Infof(GetTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
 		ZapLog.Infof(gcommon.Kv2String(msg, kv...))
 	}
@@ -107,7 +107,7 @@ func (l *Logger) InfoKVs(ctx context.Context, msg string, kv ...any) {
 
 func (l *Logger) DebugF(ctx context.Context, template string, args ...interface{}) {
 	if ctx != nil {
-		ZapLog.Debugf(getTraceId(ctx)+template, args...)
+		ZapLog.Debugf(GetTraceId(ctx)+template, args...)
 	} else {
 		ZapLog.Debugf(template, args...)
 	}
@@ -115,7 +115,7 @@ func (l *Logger) DebugF(ctx context.Context, template string, args ...interface{
 
 func (l *Logger) DebugKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Debugf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
+		ZapLog.Debugf(GetTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
 		ZapLog.Debugf(gcommon.Kv2String(msg, kv...))
 	}
@@ -123,7 +123,7 @@ func (l *Logger) DebugKVs(ctx context.Context, msg string, kv ...any) {
 
 func (l *Logger) WarnF(ctx context.Context, template string, args ...interface{}) {
 	if ctx != nil {
-		ZapLog.Warnf(getTraceId(ctx)+template, args...)
+		ZapLog.Warnf(GetTraceId(ctx)+template, args...)
 	} else {
 		ZapLog.Warnf(template, args...)
 	}
@@ -131,7 +131,7 @@ func (l *Logger) WarnF(ctx context.Context, template string, args ...interface{}
 
 func (l *Logger) WarnKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Warnf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
+		ZapLog.Warnf(GetTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
 		ZapLog.Warnf(gcommon.Kv2String(msg, kv...))
 	}
@@ -139,7 +139,7 @@ func (l *Logger) WarnKVs(ctx context.Context, msg string, kv ...any) {
 
 func (l *Logger) ErrorF(ctx context.Context, template string, args ...interface{}) {
 	if ctx != nil {
-		ZapLog.Errorf(getTraceId(ctx)+template, args...)
+		ZapLog.Errorf(GetTraceId(ctx)+template, args...)
 	} else {
 		ZapLog.Errorf(template, args...)
 	}
@@ -147,7 +147,7 @@ func (l *Logger) ErrorF(ctx context.Context, template string, args ...interface{
 
 func (l *Logger) ErrorKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Errorf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
+		ZapLog.Errorf(GetTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
 		ZapLog.Errorf(gcommon.Kv2String(msg, kv...))
 	}
@@ -155,7 +155,7 @@ func (l *Logger) ErrorKVs(ctx context.Context, msg string, kv ...any) {
 
 func (l *Logger) PanicF(ctx context.Context, template string, args ...interface{}) {
 	if ctx != nil {
-		ZapLog.Panicf(getTraceId(ctx)+template, args...)
+		ZapLog.Panicf(GetTraceId(ctx)+template, args...)
 	} else {
 		ZapLog.Panicf(template, args...)
 	}
@@ -163,7 +163,7 @@ func (l *Logger) PanicF(ctx context.Context, template string, args ...interface{
 
 func (l *Logger) PanicKVs(ctx context.Context, msg string, kv ...any) {
 	if ctx != nil {
-		ZapLog.Panicf(getTraceId(ctx) + gcommon.Kv2String(msg, kv...))
+		ZapLog.Panicf(GetTraceId(ctx) + gcommon.Kv2String(msg, kv...))
 	} else {
 		ZapLog.Panicf(gcommon.Kv2String(msg, kv...))
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/middleware"
 	"net/http"
@@ -24,9 +25,9 @@ func (slf *App) Default() {
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.UnKnowError, commons.DefaultLanguage, ""))
 		}
 	})
 	slf.app.Logger().SetLevel(gconfig.SC.SConfigure.ZapLogLevel)
@@ -38,9 +39,9 @@ func (slf *App) New() {
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.UnKnowError, commons.DefaultLanguage, ""))
 		}
 	})
 	slf.app.Logger().SetLevel(gconfig.SC.SConfigure.ZapLogLevel)

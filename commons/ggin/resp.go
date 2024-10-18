@@ -3,7 +3,6 @@ package ggin
 import (
 	"encoding/json"
 	"errors"
-	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"reflect"
 	"time"
@@ -64,12 +63,12 @@ func Api(code int, msg string, data any, requestId string) *ApiResponse {
 func ApiSuccess(data any, strings ...string) *ApiResponse {
 	msg := "suc"
 	if len(strings) == 0 {
-		return &ApiResponse{Code: commons.OK, Data: data, Msg: msg, Time: time.Now().UnixNano() / 1e6}
+		return &ApiResponse{Code: gerr.OK, Data: data, Msg: msg, Time: time.Now().UnixNano() / 1e6}
 	} else if len(strings) == 1 {
-		return &ApiResponse{Code: commons.OK, Data: data, RequestId: strings[0], Msg: msg, Time: time.Now().UnixNano() / 1e6}
+		return &ApiResponse{Code: gerr.OK, Data: data, RequestId: strings[0], Msg: msg, Time: time.Now().UnixNano() / 1e6}
 	} else {
 		msg = strings[1]
-		return &ApiResponse{Code: commons.OK, Data: data, RequestId: strings[0], Msg: msg, Time: time.Now().UnixNano() / 1e6}
+		return &ApiResponse{Code: gerr.OK, Data: data, RequestId: strings[0], Msg: msg, Time: time.Now().UnixNano() / 1e6}
 	}
 }
 
@@ -86,5 +85,5 @@ func ParseError(err error) *ApiResponse {
 		}
 		return &resp
 	}
-	return &ApiResponse{Code: commons.ParseError, Msg: err.Error()}
+	return &ApiResponse{Code: gerr.UnKnowError, Msg: err.Error()}
 }

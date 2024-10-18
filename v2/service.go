@@ -6,6 +6,7 @@ import (
 	"fmt"
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
@@ -61,7 +62,7 @@ func GetGotatoInstance() *Server {
 	return Instance
 }
 func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) {
-	commons.RegisterCodeAndMsg(language, arr)
+	gerr.RegisterCodeAndMsg(language, arr)
 }
 
 func (slf *Server) WaitClose(stopFunc ...func()) {
@@ -176,12 +177,12 @@ func (slf *Server) gin() {
 	slf.app = gin.New()
 
 	slf.app.NoRoute(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
 	slf.app.NoMethod(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, commons.BuildFailed(commons.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})

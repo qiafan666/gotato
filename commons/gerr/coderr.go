@@ -14,7 +14,7 @@ type CodeError interface {
 	Detail() string
 	WithDetail(detail string) CodeError
 	RequestID() string
-	Error
+	ErrorInterface
 }
 
 // NewLang 返回多语言的错误信息 strings[0] 为错误码，strings[1] 为request_id
@@ -22,17 +22,17 @@ func NewLang(code int, strings ...string) CodeError {
 	if len(strings) == 0 {
 		return &codeError{
 			code: code,
-			msg:  commons.GetCodeAndMsg(code, commons.DefaultLanguage),
+			msg:  GetCodeAndMsg(code, commons.DefaultLanguage),
 		}
 	} else if len(strings) == 1 {
 		return &codeError{
 			code: code,
-			msg:  commons.GetCodeAndMsg(code, strings[0]),
+			msg:  GetCodeAndMsg(code, strings[0]),
 		}
 	} else {
 		return &codeError{
 			code:      code,
-			msg:       commons.GetCodeAndMsg(code, strings[0]),
+			msg:       GetCodeAndMsg(code, strings[0]),
 			requestID: strings[1],
 		}
 	}

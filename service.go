@@ -4,7 +4,7 @@ import (
 	"context"
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	irisV12 "github.com/kataras/iris/v12"
-	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/gconfig"
 	"github.com/qiafan666/gotato/gotatodb"
@@ -58,7 +58,7 @@ func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) 
 		return
 	}
 	for k, v := range arr {
-		commons.CodeMsg[language][k] = v
+		gerr.CodeMsg[language][k] = v
 	}
 }
 
