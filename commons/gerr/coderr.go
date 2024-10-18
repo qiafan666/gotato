@@ -2,7 +2,6 @@ package gerr
 
 import (
 	"github.com/pkg/errors"
-	"github.com/qiafan666/gotato/commons"
 	"strings"
 )
 
@@ -22,7 +21,7 @@ func NewLang(code int, strings ...string) CodeError {
 	if len(strings) == 0 {
 		return &codeError{
 			code: code,
-			msg:  GetCodeAndMsg(code, commons.DefaultLanguage),
+			msg:  GetCodeAndMsg(code, DefaultLanguage),
 		}
 	} else if len(strings) == 1 {
 		return &codeError{

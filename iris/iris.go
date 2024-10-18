@@ -25,9 +25,9 @@ func (slf *App) Default() {
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(gerr.UnKnowError, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.UnKnowError, gerr.DefaultLanguage, ""))
 		}
 	})
 	slf.app.Logger().SetLevel(gconfig.SC.SConfigure.ZapLogLevel)
@@ -39,9 +39,9 @@ func (slf *App) New() {
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_ = ctx.JSON(commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
 		} else {
-			_ = ctx.JSON(commons.BuildFailed(gerr.UnKnowError, commons.DefaultLanguage, ""))
+			_ = ctx.JSON(commons.BuildFailed(gerr.UnKnowError, gerr.DefaultLanguage, ""))
 		}
 	})
 	slf.app.Logger().SetLevel(gconfig.SC.SConfigure.ZapLogLevel)

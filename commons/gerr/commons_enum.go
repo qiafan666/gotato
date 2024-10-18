@@ -1,9 +1,5 @@
 package gerr
 
-import (
-	"github.com/qiafan666/gotato/commons"
-)
-
 const (
 	HttpNotFound   int = -2
 	UnKnowError    int = -1
@@ -16,7 +12,7 @@ const (
 
 // CodeMsg global code and msg
 var CodeMsg = map[string]map[int]string{
-	commons.MsgLanguageEnglish: {
+	MsgLanguageEnglish: {
 		OK:             "suc",
 		UnKnowError:    "unknown error",
 		HttpNotFound:   "404",
@@ -25,7 +21,7 @@ var CodeMsg = map[string]map[int]string{
 		TokenError:     "Token error",
 		CheckAuthError: "check auth error",
 	},
-	commons.MsgLanguageChinese: {
+	MsgLanguageChinese: {
 		OK:             "成功",
 		UnKnowError:    "未知错误",
 		HttpNotFound:   "404",
@@ -58,3 +54,11 @@ func RegisterCodeAndMsg(language string, arr map[int]string) {
 		CodeMsg[language][k] = v
 	}
 }
+
+var DefaultLanguage = MsgLanguageEnglish
+
+// msg language
+const (
+	MsgLanguageEnglish = "english"
+	MsgLanguageChinese = "chinese"
+)

@@ -29,14 +29,6 @@ var ZapLogLevel = map[string]zapcore.Level{
 	"error": zapcore.ErrorLevel,
 }
 
-var DefaultLanguage = MsgLanguageEnglish
-
-// msg language
-const (
-	MsgLanguageEnglish = "english"
-	MsgLanguageChinese = "chinese"
-)
-
 const (
 	Table  = "table"
 	Layout = "2006-01-02 15:04:05"
