@@ -177,12 +177,12 @@ func (slf *Server) gin() {
 	slf.app = gin.New()
 
 	slf.app.NoRoute(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
 	slf.app.NoMethod(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, commons.DefaultLanguage, ""))
+		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
