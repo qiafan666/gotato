@@ -290,3 +290,8 @@ func TestSnowflake(t *testing.T) {
 	t.Log(gid.RandSnowflakeID())
 	t.Log(gid.RandID64())
 }
+
+func TestAppendString(t *testing.T) {
+	t.Log(AppendString("hello", "world").Append("test"))
+	t.Log(AppendStringWithSep("-", "hello", "world", "test"))
+}

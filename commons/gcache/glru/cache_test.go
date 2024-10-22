@@ -16,7 +16,18 @@ func Test_Setnx(t *testing.T) {
 	defer cache.Stop()
 	Equal(t, cache.ItemCount(), 0)
 
-	cache.Set("spice", "flow", time.Minute)
+	cache.Set("forever", "ning", 0)
+	cache.Set("spice", "flow", 10*time.Second)
+	t.Log(cache.Get("spice").Value())
+
+	time.Sleep(10 * time.Second)
+	if cache.Get("spice") == nil || cache.Get("spice").Expired() {
+		t.Error("spice should be expired")
+	} else {
+		t.Log("spice is expired")
+	}
+	t.Log(cache.Get("forever").Value())
+
 	Equal(t, cache.ItemCount(), 1)
 
 	// set if exists

@@ -116,8 +116,8 @@ func (lfu *LFUCache) addItem(item lfuItem) {
 		if len(lfu.freqMap[value.freq]) == 0 {
 			delete(lfu.freqMap, value.freq)
 			delete(lfu.items, value.key)
-			gcommon.SliceRemove(lfu.ascFreq, value.freq)
-			gcommon.SliceRemove(lfu.descFreq, value.freq)
+			gcommon.SliceDelete(lfu.ascFreq, value.freq)
+			gcommon.SliceDelete(lfu.descFreq, value.freq)
 		}
 	}
 

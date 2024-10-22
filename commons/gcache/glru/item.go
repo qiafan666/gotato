@@ -84,7 +84,7 @@ func (i *Item[T]) Release() {
 // Expired 检查缓存项是否过期
 func (i *Item[T]) Expired() bool {
 	expires := atomic.LoadInt64(&i.expires)
-	return expires < time.Now().UnixNano()
+	return expires > time.Now().UnixNano()
 }
 
 // TTL 返回缓存项的剩余时间

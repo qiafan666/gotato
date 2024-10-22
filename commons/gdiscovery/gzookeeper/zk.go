@@ -2,6 +2,7 @@ package gzookeeper
 
 import (
 	"context"
+	"errors"
 	"github.com/go-zookeeper/zk"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/glog"
@@ -60,8 +61,8 @@ func NewZkClient(ZkServers []string, scheme string, options ...ZkOption) (*ZkCli
 		option(client)
 	}
 
-	// Establish a Zookeeper connection with a specified timeout and handle authentication.
-	conn, eventChan, err := zk.Connect(ZkServers, time.Duration(client.timeout)*time.Second, zk.WithLogger(nilLog{}))
+	// 建立zk连接
+	conn, eventChan, err := zk.Connect(ZkServers, time.Duration(client.timeout)*time.Second)
 	if err != nil {
 		return nil, gerr.WrapMsg(err, "connect failed", "ZkServers", ZkServers)
 	}
@@ -70,10 +71,9 @@ func NewZkClient(ZkServers []string, scheme string, options ...ZkOption) (*ZkCli
 	client.cancel = cancel
 	client.ticker = time.NewTicker(defaultFreq)
 
-	// Ensure authentication is set if credentials are provided.
 	if client.username != "" && client.password != "" {
 		auth := []byte(client.username + ":" + client.password)
-		if err := conn.AddAuth("digest", auth); err != nil {
+		if err = conn.AddAuth("digest", auth); err != nil {
 			conn.Close()
 			return nil, gerr.WrapMsg(err, "AddAuth failed", "username", client.username, "password", client.password)
 		}
@@ -83,8 +83,7 @@ func NewZkClient(ZkServers []string, scheme string, options ...ZkOption) (*ZkCli
 	client.eventChan = eventChan
 	client.conn = conn
 
-	// Verify root node existence and create if missing.
-	if err := client.ensureRoot(); err != nil {
+	if err = client.ensureRoot(); err != nil {
 		conn.Close()
 		return nil, err
 	}
@@ -110,7 +109,7 @@ func (s *ZkClient) ensureAndCreate(node string) error {
 	}
 	if !exists {
 		_, err = s.conn.Create(node, []byte(""), 0, zk.WorldACL(zk.PermAll))
-		if err != nil && err != zk.ErrNodeExists {
+		if err != nil && !errors.Is(err, zk.ErrNodeExists) {
 			return gerr.WrapMsg(err, "Create failed", "node", node)
 		}
 	}

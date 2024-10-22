@@ -48,7 +48,10 @@ func (b *bucket[T]) setnx(key string, value T, duration time.Duration, track boo
 		return item
 	}
 
-	expires := time.Now().Add(duration).UnixNano()
+	expires := int64(0)
+	if duration != 0 {
+		expires = time.Now().Add(duration).UnixNano()
+	}
 	newItemInfo := newItem(key, value, expires, track)
 
 	b.Lock()
@@ -66,7 +69,10 @@ func (b *bucket[T]) setnx(key string, value T, duration time.Duration, track boo
 
 // set 根据键设置值，返回设置后的新值和可能已存在的旧值
 func (b *bucket[T]) set(key string, value T, duration time.Duration, track bool) (*Item[T], *Item[T]) {
-	expires := time.Now().Add(duration).UnixNano()
+	expires := int64(0)
+	if duration != 0 {
+		expires = time.Now().Add(duration).UnixNano()
+	}
 	item := newItem(key, value, expires, track)
 	b.Lock()
 	existing := b.lookup[key]
