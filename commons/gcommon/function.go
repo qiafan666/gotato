@@ -6,16 +6,8 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
-	"net"
-	"net/http"
 	"reflect"
 	"strings"
-)
-
-const (
-	XForwardedFor = "X-Forwarded-For"
-	XRealIP       = "X-Real-IP"
-	XClientIP     = "x-client-ip"
 )
 
 // RetryFunction 重试函数
@@ -87,14 +79,14 @@ func StructToMap(inputStruct interface{}, JumpString ...string) map[string]inter
 // Paginate 分页
 func Paginate(pageNum int, pageSize int) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if pageNum == 0 {
+		if pageNum <= 0 {
 			pageNum = 1
 		}
 		switch {
 		case pageSize > 100:
 			pageSize = 100
 		case pageSize <= 0:
-			pageSize = 8
+			pageSize = 5
 		}
 		offset := (pageNum - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
@@ -131,26 +123,4 @@ func Kv2String(msg string, kv ...any) string {
 		}
 		return buf.String()
 	}
-}
-
-// RemoteIP returns the remote ip of the request.
-func RemoteIP(req *http.Request) string {
-	if ip := req.Header.Get(XClientIP); ip != "" {
-		return ip
-	} else if ip := req.Header.Get(XRealIP); ip != "" {
-		return ip
-	} else if ip := req.Header.Get(XForwardedFor); ip != "" {
-		parts := strings.Split(ip, ",")
-		return strings.TrimSpace(parts[0])
-	}
-
-	ip, _, err := net.SplitHostPort(req.RemoteAddr)
-	if err != nil {
-		ip = req.RemoteAddr
-	}
-
-	if ip == "::1" {
-		return "127.0.0.1"
-	}
-	return ip
 }
