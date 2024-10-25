@@ -29,19 +29,6 @@ type ShardLockMapShard[K comparable, V any] struct {
 	sync.RWMutex // 读写锁
 }
 
-// 创建一个新的 ShardLockMap，限定于包内
-func create[K comparable, V any](sharding func(key K) uint32, defaultShardCount int) *ShardLockMap[K, V] {
-	newMap := &ShardLockMap[K, V]{
-		shardCount: defaultShardCount,
-		sharding:   sharding,
-		shards:     make([]*ShardLockMapShard[K, V], defaultShardCount),
-	}
-	for i := 0; i < defaultShardCount; i++ {
-		newMap.shards[i] = &ShardLockMapShard[K, V]{items: make(map[K]V)}
-	}
-	return newMap
-}
-
 // NewShardLockMap 创建一个以string为键的并发Map
 func NewShardLockMap[V any](shardCounts ...int) *ShardLockMap[string, V] {
 	if len(shardCounts) > 0 {
@@ -64,6 +51,19 @@ func NewWithCustomShardingFunction[K comparable, V any](sharding func(key K) uin
 		return create[K, V](sharding, shardCounts[0])
 	}
 	return create[K, V](sharding, defaultShardCount)
+}
+
+// 创建一个新的 ShardLockMap，限定于包内
+func create[K comparable, V any](sharding func(key K) uint32, defaultShardCount int) *ShardLockMap[K, V] {
+	newMap := &ShardLockMap[K, V]{
+		shardCount: defaultShardCount,
+		sharding:   sharding,
+		shards:     make([]*ShardLockMapShard[K, V], defaultShardCount),
+	}
+	for i := 0; i < defaultShardCount; i++ {
+		newMap.shards[i] = &ShardLockMapShard[K, V]{items: make(map[K]V)}
+	}
+	return newMap
 }
 
 // 根据键获取对应的分片
@@ -223,7 +223,7 @@ func (m *ShardLockMap[K, V]) UnMarshalJSON(b []byte) (err error) {
 	tmp := make(map[K]V)
 
 	// Unmarshal into a single map.
-	if err := json.Unmarshal(b, &tmp); err != nil {
+	if err = json.Unmarshal(b, &tmp); err != nil {
 		return err
 	}
 

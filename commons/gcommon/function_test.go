@@ -295,3 +295,16 @@ func TestAppendString(t *testing.T) {
 	t.Log(AppendString("hello", "world").Append("test"))
 	t.Log(AppendStringWithSep("-", "hello", "world", "test"))
 }
+
+func TestSlice(t *testing.T) {
+	var slice = []int{1, 2, 3, 4, 5}
+	SliceForEach(slice, func(val int) {
+		t.Log(val)
+	})
+	SliceReverse(slice)
+	t.Log(slice)
+	SliceSort(slice, func(i, j int) bool {
+		return i < j
+	})
+	t.Log(slice)
+}

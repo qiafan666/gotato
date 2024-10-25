@@ -443,3 +443,17 @@ func (o *sortSlice[E]) Less(i, j int) bool {
 func (o *sortSlice[E]) Swap(i, j int) {
 	o.ts[i], o.ts[j] = o.ts[j], o.ts[i]
 }
+
+// SliceReverse 反转切片
+func SliceReverse[E any](es []E) {
+	for i, j := 0, len(es)-1; i < j; i, j = i+1, j-1 {
+		es[i], es[j] = es[j], es[i]
+	}
+}
+
+// SliceForEach 遍历切片
+func SliceForEach[E any](es []E, fn func(e E)) {
+	for i := 0; i < len(es); i++ {
+		fn(es[i])
+	}
+}
