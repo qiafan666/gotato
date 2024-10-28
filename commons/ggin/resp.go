@@ -80,7 +80,7 @@ func ParseError(err error) *ApiResponse {
 	var codeErr gerr.CodeError
 	if errors.As(unwrap, &codeErr) {
 		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail(), Time: time.Now().UnixNano() / 1e6, RequestId: codeErr.RequestID()}
-		if resp.Dlt == "" {
+		if resp.Dlt == "" && codeErr.Msg() != err.Error() {
 			resp.Dlt = err.Error()
 		}
 		return &resp

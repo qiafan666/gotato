@@ -3,6 +3,7 @@ package gcommon
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gid"
 	"slices"
@@ -307,4 +308,69 @@ func TestSlice(t *testing.T) {
 		return i < j
 	})
 	t.Log(slice)
+}
+
+func TestHeadSort(t *testing.T) {
+	// 示例 1：对整数进行升序排序。
+	intData := []int{5, 3, 8, 4, 2, 1}
+	sortedInts := HeapSort(intData, func(a, b int) bool {
+		return a < b // 升序排序
+	})
+	fmt.Println("排序后的整数:", sortedInts)
+
+	// 示例 2：按字符串长度排序。
+	stringData := []string{"apple", "banana", "kiwi", "grape", "orange"}
+	sortedStrings := HeapSort(stringData, func(a, b string) bool {
+		return len(a) < len(b) // 按字符串长度排序
+	})
+	fmt.Println("按长度排序后的字符串:", sortedStrings)
+
+	// 示例 3：对结构体进行多条件排序。
+	type Person struct {
+		Name string
+		Age  int
+	}
+
+	people := []Person{
+		{"Alice", 30},
+		{"Bob", 25},
+		{"Charlie", 30},
+		{"Dave", 20},
+	}
+
+	sortedPeople := HeapSort(people, func(a, b Person) bool {
+		if a.Age == b.Age {
+			return a.Name < b.Name // 如果年龄相同，则按名字排序
+		}
+		return a.Age < b.Age // 否则按年龄排序
+	})
+	fmt.Println("按年龄和名字排序后的人员:", sortedPeople)
+}
+
+func TestMap(t *testing.T) {
+
+	testMap := map[string]int{
+		"banana": 2,
+		"apple":  1,
+		"orange": 3,
+		"123":    4,
+		"宁":      5,
+	}
+	t.Log(MapSortKey(testMap, func(a, b string) bool {
+		return a < b
+	}))
+	t.Log(MapSortValue(testMap, func(a, b int) bool {
+		return a < b
+	}))
+	t.Log(MapKeys(testMap))
+
+	testMap2 := map[string]int{
+		"banana": 3,
+	}
+	e, err := MapMergeE(testMap, testMap2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(e)
 }

@@ -15,14 +15,10 @@ func TestCommonFutureAfter(t *testing.T) {
 
 	p := pm.NewPromise("testPromise", func(context *gpromise.Context) {
 		if context.Err != nil {
-
-			if context.Err != nil {
-				log.Println("Promise testPromise error:", context.Err.Error())
-			}
+			log.Println("Promise testPromise error:", context.Err.Error())
 		}
 	})
 
-	//实际业务逻辑
 	safeFinish := func(res []int) {
 		var total int
 		for _, re := range res {
@@ -35,11 +31,11 @@ func TestCommonFutureAfter(t *testing.T) {
 
 	future.OnDo = func() error {
 		log.Println("Future testFuture do")
-		futureOndoCallback(pm, gpromise.GetPfId(p.Id, future.Id()))
+		time.Sleep(2 * time.Second) // 模拟耗时任务
+		pm.Process(gpromise.GetPfId(p.Id, future.Id()), []interface{}{1, 2, 3}, nil)
 		return nil
 	}
 
-	fmt.Println("逻辑异步")
 	future.OnCallBack = func(result []interface{}) error {
 		log.Println("Future testFuture callback:", result)
 		resultInt := make([]int, len(result))
@@ -50,13 +46,11 @@ func TestCommonFutureAfter(t *testing.T) {
 		return nil
 	}
 
-	p.Push(future)
-	p.Start()
+	go func() {
+		p.Push(future)
+		p.Start() // 异步启动Promise
+	}()
 
+	time.Sleep(3 * time.Second) // 等待异步执行完成
 	fmt.Println(gtime.Since(now))
-}
-
-func futureOndoCallback(pm *gpromise.Manager, pfId uint64) {
-	//回调
-	pm.Process(pfId, []interface{}{1, 2, 3}, nil)
 }

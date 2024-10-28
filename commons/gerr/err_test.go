@@ -64,6 +64,9 @@ func TestNew(t *testing.T) {
 	t.Log(testErr.Error()) // output: test error, key=value
 
 	testErr1 := New("test error")
+
+	t.Log(testErr1.Is(testErr))
+
 	t.Log(Unwrap(testErr))
 	t.Log(testErr1.Is(Unwrap(testErr)))
 
