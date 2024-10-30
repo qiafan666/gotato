@@ -67,3 +67,23 @@ func TestAesDecrypt(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateAESKey(t *testing.T) {
+	key, err := GenerateAESKey(16)
+	if err != nil {
+		t.Log("GenerateAESKey() error = ", err)
+	}
+	t.Log("AES 16 Key = ", key)
+
+	key, err = GenerateAESKey(24)
+	if err != nil {
+		t.Log("GenerateAESKey() error = ", err)
+	}
+	t.Log("AES 24 Key = ", key)
+
+	key, err = GenerateAESKey(32)
+	if err != nil {
+		t.Log("GenerateAESKey() error = ", err)
+	}
+	t.Log("AES 32 Key = ", key)
+}

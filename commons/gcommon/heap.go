@@ -49,3 +49,22 @@ func HeapSort[T any](data []T, less func(a, b T) bool) []T {
 
 	return sorted
 }
+
+// HeapSortFilter 对数据进行排序并按过滤条件筛选元素。
+func HeapSortFilter[T any](data []T, less func(a, b T) bool, filter func(T) bool) []T {
+	// 使用提供的数据和比较函数初始化泛型堆。
+	h := &GenericHeap[T]{data: data, less: less}
+	heap.Init(h)
+
+	// 从堆中逐个弹出元素，获取排序后的结果。
+	sorted := make([]T, 0, len(data))
+	for h.Len() > 0 {
+		item := heap.Pop(h).(T)
+		// 如果 filter 函数不为空且当前元素符合过滤条件，则将其添加到结果中。
+		if filter == nil || filter(item) {
+			sorted = append(sorted, item)
+		}
+	}
+
+	return sorted
+}

@@ -2,6 +2,7 @@ package xlsx
 
 import (
 	"errors"
+	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/xuri/excelize/v2"
 	"io"
 	"reflect"
@@ -10,15 +11,15 @@ import (
 func ParseSheet(file *excelize.File, v interface{}) error {
 	val := reflect.ValueOf(v)
 	if val.Kind() != reflect.Ptr {
-		return errors.New("not ptr")
+		return gerr.New("not ptr", "parameter", v)
 	}
 	val = val.Elem()
 	if val.Kind() != reflect.Slice {
-		return errors.New("not slice")
+		return gerr.New("not slice", "parameter", v)
 	}
 	itemType := val.Type().Elem()
 	if itemType.Kind() != reflect.Struct {
-		return errors.New("not struct")
+		return gerr.New("not struct", "parameter", v)
 	}
 	newItemValue := func() reflect.Value {
 		return reflect.New(itemType).Elem()
@@ -38,6 +39,8 @@ func ParseSheet(file *excelize.File, v interface{}) error {
 	} else if sheetIndex < 0 {
 		return nil
 	}
+
+	// struct中的字段名
 	fieldIndex := make(map[string]int)
 	for i := 0; i < itemType.NumField(); i++ {
 		field := itemType.Field(i)
@@ -52,8 +55,10 @@ func ParseSheet(file *excelize.File, v interface{}) error {
 		}
 	}
 	if len(fieldIndex) == 0 {
-		return errors.New("empty column struct")
+		return gerr.New("empty column struct")
 	}
+
+	// 读取sheet的列名,为空则退出
 	sheetIndex := make(map[string]int)
 	for i := 1; ; i++ {
 		name, err := file.GetCellValue(sheetName, GetAxis(i, 1))
@@ -68,7 +73,7 @@ func ParseSheet(file *excelize.File, v interface{}) error {
 		}
 	}
 	if len(sheetIndex) == 0 {
-		return errors.New("sheet column empty")
+		return gerr.New("sheet column empty")
 	}
 	for i := 2; ; i++ {
 		var (

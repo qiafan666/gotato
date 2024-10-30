@@ -2,7 +2,7 @@ package gcompress
 
 import (
 	"github.com/klauspost/compress/zstd"
-	"github.com/qiafan666/gotato/commons/gcommon"
+	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"io"
 	"sync"
@@ -37,11 +37,11 @@ func ZstdEncode(in []byte) []byte {
 func ZstdDecode(in []byte) ([]byte, error) {
 	decoder, err := newDecoder(nil)
 	if err != nil {
-		return nil, gerr.WrapMsg(err, "failed to create zstd decoder", "param", gcommon.BytesToString(in))
+		return nil, gerr.WrapMsg(err, "failed to create zstd decoder", "param", gcast.ToString(in))
 	}
 	all, err := decoder.DecodeAll(in, nil)
 	if err != nil {
-		return nil, gerr.WrapMsg(err, "failed to decode zstd data", "param", gcommon.BytesToString(in))
+		return nil, gerr.WrapMsg(err, "failed to decode zstd data", "param", gcast.ToString(in))
 	}
 	return all, nil
 }

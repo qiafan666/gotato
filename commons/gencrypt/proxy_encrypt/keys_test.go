@@ -1,4 +1,4 @@
-package CSCrypto
+package proxy_encrypt
 
 import (
 	"encoding/base64"

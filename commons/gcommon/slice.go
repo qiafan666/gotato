@@ -225,22 +225,24 @@ func SliceAppendUnique[T any](ts []T, t T) []T {
 
 // SliceDelete 使用泛型函数来删除切片中的某个元素
 func SliceDelete[T any](ts []T, t T) []T {
-	for i, v := range ts {
-		if reflect.DeepEqual(v, t) {
-			return append(ts[:i], ts[i+1:]...)
+	result := make([]T, 0, len(ts))
+	for _, v := range ts {
+		if !reflect.DeepEqual(v, t) {
+			result = append(result, v)
 		}
 	}
-	return ts // 如果未找到匹配的元素，则返回原始切片
+	return result
 }
 
 // SliceDeleteF 使用泛型函数来删除切片中的某个元素
 func SliceDeleteF[T any](ts []T, fn func(t T) bool) []T {
-	for i, v := range ts {
-		if fn(v) {
-			return append(ts[:i], ts[i+1:]...)
+	result := make([]T, 0, len(ts))
+	for _, v := range ts {
+		if !fn(v) {
+			result = append(result, v)
 		}
 	}
-	return ts // 如果未找到匹配的元素，则返回原始切片
+	return result
 }
 
 // SliceIndex 返回元素在切片中的索引，不存在返回-1
@@ -253,21 +255,38 @@ func SliceIndex[T any](list []T, elem T) int {
 	return -1
 }
 
-// SliceDeleteIndex 删除多个元素的索引
+// SliceIndexF 返回元素在切片中的索引
+func SliceIndexF[T any](list []T, fn func(elem T) bool) []int {
+	indexes := make([]int, 0)
+	for i, v := range list {
+		if fn(v) {
+			indexes = append(indexes, i)
+		}
+	}
+	return indexes
+}
+
+// SliceDeleteIndex 高效地删除指定索引的多个元素
 func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
 	if len(indexes) == 0 {
 		return list
 	}
-	if len(list) == 0 {
-		return list
+	sort.Ints(indexes)
+	// 创建一个 map 以 O(1) 复杂度检查索引是否需要删除
+	indexMap := make(map[int]struct{}, len(indexes))
+	for _, idx := range indexes {
+		indexMap[idx] = struct{}{}
 	}
-	for _, index := range indexes {
-		if index < 0 || index >= len(list) {
-			continue
+
+	// 构建结果切片，跳过 map 中的索引
+	result := make([]T, 0, len(list)-len(indexes))
+	for i, v := range list {
+		if _, shouldDelete := indexMap[i]; !shouldDelete {
+			result = append(result, v)
 		}
-		list = append(list[:index], list[index+1:]...)
 	}
-	return list
+
+	return result
 }
 
 // sliceToMapOkAny 切片转映射（自定义类型，过滤器）

@@ -374,3 +374,13 @@ func TestMap(t *testing.T) {
 	}
 	t.Log(e)
 }
+
+func TestSliceDelete(t *testing.T) {
+	testSlice := []int{1, 2, 3, 4, 5}
+	sliceDelete := SliceDelete(testSlice, 2)
+	t.Log(sliceDelete)
+
+	t.Log(SliceIndex(sliceDelete, 6))
+	newList := SliceDeleteIndex(sliceDelete, SliceIndex(sliceDelete, 6))
+	t.Log(newList)
+}
