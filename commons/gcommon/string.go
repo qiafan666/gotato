@@ -2,7 +2,7 @@ package gcommon
 
 import (
 	"bytes"
-	cryptoRand "crypto/rand"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -26,79 +26,70 @@ func StringToSha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
 }
 
-// Nonce 生成随机串(size应为偶数)
+// Nonce 生成随机字符串
 func Nonce(size uint8) string {
-	nonce := make([]byte, size/2)
-	io.ReadFull(cryptoRand.Reader, nonce)
-	return hex.EncodeToString(nonce)
+	// 计算生成的字节数
+	byteSize := (size + 1) / 2 // 向上取整，确保足够的字节
+
+	nonce := make([]byte, byteSize)
+	_, err := io.ReadFull(rand.Reader, nonce)
+	if err != nil {
+		// 处理错误
+		return ""
+	}
+
+	// 将字节转换为十六进制字符串
+	nonceHex := hex.EncodeToString(nonce)
+
+	// 返回前size个字符，确保返回的字符串长度为size
+	if len(nonceHex) > int(size) {
+		return nonceHex[:size]
+	}
+	return nonceHex
 }
 
-const randomLowerUpperNumberMixed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const randomString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const randomLower = "abcdefghijklmnopqrstuvwxyz"
 const randomUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const randomNumber = "0123456789"
 const randomLowerUpper = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-// RandomLowerUpperNumberMixed 生成随机字符串
-func RandomLowerUpperNumberMixed(stringSize int) string {
-
-	mathRand.Seed(time.Now().UnixNano())
-	b := make([]byte, stringSize)
-	for i := 0; i < stringSize; i++ {
-		for j := range b {
-			b[j] = randomLowerUpperNumberMixed[mathRand.Intn(len(randomLowerUpperNumberMixed))]
-		}
-	}
-	return string(b)
+// RandStr 生成随机字符串
+func RandStr(stringSize int) string {
+	return randomStr(randomString, stringSize)
 }
 
-// RandomLower 生成随机小写
-func RandomLower(stringSize int) string {
-
-	mathRand.Seed(time.Now().UnixNano())
-	b := make([]byte, stringSize)
-	for i := 0; i < stringSize; i++ {
-		for j := range b {
-			b[j] = randomLower[mathRand.Intn(len(randomLower))]
-		}
-	}
-	return string(b)
+// RandLower 生成随机小写
+func RandLower(stringSize int) string {
+	return randomStr(randomLower, stringSize)
 }
 
-// RandomUpper 生成随机大写字母
-func RandomUpper(stringSize int) string {
-
-	mathRand.Seed(time.Now().UnixNano())
-	b := make([]byte, stringSize)
-	for i := 0; i < stringSize; i++ {
-		for j := range b {
-			b[j] = randomUpper[mathRand.Intn(len(randomUpper))]
-		}
-	}
-	return string(b)
+// RandUpper 生成随机大写字母
+func RandUpper(stringSize int) string {
+	return randomStr(randomUpper, stringSize)
 }
 
-// RandomNumber 生成随机数字
-func RandomNumber(stringSize int) string {
-
-	mathRand.Seed(time.Now().UnixNano())
-	b := make([]byte, stringSize)
-	for i := 0; i < stringSize; i++ {
-		for j := range b {
-			b[j] = randomNumber[mathRand.Intn(len(randomNumber))]
-		}
-	}
-	return string(b)
+// RandNum 生成随机数字
+func RandNum(stringSize int) string {
+	return randomStr(randomNumber, stringSize)
 }
 
-// RandomLowerUpperMixed 生成大小写英文混合随机字符串
-func RandomLowerUpperMixed(stringSize int) string {
+// RandLowerUpper 生成大小写英文混合随机字符串
+func RandLowerUpper(stringSize int) string {
+	return randomStr(randomLowerUpper, stringSize)
+}
 
+// CustomStr 生成自定义字符串
+func CustomStr(src string, length int) string {
+	return randomStr(src, length)
+}
+
+func randomStr(str string, length int) string {
 	mathRand.Seed(time.Now().UnixNano())
-	b := make([]byte, stringSize)
-	for i := 0; i < stringSize; i++ {
+	b := make([]byte, length)
+	for i := 0; i < length; i++ {
 		for j := range b {
-			b[j] = randomLowerUpper[mathRand.Intn(len(randomLowerUpper))]
+			b[j] = str[mathRand.Intn(len(str))]
 		}
 	}
 	return string(b)
