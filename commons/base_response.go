@@ -26,7 +26,7 @@ func BuildResponse(code int, msg string, data interface{}, requestId string) *Ba
 
 func BuildSuccess(data interface{}, language string, requestId string) *BaseResponse {
 
-	return &BaseResponse{Code: gerr.OK, Msg: gerr.GetCodeAndMsg(gerr.OK, language), Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
+	return &BaseResponse{Code: gerr.OK, Msg: gerr.GetLanguageMsg(gerr.OK, language), Data: data, Time: time.Now().UnixNano() / 1e6, RequestId: requestId}
 }
 func BuildSuccessWithMsg(msg string, data interface{}, requestId string) *BaseResponse {
 
@@ -39,7 +39,7 @@ func BuildFailed(code int, language string, requestId string) *BaseResponse {
 	}
 	return &BaseResponse{
 		Code:      code,
-		Msg:       gerr.GetCodeAndMsg(code, language),
+		Msg:       gerr.GetLanguageMsg(code, language),
 		Data:      struct{}{},
 		Time:      time.Now().UnixNano() / 1e6,
 		RequestId: requestId,

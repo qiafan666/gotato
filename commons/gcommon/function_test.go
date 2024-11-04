@@ -384,3 +384,8 @@ func TestSliceDelete(t *testing.T) {
 	newList := SliceDeleteIndex(sliceDelete, SliceIndex(sliceDelete, 6))
 	t.Log(newList)
 }
+
+func TestHideStr(t *testing.T) {
+	hideStr := HideStr("hg2gggwwwdwvw")
+	t.Log(hideStr)
+}

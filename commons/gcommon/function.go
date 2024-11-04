@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -123,4 +124,72 @@ func Kv2String(msg string, kv ...any) string {
 		}
 		return buf.String()
 	}
+}
+
+// HideStr 隐藏字符串,包括邮箱和手机号,身份证号保留前三后四
+func HideStr(str string) (result string) {
+	if str == "" {
+		return "***"
+	}
+
+	email, b := HideEmail(str)
+	if b {
+		return email
+	}
+
+	phone, b := HidePhone(str)
+	if b {
+		return phone
+	}
+
+	nameRune := []rune(str)
+	lens := len(nameRune)
+	if lens <= 1 {
+		result = "***"
+	} else if lens == 2 {
+		result = string(nameRune[:1]) + "*"
+	} else if lens == 3 {
+		result = string(nameRune[:1]) + "*" + string(nameRune[2:3])
+	} else if lens == 4 {
+		result = string(nameRune[:1]) + "**" + string(nameRune[lens-1:lens])
+	} else if lens > 4 && lens <= 7 {
+		result = string(nameRune[:2]) + "***" + string(nameRune[lens-2:lens])
+	} else if lens > 7 {
+		result = string(nameRune[:3]) + "***" + string(nameRune[lens-4:lens])
+	}
+	return result
+}
+func SubStr(str string, start int, end int) string {
+	rs := []rune(str)
+	return string(rs[start:end])
+}
+
+// HideEmail 隐藏邮箱
+func HideEmail(email string) (string, bool) {
+	if strings.Contains(email, "@") {
+		// 邮箱
+		res := strings.Split(email, "@")
+		if len(res[0]) < 3 {
+			resString := "***"
+			email = resString + "@" + res[1]
+		} else {
+			res2 := SubStr(email, 0, 3)
+			resString := res2 + "***"
+			email = resString + "@" + res[1]
+		}
+		return email, true
+	}
+	return "", false
+}
+
+// HidePhone 隐藏手机号
+func HidePhone(phone string) (string, bool) {
+	reg := `^1[0-9]\d{9}$`
+	rgx := regexp.MustCompile(reg)
+	mobileMatch := rgx.MatchString(phone)
+	if mobileMatch {
+		// 手机号
+		return SubStr(phone, 0, 3) + "****" + SubStr(phone, 7, 11), true
+	}
+	return "", false
 }

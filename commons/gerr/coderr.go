@@ -16,27 +16,28 @@ type CodeError interface {
 	ErrorInterface
 }
 
-// NewLang 返回多语言的错误信息 strings[0] 为错误码，strings[1] 为request_id
+// NewLang 返回多语言的错误信息 strings[0] 为language，strings[1] 为request_id
 func NewLang(code int, strings ...string) CodeError {
 	if len(strings) == 0 {
 		return &codeError{
 			code: code,
-			msg:  GetCodeAndMsg(code, DefaultLanguage),
+			msg:  GetLanguageMsg(code, DefaultLanguage),
 		}
 	} else if len(strings) == 1 {
 		return &codeError{
 			code: code,
-			msg:  GetCodeAndMsg(code, strings[0]),
+			msg:  GetLanguageMsg(code, strings[0]),
 		}
 	} else {
 		return &codeError{
 			code:      code,
-			msg:       GetCodeAndMsg(code, strings[0]),
+			msg:       GetLanguageMsg(code, strings[0]),
 			requestID: strings[1],
 		}
 	}
 }
 
+// NewCode 自定义返回错误信息，不带request_id，可通过withRequestID方法添加request_id
 func NewCode(code int, msg string) CodeError {
 	return &codeError{
 		code: code,
@@ -78,6 +79,15 @@ func (e *codeError) WithDetail(detail string) CodeError {
 		code:   e.code,
 		msg:    e.msg,
 		detail: d,
+	}
+}
+
+func (e *codeError) WithRequestID(requestID string) CodeError {
+	return &codeError{
+		code:      e.code,
+		msg:       e.msg,
+		detail:    e.detail,
+		requestID: requestID,
 	}
 }
 

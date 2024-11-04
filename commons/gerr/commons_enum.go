@@ -32,8 +32,8 @@ var CodeMsg = map[string]map[int]string{
 	},
 }
 
-// GetCodeAndMsg 获取code和msg
-func GetCodeAndMsg(code int, language string) string {
+// GetLanguageMsg 获取code和msg
+func GetLanguageMsg(code int, language string) string {
 	if languageValue, ok := CodeMsg[language]; ok {
 		if value, ok := languageValue[code]; ok {
 			return value
