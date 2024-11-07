@@ -2,6 +2,7 @@ package gid
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -19,4 +20,6 @@ func TestSnowFlakeUUID(t *testing.T) {
 	}
 
 	fmt.Println("ID:", id)
+
+	fmt.Println("Max ID:", rand.Intn(1<<(ServerIdBits)-1))
 }

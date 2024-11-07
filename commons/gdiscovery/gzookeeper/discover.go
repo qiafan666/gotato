@@ -11,11 +11,6 @@ import (
 	"strings"
 )
 
-var (
-	ErrConnIsNil               = gerr.New("conn is nil")
-	ErrConnIsNilButLocalNotNil = gerr.New("conn is nil, but local is not nil")
-)
-
 func (s *ZkClient) watch(ctx context.Context) {
 	for {
 		select {
