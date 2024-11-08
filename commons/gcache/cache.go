@@ -25,8 +25,8 @@ func (item Item) Expired() bool {
 	return time.Now().UnixNano() > item.Expiration
 }
 
-// DefaultExpiration 表示没有设置过期时间。
 const (
+	NoExpiration      time.Duration = -1
 	DefaultExpiration time.Duration = 0
 )
 
