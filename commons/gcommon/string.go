@@ -2,13 +2,10 @@ package gcommon
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
-	"io"
-	mathRand "math/rand"
+	"math/rand"
 	"strings"
 	"time"
 	"unicode"
@@ -24,28 +21,6 @@ func GenerateUUID() string {
 // StringToSha256 字符串转SHA256
 func StringToSha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
-}
-
-// Nonce 生成随机字符串
-func Nonce(size uint8) string {
-	// 计算生成的字节数
-	byteSize := (size + 1) / 2 // 向上取整，确保足够的字节
-
-	nonce := make([]byte, byteSize)
-	_, err := io.ReadFull(rand.Reader, nonce)
-	if err != nil {
-		// 处理错误
-		return ""
-	}
-
-	// 将字节转换为十六进制字符串
-	nonceHex := hex.EncodeToString(nonce)
-
-	// 返回前size个字符，确保返回的字符串长度为size
-	if len(nonceHex) > int(size) {
-		return nonceHex[:size]
-	}
-	return nonceHex
 }
 
 const randomString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -85,14 +60,31 @@ func CustomStr(src string, length int) string {
 }
 
 func randomStr(str string, length int) string {
-	mathRand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]byte, length)
 	for i := 0; i < length; i++ {
 		for j := range b {
-			b[j] = str[mathRand.Intn(len(str))]
+			b[j] = str[r.Intn(len(str))]
 		}
 	}
 	return string(b)
+}
+
+type Number interface {
+	int | int32 | int64 | float32 | float64
+}
+
+func RangeNum[T Number](min, max T) T {
+	if min > max {
+		panic("min must be less than or equal to max")
+	}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	switch any(min).(type) {
+	case float32, float64:
+		return T(r.Float64()*float64(max-min) + float64(min))
+	default:
+		return T(r.Intn(int(max-min+1)) + int(min))
+	}
 }
 
 // DataCheck 检查输入的字符串是否有空值

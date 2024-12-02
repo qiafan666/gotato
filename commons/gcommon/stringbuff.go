@@ -31,13 +31,13 @@ func (b *Buffer) Append(i ...any) *Buffer {
 	return b
 }
 
-// AppendString 追加字符串
-func AppendString(i ...any) *Buffer {
+// AppendStr 追加字符串
+func AppendStr(i ...any) *Buffer {
 	return NewBuffer().Append(i...)
 }
 
-// AppendStringWithSep 追加字符串，并用指定分隔符分隔
-func AppendStringWithSep(sep string, strings ...any) *Buffer {
+// AppendSplit 追加字符串，并用指定分隔符分隔
+func AppendSplit(sep string, strings ...any) *Buffer {
 	if len(strings) == 0 {
 		return NewBuffer()
 	}

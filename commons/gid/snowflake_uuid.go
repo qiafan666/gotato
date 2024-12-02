@@ -76,8 +76,8 @@ func (w *IDWorker) nextMillisecond(currentTimestamp int64) int64 {
 }
 
 func RandSnowflakeID() int64 {
-	rand.Seed(time.Now().UnixNano())
-	worker, _ := NewIDWorker(int64(rand.Intn(gcast.ToInt(maxWorker))))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	worker, _ := NewIDWorker(int64(r.Intn(gcast.ToInt(maxWorker))))
 	id, _ := worker.NextID()
 	return id
 }

@@ -16,6 +16,8 @@ func TestCommonFutureAfter(t *testing.T) {
 	p := pm.NewPromise("testPromise", func(context *gpromise.Context) {
 		if context.Err != nil {
 			log.Println("Promise testPromise error:", context.Err.Error())
+		} else {
+			log.Println("Promise testPromise success")
 		}
 	})
 

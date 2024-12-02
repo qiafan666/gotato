@@ -289,12 +289,15 @@ func TestEncode(t *testing.T) {
 
 func TestSnowflake(t *testing.T) {
 	t.Log(gid.RandSnowflakeID())
-	t.Log(gid.RandID64())
+	t.Log(gid.RandID())
+	t.Log(RangeNum[float64](1.4, 11001.1214))
+	t.Log(RangeNum[float32](1.4, 11001.1214))
+	t.Log(RangeNum[int32](1, 100))
 }
 
 func TestAppendString(t *testing.T) {
-	t.Log(AppendString("hello", "world").Append("test"))
-	t.Log(AppendStringWithSep("-", "hello", "world", "test"))
+	t.Log(AppendStr("hello", "world").Append("test"))
+	t.Log(AppendSplit("-", "hello", "world", "test"))
 }
 
 func TestSlice(t *testing.T) {

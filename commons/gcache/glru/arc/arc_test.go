@@ -21,7 +21,7 @@ func getRand(tb testing.TB) int64 {
 }
 
 func init() {
-	mathrand.Seed(time.Now().Unix())
+	mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
 }
 
 func TestARC_Add(t *testing.T) {
