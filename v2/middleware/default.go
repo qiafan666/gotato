@@ -8,14 +8,13 @@ import (
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/glog"
+	"github.com/qiafan666/gotato/gconfig"
 	"io"
 	"net/http"
 	"runtime"
 	"sync/atomic"
 	"time"
 )
-
-var SimpleStdout bool
 
 func Default(ctx *gin.Context) {
 	header := ctx.GetHeader("trace_id")
@@ -76,7 +75,7 @@ func Default(ctx *gin.Context) {
 			path += "?" + ctx.Request.URL.RawQuery
 		}
 
-		if SimpleStdout {
+		if gconfig.SC.SConfigure.SimpleStdout {
 			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】",
 				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
 		} else {

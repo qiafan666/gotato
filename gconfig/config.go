@@ -140,6 +140,7 @@ type ServerBaseConfig struct {
 	LogPath      string `yaml:"logPath"`
 	LogName      string `yaml:"logName"`
 	ConfigPath   string `yaml:"configPath"`
+	SimpleStdout bool   `yaml:"simple_stdout"`
 }
 type ServerConfig struct {
 	SConfigure    ServerBaseConfig `yaml:"server"`

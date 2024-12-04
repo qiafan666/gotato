@@ -9,6 +9,7 @@ server:
   configPath: .\configs
   logPath: .\log
   logName:  iris
+  simple_stdout: false
 swagger:
   enable: true
   ui_path: /swagger/
