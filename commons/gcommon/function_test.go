@@ -297,7 +297,7 @@ func TestSnowflake(t *testing.T) {
 
 func TestAppendString(t *testing.T) {
 	t.Log(AppendStr("hello", "world").Append("test"))
-	t.Log(AppendSplit("-", "hello", "world", "test"))
+	t.Log(StrJoin("-", "hello", "world", "test", 1, 1231.1231))
 }
 
 func TestSlice(t *testing.T) {

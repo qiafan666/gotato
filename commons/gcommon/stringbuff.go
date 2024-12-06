@@ -35,20 +35,3 @@ func (b *Buffer) Append(i ...any) *Buffer {
 func AppendStr(i ...any) *Buffer {
 	return NewBuffer().Append(i...)
 }
-
-// AppendSplit 追加字符串，并用指定分隔符分隔
-func AppendSplit(sep string, strings ...any) *Buffer {
-	if len(strings) == 0 {
-		return NewBuffer()
-	}
-
-	buffer := NewBuffer()
-	for i := 0; i < len(strings); i++ {
-		if i == len(strings)-1 {
-			buffer.Append(strings[i])
-		} else {
-			buffer.Append(strings[i], sep)
-		}
-	}
-	return buffer
-}
