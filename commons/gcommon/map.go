@@ -125,14 +125,14 @@ func MapClone[K comparable, V any](m map[K]V) map[K]V {
 	return cloned
 }
 
-// MapSortKey 根据key排序map
+// MapSortKey 排序map的key
 func MapSortKey[K comparable, V any](m map[K]V, cmp func(a, b K) bool) []K {
 	keys := MapKeys(m)
 	SliceSort(keys, cmp)
 	return keys // 返回排序后的键切片
 }
 
-// MapSortValue 根据value排序map
+// MapSortValue 排序map的value
 func MapSortValue[K comparable, V any](m map[K]V, cmp func(a, b V) bool) []V {
 	values := MapValues(m)
 	SliceSort(values, cmp)

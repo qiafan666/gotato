@@ -192,7 +192,7 @@ func (o *OSS) StatObject(ctx context.Context, name string) (*gs3.ObjectInfo, err
 		return nil, gerr.Wrap(errors.New("StatObject etag not found"))
 	}
 	if contentLengthStr := header.Get("Content-Length"); contentLengthStr == "" {
-		return nil, errors.New("StatObject content-length not found")
+		return nil, gerr.New("StatObject content-length not found")
 	} else {
 		res.Size, err = strconv.ParseInt(contentLengthStr, 10, 64)
 		if err != nil {

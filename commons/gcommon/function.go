@@ -6,9 +6,11 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	"math/rand"
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // RetryFunction 重试函数
@@ -192,4 +194,48 @@ func HidePhone(phone string) (string, bool) {
 		return SubStr(phone, 0, 3) + "****" + SubStr(phone, 7, 11), true
 	}
 	return "", false
+}
+
+// RandRedPacket 随机红包算法
+func RandRedPacket(num int32, totalCount int64) []int64 {
+	if num <= 0 {
+		return nil
+	}
+	envelopes := make([]int64, num)
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	remainingCount := totalCount
+	for i := 0; i < int(num)-1; i++ {
+		maxCount := (remainingCount / (int64(num) - int64(i))) * 2
+		amount := r.Int63n(maxCount + 1)
+		envelopes[i] = amount
+		remainingCount -= amount
+	}
+	envelopes[num-1] = remainingCount
+
+	return envelopes
+}
+
+// RandByWeight 随机权重算法
+func RandByWeight(weightList []int32) int {
+	if len(weightList) == 0 {
+		return 0
+	}
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	total := int32(0)
+	accumulate := make([]int32, len(weightList))
+	for i, w := range weightList {
+		total += w
+		accumulate[i] = total
+	}
+
+	v := r.Int31n(total)
+	for i, w := range accumulate {
+		if v <= w {
+			return i
+		}
+	}
+
+	return 0
 }

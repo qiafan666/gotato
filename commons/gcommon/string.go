@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/gcast"
 	uuid "github.com/satori/go.uuid"
 	"math/rand"
 	"strings"
@@ -87,8 +88,8 @@ func RangeNum[T Number](min, max T) T {
 	}
 }
 
-// DataCheck 检查输入的字符串是否有空值
-func DataCheck(input ...string) []int {
+// StrCheck 检查输入的字符串是否有空值
+func StrCheck(input ...string) ([]int, bool) {
 	var nullIndices []int
 
 	for i, data := range input {
@@ -96,8 +97,10 @@ func DataCheck(input ...string) []int {
 			nullIndices = append(nullIndices, i)
 		}
 	}
-
-	return nullIndices
+	if len(nullIndices) > 0 {
+		return nullIndices, true
+	}
+	return nullIndices, false
 }
 
 // StringToBytes 原地转换
@@ -110,13 +113,13 @@ func StringToBytes(s string) []byte {
 	))
 }
 
-func BytesToString(b []byte) string {
+func BytesToStr(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// String2BytesNoCopy
+// Str2BytesNoCopy
 // 无拷贝 string 转 []byte
-func String2BytesNoCopy(s string) []byte {
+func Str2BytesNoCopy(s string) []byte {
 	tmp := (*[2]uintptr)(unsafe.Pointer(&s))
 	h := [3]uintptr{tmp[0], tmp[1], tmp[1]}
 	return *(*[]byte)(unsafe.Pointer(&h))
@@ -177,8 +180,8 @@ func Byte2Uint32(b []byte) uint32 {
 	return hash
 }
 
-// String2Uint32 string 转 uint32
-func String2Uint32(s string) uint32 {
+// Str2Uint32 string 转 uint32
+func Str2Uint32(s string) uint32 {
 	b := bytes.NewBufferString(s).Bytes()
 	return Byte2Uint32(b)
 }
@@ -201,4 +204,29 @@ func ParseChinese(str string) string {
 		}
 	}
 	return b.String()
+}
+
+// StrJoin 字符串连接
+func StrJoin(sep string, str ...any) string {
+	sb := strings.Builder{}
+
+	// 预先分配足够的内存，以减少内存分配和复制的开销
+	total := len(str) - 1
+	for _, s := range str {
+		total += len(gcast.ToString(s))
+	}
+	sb.Grow(total)
+
+	for i, s := range str {
+		sb.WriteString(gcast.ToString(s))
+		if i < len(str)-1 {
+			sb.WriteString(sep)
+		}
+	}
+	return sb.String()
+}
+
+// StrParse 字符串解析
+func StrParse(str string, sep string) []string {
+	return strings.Split(str, sep)
 }

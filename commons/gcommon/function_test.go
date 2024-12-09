@@ -297,7 +297,7 @@ func TestSnowflake(t *testing.T) {
 
 func TestAppendString(t *testing.T) {
 	t.Log(AppendStr("hello", "world").Append("test"))
-	t.Log(AppendSplit("-", "hello", "world", "test"))
+	t.Log(StrJoin("-", "hello", "world", "test", 1, 1231.1231))
 }
 
 func TestSlice(t *testing.T) {
@@ -391,4 +391,6 @@ func TestSliceDelete(t *testing.T) {
 func TestHideStr(t *testing.T) {
 	hideStr := HideStr("hg2gggwwwdwvw")
 	t.Log(hideStr)
+	t.Log(RandRedPacket(10, 100))
+	t.Log(RandByWeight([]int32{14121, 21130, 30}))
 }
