@@ -24,39 +24,45 @@ func StringToSha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
 }
 
-const randomString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const randomLower = "abcdefghijklmnopqrstuvwxyz"
-const randomUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const randomNumber = "0123456789"
-const randomLowerUpper = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-// RandStr 生成随机字符串
-func RandStr(stringSize int) string {
-	return randomStr(randomString, stringSize)
-}
+const Lower = "abcdefghijklmnopqrstuvwxyz"
+const Upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const Number = "0123456789"
+const Symbol = "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+const mixString = Lower + Upper + Number
+const lowerUpper = Lower + Upper
 
 // RandLower 生成随机小写
 func RandLower(stringSize int) string {
-	return randomStr(randomLower, stringSize)
+	return randomStr(Lower, stringSize)
 }
 
 // RandUpper 生成随机大写字母
 func RandUpper(stringSize int) string {
-	return randomStr(randomUpper, stringSize)
+	return randomStr(Upper, stringSize)
 }
 
 // RandNum 生成随机数字
 func RandNum(stringSize int) string {
-	return randomStr(randomNumber, stringSize)
+	return randomStr(Number, stringSize)
+}
+
+// RandSymbol 生成随机符号
+func RandSymbol(stringSize int) string {
+	return randomStr(Symbol, stringSize)
 }
 
 // RandLowerUpper 生成大小写英文混合随机字符串
 func RandLowerUpper(stringSize int) string {
-	return randomStr(randomLowerUpper, stringSize)
+	return randomStr(lowerUpper, stringSize)
 }
 
-// CustomStr 生成自定义字符串
-func CustomStr(src string, length int) string {
+// RandStr 生成随机字符串
+func RandStr(stringSize int) string {
+	return randomStr(mixString, stringSize)
+}
+
+// RandCusStr 生成自定义字符串
+func RandCusStr(src string, length int) string {
 	return randomStr(src, length)
 }
 
@@ -71,11 +77,11 @@ func randomStr(str string, length int) string {
 	return string(b)
 }
 
-type Number interface {
+type NumberType interface {
 	int | int32 | int64 | float32 | float64
 }
 
-func RangeNum[T Number](min, max T) T {
+func RangeNum[T NumberType](min, max T) T {
 	if min > max {
 		panic("min must be less than or equal to max")
 	}

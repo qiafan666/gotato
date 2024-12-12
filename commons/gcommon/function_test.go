@@ -65,23 +65,19 @@ func TestSliceSort(t *testing.T) {
 	SliceSort(
 		sliceStruct,
 		func(i, j TestStruct) bool {
-			// id大的在前
-			if struct1.Id > struct2.Id {
-				return true
-			}
-			return false
+			// 比较切片中的两个元素的 Id
+			return i.Id > j.Id
 		})
+	t.Log("id排序后的sliceStruct:", sliceStruct)
+
 	// 按照成绩排序
 	SliceSort(
 		sliceStruct,
 		func(i, j TestStruct) bool {
 			// 成绩大的在前
-			if struct1.Score > struct2.Score {
-				return true
-			}
-			return false
+			return i.Score > j.Score
 		})
-	t.Log(sliceStruct)
+	t.Log("成绩排序后的sliceStruct:", sliceStruct)
 
 	t.Log(SliceToMap(sliceStruct, func(val TestStruct) int {
 		return val.Id
@@ -393,4 +389,14 @@ func TestHideStr(t *testing.T) {
 	t.Log(hideStr)
 	t.Log(RandRedPacket(10, 100))
 	t.Log(RandByWeight([]int32{14121, 21130, 30}))
+}
+
+func TestRandStr(t *testing.T) {
+	t.Log(RandLower(10))
+	t.Log(RandUpper(10))
+	t.Log(RandNum(10))
+	t.Log(RandSymbol(10))
+	t.Log(RandLowerUpper(10))
+	t.Log(RandStr(10))
+	t.Log(RandCusStr(Symbol+Number, 10))
 }
