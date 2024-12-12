@@ -166,6 +166,10 @@ func (pm *Manager) DeletePromise(Id uint32) {
 	}
 }
 
+func (pm *Manager) GetPromise(Id uint32) *Promise {
+	return pm.promises[Id]
+}
+
 func (p *Promise) Push(future IFuture) {
 	if future == nil {
 		p.logger.PromiseErrorF("Promise: future is nil")
@@ -201,7 +205,11 @@ func (p *Promise) Start() {
 	if e == nil {
 		promiseFinish = true
 	}
+
 	for !promiseFinish {
+		if _, exists := p.pm.promises[p.Id]; !exists {
+			break
+		}
 		f, ok := e.Value.(IFuture)
 		if !ok {
 			p.context.Err = errors.New("element is not future")
@@ -336,6 +344,11 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 			break
 		}
 
+		if _, exists := p.pm.promises[p.Id]; !exists {
+			promiseFinish = true
+			break
+		}
+
 		f, ok = e.Value.(IFuture)
 		if !ok {
 			p.context.Err = errors.New("element is not future")
@@ -376,10 +389,13 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 	}
 
 	if promiseFinish {
-		if p.cbFunc != nil {
-			p.cbFunc(p.context)
+		// 检查是否仍然存在于 Manager 中
+		if _, exists := p.pm.promises[p.Id]; exists {
+			if p.cbFunc != nil {
+				p.cbFunc(p.context)
+			}
+			p.pm.DeletePromise(p.Id)
 		}
-		p.pm.DeletePromise(p.Id)
 	}
 }
 

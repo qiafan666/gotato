@@ -66,12 +66,33 @@ func TestCommonFutureAfter(t *testing.T) {
 			resultInt[i] = re.(int)
 		}
 		safeFinish(resultInt)
-		close(done) // 通知主线程操作完成
+		return nil
+	}
+
+	afterFuture := gpromise.NewCommonFuture("afterFuture")
+	afterFuture.OnDo = func() error {
+		log.Println("afterFuture OnDo")
+		time.Sleep(1 * time.Second) // 模拟耗时任务
+		pm.Process(afterFuture.GetPfId(), []interface{}{4, 5, 6}, nil)
+		return nil
+	}
+
+	// 修改 afterFuture.OnCallBack，使其在回调结束后向 `done` 通道发送信号
+	afterFuture.OnCallBack = func(result []interface{}) error {
+		log.Println("afterFuture OnCallBack:", result)
+		resultInt := make([]int, len(result))
+		for i, re := range result {
+			resultInt[i] = re.(int)
+		}
+		safeFinish(resultInt)
+		close(done)
 		return nil
 	}
 
 	// 异步启动Promise
 	p.Push(future)
+	future.After(afterFuture)
+
 	p.Start()
 
 	// 等待 Promise 完成，不再依赖 time.Sleep
