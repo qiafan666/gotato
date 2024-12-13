@@ -96,7 +96,6 @@ func getLogEncoder() zapcore.Encoder {
 	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-	encoderConfig.FunctionKey = "func"
 
 	// 自定义 EncodeCaller 方法，提取方法名
 	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
@@ -122,7 +121,7 @@ func getLogEncoder() zapcore.Encoder {
 			}
 
 			// 输出格式为 文件:行号 [方法名]，避免重复
-			enc.AppendString(fmt.Sprintf("【%s】【funcName:%s】", fileWithLine, funcName))
+			enc.AppendString(fmt.Sprintf("%s【funcName:%s】", fileWithLine, funcName))
 		} else {
 			enc.AppendString("unknown")
 		}
