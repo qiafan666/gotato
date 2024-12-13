@@ -32,7 +32,7 @@ type Logger struct {
 }
 
 func init() {
-	gormEncoder := getGormEncoder()
+	gormEncoder := getLogEncoder()
 	logEncoder := getLogEncoder()
 
 	Slog = Logger{}
@@ -59,7 +59,7 @@ func init() {
 }
 
 func ReInit() {
-	gormEncoder := getGormEncoder()
+	gormEncoder := getLogEncoder()
 	logEncoder := getLogEncoder()
 
 	Slog = Logger{}
