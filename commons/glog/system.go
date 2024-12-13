@@ -104,26 +104,27 @@ func getLogEncoder() zapcore.Encoder {
 			// 提取文件路径和行号
 			fileWithLine := fmt.Sprintf("%s:%d", caller.File, caller.Line)
 
+			// 提取最后两级路径部分
+			pathParts := strings.Split(fileWithLine, "/")
+			if len(pathParts) > 2 {
+				fileWithLine = strings.Join(pathParts[len(pathParts)-2:], "/")
+			}
+
 			// 提取方法名
 			funcName := runtime.FuncForPC(caller.PC).Name()
 			if funcName != "" {
-				// 去掉包路径，仅保留方法名
-				lastSlash := strings.LastIndex(funcName, "/")
-				if lastSlash != -1 {
-					funcName = funcName[lastSlash+1:] // 去掉路径部分
-				}
 				lastDot := strings.LastIndex(funcName, ".")
 				if lastDot != -1 {
-					funcName = funcName[lastDot+1:] // 去掉包名部分
+					funcName = funcName[lastDot+1:] // 提取方法名
 				}
 			} else {
-				funcName = ""
+				funcName = "unknown"
 			}
 
-			// 组合路径和方法名
-			enc.AppendString(fmt.Sprintf("%s [%s]", fileWithLine, funcName))
+			// 输出格式为 文件:行号 [方法名]，避免重复
+			enc.AppendString(fmt.Sprintf("【%s】【funcName:%s】", fileWithLine, funcName))
 		} else {
-			enc.AppendString("")
+			enc.AppendString("unknown")
 		}
 	}
 
