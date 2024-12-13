@@ -127,30 +127,6 @@ func getLogEncoder() zapcore.Encoder {
 		}
 	}
 
-	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
-		enc.AppendString("funcName:")
-		if caller.Defined {
-			// 提取完整函数名
-			funcName := runtime.FuncForPC(caller.PC).Name()
-			if funcName != "" {
-				// 去掉包路径，仅保留方法名
-				lastSlash := strings.LastIndex(funcName, "/")
-				if lastSlash != -1 {
-					funcName = funcName[lastSlash+1:] // 去掉路径部分
-				}
-				lastDot := strings.LastIndex(funcName, ".")
-				if lastDot != -1 {
-					funcName = funcName[lastDot+1:] // 去掉包名部分
-				}
-			} else {
-				funcName = ""
-			}
-			enc.AppendString(funcName)
-		} else {
-			enc.AppendString("")
-		}
-	}
-
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
