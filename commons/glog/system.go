@@ -101,13 +101,46 @@ func getLogEncoder() zapcore.Encoder {
 	// 自定义 EncodeCaller 方法，提取方法名
 	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 		if caller.Defined {
-			// 使用 runtime.FuncForPC 提取方法名称
+			// 提取文件路径和行号
+			fileWithLine := fmt.Sprintf("%s:%d", caller.File, caller.Line)
+
+			// 提取方法名
 			funcName := runtime.FuncForPC(caller.PC).Name()
 			if funcName != "" {
-				// 提取最后一个方法名部分
-				lastIndex := strings.LastIndex(funcName, ".")
-				if lastIndex != -1 {
-					funcName = funcName[lastIndex+1:]
+				// 去掉包路径，仅保留方法名
+				lastSlash := strings.LastIndex(funcName, "/")
+				if lastSlash != -1 {
+					funcName = funcName[lastSlash+1:] // 去掉路径部分
+				}
+				lastDot := strings.LastIndex(funcName, ".")
+				if lastDot != -1 {
+					funcName = funcName[lastDot+1:] // 去掉包名部分
+				}
+			} else {
+				funcName = ""
+			}
+
+			// 组合路径和方法名
+			enc.AppendString(fmt.Sprintf("%s [%s]", fileWithLine, funcName))
+		} else {
+			enc.AppendString("")
+		}
+	}
+
+	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString("funcName:")
+		if caller.Defined {
+			// 提取完整函数名
+			funcName := runtime.FuncForPC(caller.PC).Name()
+			if funcName != "" {
+				// 去掉包路径，仅保留方法名
+				lastSlash := strings.LastIndex(funcName, "/")
+				if lastSlash != -1 {
+					funcName = funcName[lastSlash+1:] // 去掉路径部分
+				}
+				lastDot := strings.LastIndex(funcName, ".")
+				if lastDot != -1 {
+					funcName = funcName[lastDot+1:] // 去掉包名部分
 				}
 			} else {
 				funcName = ""
@@ -117,6 +150,7 @@ func getLogEncoder() zapcore.Encoder {
 			enc.AppendString("")
 		}
 	}
+
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
