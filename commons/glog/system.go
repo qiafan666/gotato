@@ -11,8 +11,6 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"os"
-	"path"
-	"runtime"
 	"time"
 )
 
@@ -65,22 +63,6 @@ func getEncoder() zapcore.Encoder {
 	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-	encoderConfig.ConsoleSeparator = " | "
-	encoderConfig.FunctionKey = "func"
-
-	// 自定义 EncodeCaller 方法
-	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
-		// 获取调用者信息
-		pc := caller.PC
-		if pc == 0 {
-			enc.AppendString("unknown")
-			return
-		}
-		funcName := runtime.FuncForPC(pc).Name()
-		// 提取方法名
-		funcName = path.Base(funcName)
-		enc.AppendString(funcName)
-	}
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
