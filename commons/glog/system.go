@@ -11,6 +11,9 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"os"
+	"path"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -29,22 +32,36 @@ type Logger struct {
 }
 
 func init() {
-	encoder := getEncoder()
+	gormEncoder := getGormEncoder()
+	logEncoder := getLogEncoder()
+
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
 		IgnoreRecordNotFoundError: true,
 		SlowSqlTime:               GormSlowSqlDuration,
 	}
+
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
-	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	gormCore := zapcore.NewCore(gormEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	logCore := zapcore.NewCore(logEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+
+	if GormLog != nil {
+		_ = GormLog.Sync()
+	}
+	if ZapLog != nil {
+		_ = ZapLog.Sync()
+	}
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
-	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
-	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(5)).Sugar()
+	GormLog = zap.New(gormCore, zap.AddCaller(), zap.AddCallerSkip(5)).Sugar()
+	ZapLog = zap.New(logCore, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
+
 }
 
 func ReInit() {
-	encoder := getEncoder()
+	gormEncoder := getGormEncoder()
+	logEncoder := getLogEncoder()
+
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
@@ -52,21 +69,62 @@ func ReInit() {
 		SlowSqlTime:               GormSlowSqlDuration,
 	}
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
-	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	gormCore := zapcore.NewCore(gormEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	logCore := zapcore.NewCore(logEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+
+	if GormLog != nil {
+		_ = GormLog.Sync()
+	}
+	if ZapLog != nil {
+		_ = ZapLog.Sync()
+	}
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
-	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
-	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(GormSkip)).Sugar()
+	GormLog = zap.New(gormCore, zap.AddCaller(), zap.AddCallerSkip(GormSkip)).Sugar()
+	ZapLog = zap.New(logCore, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
+
 }
 
-func getEncoder() zapcore.Encoder {
+func getGormEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
+func getLogEncoder() zapcore.Encoder {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encoderConfig.LineEnding = zapcore.DefaultLineEnding
+	encoderConfig.FunctionKey = "func"
+
+	// 自定义 EncodeCaller 方法，提取方法名
+	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+		if caller.Defined {
+			// 使用 runtime.FuncForPC 提取方法名称
+			funcName := runtime.FuncForPC(caller.PC).Name()
+			if funcName != "" {
+				// 提取最后一个方法名部分
+				lastIndex := strings.LastIndex(funcName, ".")
+				if lastIndex != -1 {
+					funcName = funcName[lastIndex+1:]
+				}
+			} else {
+				funcName = ""
+			}
+			enc.AppendString(funcName)
+		} else {
+			enc.AppendString("")
+		}
+	}
+	return zapcore.NewConsoleEncoder(encoderConfig)
+}
 
 func getLogWriter(logPath string) zapcore.WriteSyncer {
+	dir := path.Dir(logPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		panic(fmt.Sprintf("failed to create log directory: %s", err))
+	}
 	return zapcore.AddSync(io.MultiWriter(&lumberjack.Logger{
 		Filename:   logPath,
 		MaxSize:    500, // megabytes
@@ -76,6 +134,7 @@ func getLogWriter(logPath string) zapcore.WriteSyncer {
 		Compress:   true, // disabled by default
 	}, os.Stdout))
 }
+
 func GetTraceId(ctx context.Context) string {
 	if traceId, ok := ctx.Value("trace_id").(string); ok {
 		return fmt.Sprintf("【trace_id:%s】", traceId)
@@ -88,7 +147,7 @@ func SetTraceId(traceId string) context.Context {
 	return context.WithValue(context.Background(), "trace_id", traceId)
 }
 
-func SetTraceIdWithCtx(traceId string, ctx context.Context) context.Context {
+func SetTraceIdWithCtx(ctx context.Context, traceId string) context.Context {
 	return context.WithValue(ctx, "trace_id", traceId)
 }
 
