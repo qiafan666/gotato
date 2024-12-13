@@ -121,7 +121,7 @@ func getLogEncoder() zapcore.Encoder {
 			}
 
 			// 输出格式为 文件:行号 [方法名]，避免重复
-			enc.AppendString(fmt.Sprintf("%s【funcName:%s】", fileWithLine, funcName))
+			enc.AppendString(fmt.Sprintf("%s   【function_name:%s】", fileWithLine, funcName))
 		} else {
 			enc.AppendString("unknown")
 		}
