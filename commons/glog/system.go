@@ -28,13 +28,15 @@ var GormSkip = 5
 // GormSlowSqlDuration 慢sql日志打印的阈值
 var GormSlowSqlDuration = time.Second * 3
 
+// Encoder 日志格式，可选择
+// DevEncoder 开发测试环境用这个
+// SimpleEncoder 稳定环境用这个
+var Encoder = DevEncoder()
+
 type Logger struct {
 }
 
 func init() {
-	gormEncoder := getLogEncoder()
-	logEncoder := getLogEncoder()
-
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
@@ -43,8 +45,7 @@ func init() {
 	}
 
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
-	gormCore := zapcore.NewCore(gormEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
-	logCore := zapcore.NewCore(logEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	core := zapcore.NewCore(Encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
 	if GormLog != nil {
 		_ = GormLog.Sync()
@@ -53,15 +54,11 @@ func init() {
 		_ = ZapLog.Sync()
 	}
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
-	GormLog = zap.New(gormCore, zap.AddCaller(), zap.AddCallerSkip(5)).Sugar()
-	ZapLog = zap.New(logCore, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
-
+	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(5)).Sugar()
+	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
 }
 
 func ReInit() {
-	gormEncoder := getLogEncoder()
-	logEncoder := getLogEncoder()
-
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
@@ -69,8 +66,7 @@ func ReInit() {
 		SlowSqlTime:               GormSlowSqlDuration,
 	}
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
-	gormCore := zapcore.NewCore(gormEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
-	logCore := zapcore.NewCore(logEncoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	core := zapcore.NewCore(Encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
 	if GormLog != nil {
 		_ = GormLog.Sync()
@@ -79,19 +75,21 @@ func ReInit() {
 		_ = ZapLog.Sync()
 	}
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
-	GormLog = zap.New(gormCore, zap.AddCaller(), zap.AddCallerSkip(GormSkip)).Sugar()
-	ZapLog = zap.New(logCore, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
-
+	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(GormSkip)).Sugar()
+	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
 }
 
-func getGormEncoder() zapcore.Encoder {
+// SimpleEncoder 自定义日志格式 生产环境用这个
+func SimpleEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
-func getLogEncoder() zapcore.Encoder {
+
+// DevEncoder 自定义日志格式 开发测试环境用这个
+func DevEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
