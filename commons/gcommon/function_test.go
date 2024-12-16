@@ -307,6 +307,13 @@ func TestSlice(t *testing.T) {
 		return i < j
 	})
 	t.Log(slice)
+
+	SliceForEach(slice, func(val int) {
+		t.Log(val)
+	})
+	SliceForEachReverse(slice, func(val int) {
+		t.Log(val)
+	})
 }
 
 func TestHeadSort(t *testing.T) {

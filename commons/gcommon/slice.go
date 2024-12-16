@@ -476,3 +476,10 @@ func SliceForEach[E any](es []E, fn func(e E)) {
 		fn(es[i])
 	}
 }
+
+// SliceForEachReverse 反向遍历切片
+func SliceForEachReverse[E any](es []E, fn func(e E)) {
+	for i := len(es) - 1; i >= 0; i-- {
+		fn(es[i])
+	}
+}
