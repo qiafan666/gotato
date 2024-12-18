@@ -19,8 +19,8 @@ const (
 	RSA_2
 )
 
-// create Rsa key
-func GenRsaKey(rsaType, keyType int) (prvkey, pubkey []byte, err error) {
+// GenRsaKey 生成RSA密钥
+func GenRsaKey(rsaType, keyType int) (prvKey, pubKey []byte, err error) {
 	rsaLen := 2048
 	if rsaType == RSA_1 {
 		rsaLen = 1024
@@ -41,7 +41,7 @@ func GenRsaKey(rsaType, keyType int) (prvkey, pubkey []byte, err error) {
 		Type:  "RSA PRIVATE KEY",
 		Bytes: derStream,
 	}
-	prvkey = pem.EncodeToMemory(block)
+	prvKey = pem.EncodeToMemory(block)
 	publicKey := &privateKey.PublicKey
 	derPkix, err := x509.MarshalPKIXPublicKey(publicKey)
 
@@ -52,11 +52,11 @@ func GenRsaKey(rsaType, keyType int) (prvkey, pubkey []byte, err error) {
 		Type:  "PUBLIC KEY",
 		Bytes: derPkix,
 	}
-	pubkey = pem.EncodeToMemory(block)
+	pubKey = pem.EncodeToMemory(block)
 	return
 }
 
-// sign
+// Rsa2Sign 签名
 func Rsa2Sign(data []byte, keyBytes []byte, keyType int) (signature []byte, err error) {
 	h := sha256.New()
 	h.Write(data)
@@ -89,7 +89,7 @@ func Rsa2Sign(data []byte, keyBytes []byte, keyType int) (signature []byte, err 
 	return
 }
 
-// very Sign date
+// Rsa2VerifySign 验证签名
 func Rsa2VerifySign(data [sha256.Size]byte, signData, keyBytes []byte) error {
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
@@ -107,7 +107,7 @@ func Rsa2VerifySign(data [sha256.Size]byte, signData, keyBytes []byte) error {
 	return nil
 }
 
-// public encrypt
+// RsaEncrypt 加密
 func RsaEncrypt(data, keyBytes []byte) (cipherText []byte, err error) {
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
@@ -128,7 +128,7 @@ func RsaEncrypt(data, keyBytes []byte) (cipherText []byte, err error) {
 	return cipherText, err
 }
 
-// private key decode
+// RsaDecrypt 解密
 func RsaDecrypt(cipherText, keyBytes []byte, keyType int) (date []byte, err error) {
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
