@@ -2,6 +2,7 @@ package gtask
 
 import (
 	"errors"
+	"github.com/qiafan666/gotato/commons/iface"
 	"hash/fnv"
 	"runtime"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 
 var defaultPool *Pool
 
-func InitDefaultPool(taskNum, chanNum int, logger taskLogger) {
+func InitDefaultPool(taskNum, chanNum int, logger iface.Logger) {
 	if defaultPool == nil {
 		defaultPool = NewTaskPool(taskNum, chanNum, logger)
 	}
@@ -41,10 +42,10 @@ type Pool struct {
 	curIndex uint32
 	chanNum  int
 	stopped  bool
-	logger   taskLogger
+	logger   iface.Logger
 }
 
-func NewTaskPool(taskNum, chanNum int, logger taskLogger) *Pool {
+func NewTaskPool(taskNum, chanNum int, logger iface.Logger) *Pool {
 	if logger == nil {
 		panic("logger cannot be nil")
 	}
@@ -85,7 +86,7 @@ func (p *Pool) Stop() {
 // AddTask poolDecide 决定固定到指定的 pool 上
 func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 	if len(p.Tasks) == 0 {
-		p.logger.TaskErrorF("pool task len 0")
+		p.logger.ErrorF("pool task len 0")
 		return
 	}
 	var index uint32
@@ -124,9 +125,9 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 		id := "[" + fileName + ":" + strconv.Itoa(line) + "] "
 
 		if chanAllFull {
-			p.logger.TaskWarnF("add task[%v]. all task is full", id)
+			p.logger.WarnF("add task[%v]. all task is full", id)
 		} else {
-			p.logger.TaskWarnF("add task[%v]. taskPool index:%d is full", id, index)
+			p.logger.WarnF("add task[%v]. taskPool index:%d is full", id, index)
 		}
 	}
 
@@ -136,16 +137,16 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 		cb: cb,
 	}:
 	default:
-		p.logger.TaskErrorF("task is full")
+		p.logger.ErrorF("task is full")
 	}
 }
 
-func (t *UpdateTask) executeFun(pair *taskFuncPair, logger taskLogger) {
+func (t *UpdateTask) executeFun(pair *taskFuncPair, logger iface.Logger) {
 	defer func() {
 		if r := recover(); r != nil {
 			buf := make([]byte, 4096)
 			l := runtime.Stack(buf, false)
-			logger.TaskErrorF("%v: %s", r, buf[:l])
+			logger.ErrorF("%v: %s", r, buf[:l])
 		}
 	}()
 
@@ -158,7 +159,7 @@ func (t *UpdateTask) executeFun(pair *taskFuncPair, logger taskLogger) {
 	}
 }
 
-func ProcessTask(task *UpdateTask, logger taskLogger) {
+func ProcessTask(task *UpdateTask, logger iface.Logger) {
 	if task == nil {
 		panic("task is nil")
 	}

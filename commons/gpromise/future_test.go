@@ -11,19 +11,19 @@ import (
 
 type StdLogger struct{}
 
-func (l *StdLogger) PromiseErrorF(format string, args ...interface{}) {
+func (l *StdLogger) ErrorF(format string, args ...interface{}) {
 	log.Printf("[ERROR] "+format, args...)
 }
 
-func (l *StdLogger) PromiseWarnF(format string, args ...interface{}) {
+func (l *StdLogger) WarnF(format string, args ...interface{}) {
 	log.Printf("[WARN] "+format, args...)
 }
 
-func (l *StdLogger) PromiseInfoF(format string, args ...interface{}) {
+func (l *StdLogger) InfoF(format string, args ...interface{}) {
 	log.Printf("[INFO] "+format, args...)
 }
 
-func (l *StdLogger) PromiseDebugF(format string, args ...interface{}) {
+func (l *StdLogger) DebugF(format string, args ...interface{}) {
 	log.Printf("[DEBUG] "+format, args...)
 }
 

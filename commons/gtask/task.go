@@ -1,6 +1,7 @@
 package gtask
 
 import (
+	"github.com/qiafan666/gotato/commons/iface"
 	"runtime"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ type taskFuncPair struct {
 type Task struct {
 	functions chan *taskFuncPair
 	exitCh    chan int
-	logger    taskLogger
+	logger    iface.Logger
 }
 
 func New() *Task {
@@ -39,7 +40,7 @@ func (t *Task) AddTask(f func(), cb func()) {
 		fileName := ss[len(ss)-1]
 
 		id := "[" + fileName + ":" + strconv.Itoa(line) + "] "
-		t.logger.TaskWarnF("add task[%v], but full.", id)
+		t.logger.WarnF("add task[%v], but full.", id)
 	}
 
 	select {
@@ -49,7 +50,7 @@ func (t *Task) AddTask(f func(), cb func()) {
 	}:
 
 	default:
-		t.logger.TaskErrorF("task is full")
+		t.logger.ErrorF("task is full")
 	}
 }
 
@@ -62,7 +63,7 @@ func (t *Task) executeFunc(pair *taskFuncPair) {
 		if r := recover(); r != nil {
 			buf := make([]byte, 4096)
 			l := runtime.Stack(buf, false)
-			t.logger.TaskErrorF("%v: %s", r, buf[:l])
+			t.logger.ErrorF("%v: %s", r, buf[:l])
 		}
 	}()
 
@@ -79,7 +80,7 @@ func (t *Task) run() {
 	for {
 		pair, ok := <-t.functions
 		if !ok {
-			t.logger.TaskWarnF("task.functions closed")
+			t.logger.WarnF("task.functions closed")
 			break
 		}
 		t.executeFunc(pair)
