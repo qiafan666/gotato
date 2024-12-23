@@ -129,30 +129,6 @@ func (m *Mgr) StopActor(actorID int64, syncWait bool) {
 	a.Stop(syncWait)
 }
 
-// GetActor 获取指定Actor
-func (m *Mgr) GetActor(actorID int64) *Actor {
-	v, ok := m.Actors.Load(actorID)
-	if !ok {
-		return nil
-	}
-	return v.(*Actor)
-}
-
-// GetActorChanSrv 获取Actor对外暴露的 chanrpc.IServer
-func (m *Mgr) GetActorChanSrv(actorID int64) chanrpc.IServer {
-	a := m.GetActor(actorID)
-	if a == nil {
-		return nil
-	}
-	return a.delegate.ChanSrv()
-}
-
-// delActor 删除指定Actor
-func (m *Mgr) delActor(actorID int64) {
-	m.Actors.Delete(actorID)
-	logger.DefaultLogger.DebugF("delActor[%d]", actorID)
-}
-
 // StopAllActor 终止所有的Actor
 // syncWait==true表示同步等待终止完成
 func (m *Mgr) StopAllActor(syncWait bool) {
@@ -181,14 +157,66 @@ func (m *Mgr) StopAllActor(syncWait bool) {
 	}
 }
 
+// GetActor 获取指定Actor
+func (m *Mgr) GetActor(actorID int64) *Actor {
+	v, ok := m.Actors.Load(actorID)
+	if !ok {
+		return nil
+	}
+	return v.(*Actor)
+}
+
+// GetActorChanSrv 获取Actor对外暴露的 chanrpc.IServer
+func (m *Mgr) GetActorChanSrv(actorID int64) chanrpc.IServer {
+	a := m.GetActor(actorID)
+	if a == nil {
+		return nil
+	}
+	return a.delegate.ChanSrv()
+}
+
+// delActor 删除指定Actor
+func (m *Mgr) delActor(actorID int64) {
+	m.Actors.Delete(actorID)
+	logger.DefaultLogger.DebugF("delActor[%d]", actorID)
+}
+
+// SetCreator 重设新的Creator
 func (m *Mgr) SetCreator(creator Creator) {
 	m.creator = creator
 }
 
+// RangeActor 遍历所有Actor,并向actor server发送消息
+func (m *Mgr) RangeActor(f func(server chanrpc.IServer) bool) {
+	m.Actors.Range(func(key, value any) bool {
+		a := value.(*Actor)
+		return f(a.Delegate().ChanSrv())
+	})
+}
+
+// ExistActor 判断actor是否存在
+func (m *Mgr) ExistActor(id int64) bool {
+	return m.GetActor(id) != nil
+}
+
+// RemoveActor 移除actor并删除redis数据
+func (m *Mgr) RemoveActor(id int64) {
+	m.StopActor(id, true)
+}
+
+// StopAll 停止所有actor
+func (m *Mgr) StopAll() {
+	m.StopAllActor(true)
+}
+
+// ------------------------ inner ------------------------
+
+// GenActorKeys 生成actor的redis key
 func GenActorKeys(actorPrefix string, actorID int64) string {
 	return gcommon.StrJoin(":", actorPrefix, gcast.ToString(actorID))
 }
 
+// GenActorLockKeys 生成actor的redis lock key
 func GenActorLockKeys(globalRedisKey string, actorID int64) string {
 	return gcommon.StrJoin(":", globalRedisKey, gcast.ToString(actorID))
 }
