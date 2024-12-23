@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/qiafan666/gotato/commons/glog"
-	"github.com/qiafan666/gotato/commons/s3"
+	"github.com/qiafan666/gotato/s3"
 	"path"
 	"strings"
 	"time"

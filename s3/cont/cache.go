@@ -2,7 +2,7 @@ package cont
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/commons/s3"
+	"github.com/qiafan666/gotato/s3"
 )
 
 type S3Cache interface {

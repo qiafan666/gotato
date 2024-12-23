@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gerr"
-	"github.com/qiafan666/gotato/commons/s3"
+	"github.com/qiafan666/gotato/s3"
 	"github.com/tencentyun/cos-go-sdk-v5"
 
 	"net/http"

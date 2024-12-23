@@ -5,7 +5,7 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
-	"github.com/qiafan666/gotato/commons/iface"
+	"github.com/qiafan666/gotato/commons/gface"
 	"runtime"
 	"strconv"
 	"strings"
@@ -70,7 +70,7 @@ type Promise struct {
 	cbFunc        func(context *Context)
 	context       *Context
 	futureIdIndex uint32
-	logger        iface.Logger
+	logger        gface.Logger
 }
 
 type Callback struct {
@@ -91,10 +91,10 @@ type Manager struct {
 
 	onAllPromiseOver func()
 
-	logger iface.Logger
+	logger gface.Logger
 }
 
-func NewManager(owner int64, f func() int, logger iface.Logger) *Manager {
+func NewManager(owner int64, f func() int, logger gface.Logger) *Manager {
 	pm := &Manager{
 		owner:                owner,
 		promises:             make(map[uint32]*Promise),

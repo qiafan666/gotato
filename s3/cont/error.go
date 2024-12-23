@@ -2,7 +2,7 @@ package cont
 
 import (
 	"fmt"
-	"github.com/qiafan666/gotato/commons/s3"
+	"github.com/qiafan666/gotato/s3"
 )
 
 type HashAlreadyExistsError struct {

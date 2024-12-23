@@ -2,7 +2,7 @@ package gtask
 
 import (
 	"errors"
-	"github.com/qiafan666/gotato/commons/iface"
+	"github.com/qiafan666/gotato/commons/gface"
 	"hash/fnv"
 	"runtime"
 	"strconv"
@@ -11,7 +11,7 @@ import (
 
 var defaultPool *Pool
 
-func InitDefaultPool(taskNum, chanNum int, logger iface.Logger) {
+func InitDefaultPool(taskNum, chanNum int, logger gface.Logger) {
 	if defaultPool == nil {
 		defaultPool = NewTaskPool(taskNum, chanNum, logger)
 	}
@@ -42,10 +42,10 @@ type Pool struct {
 	curIndex uint32
 	chanNum  int
 	stopped  bool
-	logger   iface.Logger
+	logger   gface.Logger
 }
 
-func NewTaskPool(taskNum, chanNum int, logger iface.Logger) *Pool {
+func NewTaskPool(taskNum, chanNum int, logger gface.Logger) *Pool {
 	if logger == nil {
 		panic("logger cannot be nil")
 	}
@@ -141,7 +141,7 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 	}
 }
 
-func (t *UpdateTask) executeFun(pair *taskFuncPair, logger iface.Logger) {
+func (t *UpdateTask) executeFun(pair *taskFuncPair, logger gface.Logger) {
 	defer func() {
 		if r := recover(); r != nil {
 			buf := make([]byte, 4096)
@@ -159,7 +159,7 @@ func (t *UpdateTask) executeFun(pair *taskFuncPair, logger iface.Logger) {
 	}
 }
 
-func ProcessTask(task *UpdateTask, logger iface.Logger) {
+func ProcessTask(task *UpdateTask, logger gface.Logger) {
 	if task == nil {
 		panic("task is nil")
 	}

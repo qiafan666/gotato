@@ -1,7 +1,7 @@
 package gtask
 
 import (
-	"github.com/qiafan666/gotato/commons/iface"
+	"github.com/qiafan666/gotato/commons/gface"
 	"runtime"
 	"strconv"
 	"strings"
@@ -17,7 +17,7 @@ type taskFuncPair struct {
 type Task struct {
 	functions chan *taskFuncPair
 	exitCh    chan int
-	logger    iface.Logger
+	logger    gface.Logger
 }
 
 func New() *Task {

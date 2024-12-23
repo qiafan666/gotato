@@ -7,7 +7,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/commons/glog"
-	"github.com/qiafan666/gotato/commons/s3"
+	"github.com/qiafan666/gotato/s3"
 	"image"
 	"image/gif"
 	"image/jpeg"

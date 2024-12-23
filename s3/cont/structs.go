@@ -1,6 +1,6 @@
 package cont
 
-import "github.com/qiafan666/gotato/commons/s3"
+import "github.com/qiafan666/gotato/s3"
 
 type InitiateUploadResult struct {
 	// UploadID uniquely identifies the upload session for tracking and management purposes.

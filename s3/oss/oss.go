@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gerr"
-	"github.com/qiafan666/gotato/commons/s3"
+	"github.com/qiafan666/gotato/s3"
 	"io"
 	"net/http"
 	"net/url"

@@ -2,7 +2,7 @@ package gpromise
 
 import (
 	"container/list"
-	"github.com/qiafan666/gotato/commons/iface"
+	"github.com/qiafan666/gotato/commons/gface"
 )
 
 type IFuture interface {
@@ -29,10 +29,10 @@ type Future struct {
 	promise      *Promise
 	fatherFuture IFuture
 	name         string
-	logger       iface.Logger
+	logger       gface.Logger
 }
 
-func NewFuture(name string, logger iface.Logger) *Future {
+func NewFuture(name string, logger gface.Logger) *Future {
 	return &Future{
 		name:   name,
 		logger: logger,
