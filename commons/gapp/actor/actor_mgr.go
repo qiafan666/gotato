@@ -23,11 +23,11 @@ type Mgr struct {
 	*/
 	globalRedisKey string
 	redisClient    *redis.Redis
-	index          int32 // 当前的actorMgr在那条线上
+	index          int // 当前的actorMgr在那条线上
 }
 
 // NewMgr 启动一个actorMgr，通常结合skeleton module使用
-func NewMgr(creator Creator, globalRedisKey string, redisClient *redis.Redis, index int32) *Mgr {
+func NewMgr(creator Creator, globalRedisKey string, redisClient *redis.Redis, index int) *Mgr {
 	return &Mgr{
 		creator:        creator,
 		globalRedisKey: globalRedisKey,
