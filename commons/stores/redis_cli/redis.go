@@ -1,4 +1,4 @@
-package redis
+package redis_cli
 
 import (
 	"context"
@@ -21,7 +21,7 @@ const (
 	ClusterType = "cluster"
 	// NodeType means redis node.
 	NodeType = "node"
-	// Nil is an alias of redis.Nil.
+	// Nil is an alias of redis_cli.Nil.
 	Nil = red.Nil
 
 	blockingQueryTimeout = 5 * time.Second
@@ -75,31 +75,31 @@ type (
 	// GeoPos is used to represent a geo position.
 	GeoPos = red.GeoPos
 
-	// Pipeliner is an alias of redis.Pipeliner.
+	// Pipeliner is an alias of redis_cli.Pipeliner.
 	Pipeliner = red.Pipeliner
 
 	// Z represents sorted set member.
 	Z = red.Z
-	// ZStore is an alias of redis.ZStore.
+	// ZStore is an alias of redis_cli.ZStore.
 	ZStore = red.ZStore
 	// ZAddArgs is an alias of redis.zAdd
 	ZAddArgs = red.ZAddArgs
 
-	// IntCmd is an alias of redis.IntCmd.
+	// IntCmd is an alias of redis_cli.IntCmd.
 	IntCmd = red.IntCmd
-	// FloatCmd is an alias of redis.FloatCmd.
+	// FloatCmd is an alias of redis_cli.FloatCmd.
 	FloatCmd = red.FloatCmd
-	// StringCmd is an alias of redis.StringCmd.
+	// StringCmd is an alias of redis_cli.StringCmd.
 	StringCmd = red.StringCmd
-	// Script is an alias of redis.Script.
+	// Script is an alias of redis_cli.Script.
 	Script = red.Script
-	// ZSliceCmd is an alias of redis.ZSliceCmd.
+	// ZSliceCmd is an alias of redis_cli.ZSliceCmd.
 	ZSliceCmd = red.ZSliceCmd
-	// StringStringMapCmd is an alias of redis.StringStringMapCmd.
+	// StringStringMapCmd is an alias of redis_cli.StringStringMapCmd.
 	StringStringMapCmd = red.StringStringMapCmd
-	// StringSliceCmd is an alias of redis.StringSliceCmd.
+	// StringSliceCmd is an alias of redis_cli.StringSliceCmd.
 	StringSliceCmd = red.StringSliceCmd
-	// BoolSliceCmd is an alias of redis.BoolSliceCmd.
+	// BoolSliceCmd is an alias of redis_cli.BoolSliceCmd.
 	BoolSliceCmd = red.BoolSliceCmd
 )
 
@@ -1662,12 +1662,12 @@ func (s *Redis) ScriptLoadCtx(ctx context.Context, script string) (string, error
 	return conn.ScriptLoad(ctx, script).Result()
 }
 
-// ScriptRun is the implementation of *redis.Script run command.
+// ScriptRun is the implementation of *redis_cli.Script run command.
 func (s *Redis) ScriptRun(script *Script, keys []string, args ...any) (any, error) {
 	return s.ScriptRunCtx(context.Background(), script, keys, args...)
 }
 
-// ScriptRunCtx is the implementation of *redis.Script run command.
+// ScriptRunCtx is the implementation of *redis_cli.Script run command.
 func (s *Redis) ScriptRunCtx(ctx context.Context, script *Script, keys []string, args ...any) (val any, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)

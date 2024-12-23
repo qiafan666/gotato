@@ -1,4 +1,4 @@
-package redis
+package redis_cli
 
 import "github.com/zeromicro/go-zero/core/metric"
 

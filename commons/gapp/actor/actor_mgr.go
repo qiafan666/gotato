@@ -6,7 +6,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	"github.com/qiafan666/gotato/commons/stores/redis"
+	"github.com/qiafan666/gotato/commons/stores/redis_cli"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -22,12 +22,12 @@ type Mgr struct {
 		不需要集群唯一的actor，比如:scene， world1、world2上可以相同actorID（比如地图id）的actor，ktv、dance用的是房间id（本身已经是全局唯一了）作为地图id
 	*/
 	globalRedisKey string
-	redisClient    *redis.Redis
+	redisClient    *redis_cli.Redis
 	index          int // 当前的actorMgr在那条线上
 }
 
 // NewMgr 启动一个actorMgr，通常结合skeleton module使用
-func NewMgr(creator Creator, globalRedisKey string, redisClient *redis.Redis, index int) *Mgr {
+func NewMgr(creator Creator, globalRedisKey string, redisClient *redis_cli.Redis, index int) *Mgr {
 	return &Mgr{
 		creator:        creator,
 		globalRedisKey: globalRedisKey,
@@ -45,14 +45,14 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 	if actorID <= 0 {
 		return fmt.Errorf("actorId=%d illegal", actorID)
 	}
-	var redisLock *redis.RedisLock
+	var redisLock *redis_cli.RedisLock
 	// 集群唯一检查
 	if m.globalRedisKey != "" {
 		if m.redisClient == nil {
 			return fmt.Errorf("actorId=%d redis client is nil", actorID)
 		}
 
-		redisLock = redis.NewRedisLock(m.redisClient, GenActorLockKeys(m.globalRedisKey, actorID))
+		redisLock = redis_cli.NewRedisLock(m.redisClient, GenActorLockKeys(m.globalRedisKey, actorID))
 		redisLock.SetExpire(1)
 		gotLock, gotLockErr := redisLock.Acquire()
 		if gotLockErr != nil {
