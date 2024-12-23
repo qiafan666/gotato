@@ -101,6 +101,10 @@ type (
 	StringSliceCmd = red.StringSliceCmd
 	// BoolSliceCmd is an alias of redis_cli.BoolSliceCmd.
 	BoolSliceCmd = red.BoolSliceCmd
+	// SliceCmd is an alias of redis_cli.SliceCmd.
+	SliceCmd = red.SliceCmd
+	// StatusCmd is an alias of redis_cli.StatusCmd.
+	StatusCmd = red.StatusCmd
 )
 
 // MustNewRedis returns a Redis with given options.
