@@ -109,8 +109,8 @@ func StrCheck(input ...string) []int {
 	return nullIndices
 }
 
-// StringToBytes 原地转换
-func StringToBytes(s string) []byte {
+// StrToBytes 原地转换
+func StrToBytes(s string) []byte {
 	return *(*[]byte)(unsafe.Pointer(
 		&struct {
 			string
