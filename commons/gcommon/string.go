@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
 	uuid "github.com/satori/go.uuid"
+	"hash/fnv"
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -235,4 +237,26 @@ func StrJoin(sep string, str ...any) string {
 // StrParse 字符串解析
 func StrParse(str string, sep string) []string {
 	return strings.Split(str, sep)
+}
+
+// BuildString 拼接字符串
+func BuildString(members ...any) string {
+	sb := strings.Builder{}
+	for _, m := range members {
+		sb.WriteString(gcast.ToString(m))
+	}
+	return sb.String()
+}
+
+// ContainsEmoji 检查字符串中是否包含表情符号
+func ContainsEmoji(s string) bool {
+	emojiPattern := `[\x{1F600}-\x{1F64F}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{1F700}-\x{1F77F}]|[\x{1F780}-\x{1F7FF}]|[\x{1F800}-\x{1F8FF}]|[\x{1F900}-\x{1F9FF}]|[\x{1FA00}-\x{1FA6F}]|[\x{1FA70}-\x{1FAFF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}]`
+	re := regexp.MustCompile(emojiPattern)
+	return re.MatchString(s)
+}
+
+func HashString(s string) uint32 {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(s))
+	return h.Sum32()
 }

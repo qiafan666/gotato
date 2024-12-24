@@ -6,11 +6,10 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
-	"math/rand"
+	"math"
 	"reflect"
 	"regexp"
 	"strings"
-	"time"
 )
 
 // RetryFunction 重试函数
@@ -196,46 +195,20 @@ func HidePhone(phone string) (string, bool) {
 	return "", false
 }
 
-// RandRedPacket 随机红包算法
-func RandRedPacket(num int32, totalCount int64) []int64 {
-	if num <= 0 {
-		return nil
-	}
-	envelopes := make([]int64, num)
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	remainingCount := totalCount
-	for i := 0; i < int(num)-1; i++ {
-		maxCount := (remainingCount / (int64(num) - int64(i))) * 2
-		amount := r.Int63n(maxCount + 1)
-		envelopes[i] = amount
-		remainingCount -= amount
-	}
-	envelopes[num-1] = remainingCount
-
-	return envelopes
-}
-
-// RandByWeight 随机权重算法
-func RandByWeight(weightList []int32) int {
-	if len(weightList) == 0 {
+// MultiPointDistance 多个坐标点之间的距离
+// 例如：x1, x2, y1, y2
+func MultiPointDistance(p ...float64) float64 {
+	if len(p)%2 != 0 {
 		return 0
 	}
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	total := int32(0)
-	accumulate := make([]int32, len(weightList))
-	for i, w := range weightList {
-		total += w
-		accumulate[i] = total
-	}
-
-	v := r.Int31n(total)
-	for i, w := range accumulate {
-		if v <= w {
-			return i
+	var sum float64
+	var i = 0
+	for {
+		if i >= len(p) {
+			break
 		}
+		sum += math.Pow(p[i]-p[i+1], 2)
+		i += 2
 	}
-
-	return 0
+	return math.Sqrt(sum)
 }
