@@ -262,15 +262,16 @@ func (m *ShardLockMap[K, V]) Keys() []K {
 }
 
 // IterCb 是一个以键和值作为参数的回调函数类型
-type IterCb[K comparable, V any] func(key K, v V)
+type IterCb func(key string, value interface{})
 
 // IterCb 方法用于迭代并调用提供的回调函数
-func (m *ShardLockMap[K, V]) IterCb(fn IterCb[K, V]) {
+func (m *ShardLockMap[K, V]) IterCb(fn IterCb) {
 	for idx := range m.shards {
 		shard := m.shards[idx]
 		shard.RLock()
 		for key, value := range shard.items {
-			fn(key, value) // 直接传递 key 和 value
+			keyStr := fmt.Sprintf("%v", key) // 转换为字符串
+			fn(keyStr, value)                // 直接传递 key 和 value
 		}
 		shard.RUnlock()
 	}
