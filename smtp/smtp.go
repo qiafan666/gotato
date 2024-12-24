@@ -27,7 +27,7 @@ func Sendmail(smtpConfigName string, receive, subject string, body string, conte
 		}
 	}
 
-	if i := gcommon.DataCheck(configContent.Host, configContent.Port, configContent.Sender, configContent.Password); len(i) > 0 {
+	if i := gcommon.StrCheck(configContent.Host, configContent.Port, configContent.Sender, configContent.Password); len(i) > 0 {
 		return errors.New("smtp config error")
 	}
 

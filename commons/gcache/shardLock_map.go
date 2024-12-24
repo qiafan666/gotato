@@ -232,3 +232,102 @@ func (m *ShardLockMap[K, V]) UnMarshalJSON(b []byte) (err error) {
 	}
 	return nil
 }
+
+// Keys 返回所有键
+func (m *ShardLockMap[K, V]) Keys() []K {
+	count := m.Count()
+	ch := make(chan K, count)
+	go func() {
+		wg := sync.WaitGroup{}
+		wg.Add(m.shardCount)
+		for _, shard := range m.shards {
+			go func(shard *ShardLockMapShard[K, V]) {
+				shard.RLock()
+				for key := range shard.items {
+					ch <- key
+				}
+				shard.RUnlock()
+				wg.Done()
+			}(shard)
+		}
+		wg.Wait()
+		close(ch)
+	}()
+
+	keys := make([]K, 0, count)
+	for k := range ch {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// IterCb 是一个以键和值作为参数的回调函数类型
+type IterCb[K comparable, V any] func(key K, v V)
+
+// IterCb 方法用于迭代并调用提供的回调函数
+func (m *ShardLockMap[K, V]) IterCb(fn IterCb[K, V]) {
+	for idx := range m.shards {
+		shard := m.shards[idx]
+		shard.RLock()
+		for key, value := range shard.items {
+			fn(key, value) // 直接传递 key 和 value
+		}
+		shard.RUnlock()
+	}
+}
+
+// KVPairs 用于存储键值对
+type KVPairs[K comparable, V any] struct {
+	Key   K
+	Value V
+}
+
+// IterBuffered 返回一个缓冲的迭代器，可以在 for range 循环中使用。
+func (m *ShardLockMap[K, V]) IterBuffered() <-chan KVPairs[K, V] {
+	chanList := m.snapshot() // 使用)m.snapshot()获取通道列表
+	total := 0
+	for _, c := range chanList {
+		total += cap(c)
+	}
+	ch := make(chan KVPairs[K, V], total)
+	go fanIn(chanList, ch)
+	return ch
+}
+
+// snapshot 返回一个包含每个分片元素的通道数组，并估计每个缓冲通道的大小。
+func (m *ShardLockMap[K, V]) snapshot() []chan KVPairs[K, V] {
+	chanList := make([]chan KVPairs[K, V], m.shardCount)
+	wg := sync.WaitGroup{}
+	wg.Add(m.shardCount)
+	for index, shard := range m.shards {
+		go func(index int, shard *ShardLockMapShard[K, V]) {
+			defer wg.Done() // 完成任务后递减计数
+			shard.RLock()
+			defer shard.RUnlock()
+			chanList[index] = make(chan KVPairs[K, V], len(shard.items))
+			// 将所有键值对发送到通道
+			for key, val := range shard.items {
+				chanList[index] <- KVPairs[K, V]{Key: key, Value: val}
+			}
+			close(chanList[index]) // 关闭通道
+		}(index, shard)
+	}
+	wg.Wait()
+	return chanList
+}
+
+// fanIn 从通道 chanList 中读取元素并写入通道 out，确保能够识别 K 和 V 的类型
+func fanIn[K comparable, V any](chanList []chan KVPairs[K, V], out chan KVPairs[K, V]) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(chanList))
+	for _, ch := range chanList {
+		go func(ch chan KVPairs[K, V]) {
+			for t := range ch {
+				out <- t
+			}
+			wg.Done()
+		}(ch)
+	}
+	wg.Wait()
+	close(out)
+}

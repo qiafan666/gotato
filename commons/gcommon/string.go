@@ -95,7 +95,7 @@ func RangeNum[T NumberType](min, max T) T {
 }
 
 // StrCheck 检查输入的字符串是否有空值
-func StrCheck(input ...string) ([]int, bool) {
+func StrCheck(input ...string) []int {
 	var nullIndices []int
 
 	for i, data := range input {
@@ -104,9 +104,9 @@ func StrCheck(input ...string) ([]int, bool) {
 		}
 	}
 	if len(nullIndices) > 0 {
-		return nullIndices, true
+		return nullIndices
 	}
-	return nullIndices, false
+	return nullIndices
 }
 
 // StringToBytes 原地转换
