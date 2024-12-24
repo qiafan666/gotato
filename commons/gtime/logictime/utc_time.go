@@ -20,7 +20,7 @@ const (
 	YearsBegin    = 2000         // 从2000年开始计算周数、月数
 	YearPerMonth  = 12           // 每年12个月
 	WeekPerMonth  = 52           // 每年52周
-	BeginMsOf2000 = 946656000000 // 2000.1.1 0点的时间戳 毫秒
+	BeginMsOf2000 = 946684800000 // 2000.1.1 0点的时间戳 毫秒
 )
 
 var offset time.Duration
@@ -38,8 +38,8 @@ func SetZone(name string) error {
 	return nil
 }
 
-// NowUTC 获取当前 UTC时间
-func NowUTC() time.Time {
+// Now UTC时间
+func Now() time.Time {
 	realNow := time.Now()
 	offsetVal := GetTimeOffset()
 	if offsetVal == 0 {
@@ -61,27 +61,27 @@ func AddTimeOffset(val time.Duration) {
 }
 
 func Since(t time.Time) time.Duration {
-	return NowUTC().Sub(t)
+	return Now().Sub(t)
 }
 
 // NowMs 毫秒级时间戳
 func NowMs() int64 {
-	return NowUTC().UnixNano() / 1e6
+	return Now().UnixNano() / 1e6
 }
 
 // NowFrame 十分之一秒
 func NowFrame() int64 {
-	return NowUTC().UnixNano() / 1e8
+	return Now().UnixNano() / 1e8
 }
 
 // NowUs 微秒级时间戳
 func NowUs() int64 {
-	return NowUTC().UnixNano() / 1e3
+	return Now().UnixNano() / 1e3
 }
 
 // NowNs 纳秒级时间戳
 func NowNs() int64 {
-	return NowUTC().UnixNano()
+	return Now().UnixNano()
 }
 
 // TodayMs 计算本地今天0点ms
@@ -133,7 +133,7 @@ func NextMonthMs(nowMs int64) int64 {
 
 // NowSec 秒级时间戳
 func NowSec() int64 {
-	return NowUTC().UnixNano() / 1e9
+	return Now().UnixNano() / 1e9
 }
 
 // SameDay 是否是同一天，参数毫秒
@@ -189,7 +189,6 @@ func Ms2Time(ms int64) time.Time {
 }
 
 // TrackTime 一行代码获取函数的执行时间
-// 例如：方法第一行 defer TrackTime(time.Now())
 func TrackTime(pre time.Time) time.Duration {
 	elapsed := time.Since(pre)
 	return elapsed
@@ -222,14 +221,14 @@ func TimeHourIndex(timeMillSec int64) int64 {
 
 // NowMonthIndex 从2000.1.1累计月数 不是精确的
 func NowMonthIndex() int64 {
-	year, _ := NowUTC().Local().ISOWeek()
-	month := NowUTC().Local().Month()
+	year, _ := Now().Local().ISOWeek()
+	month := Now().Local().Month()
 	return (int64(year)-YearsBegin)*YearPerMonth + int64(month)
 }
 
 // NowWeekIndex 从2000.1.1累计周数 不是精确的
 func NowWeekIndex() int64 {
-	year, week := NowUTC().Local().ISOWeek()
+	year, week := Now().Local().ISOWeek()
 	return int64((year-YearsBegin)*WeekPerMonth + week)
 }
 
@@ -237,7 +236,7 @@ func NowWeekIndex() int64 {
 func NowDayIndex() int64 {
 	beginTS := int64(BeginMsOf2000)
 	if time.Local.String() == "Asia/Shanghai" {
-		beginTS += 8 * Hour
+		beginTS -= 8 * Hour
 	}
 	accDay := (NowMs() - beginTS) / Day
 	return accDay
@@ -245,7 +244,11 @@ func NowDayIndex() int64 {
 
 // TimeDayIndex 从2000.1.1累计天数
 func TimeDayIndex(timeMSec int64) int64 {
-	accDay := (NowMs() - BeginMsOf2000) / Day
+	beginTS := int64(BeginMsOf2000)
+	if time.Local.String() == "Asia/Shanghai" {
+		beginTS -= 8 * Hour
+	}
+	accDay := (timeMSec - beginTS) / Day
 	return accDay
 }
 
@@ -264,10 +267,29 @@ func CrossDays(t1, t2 int64) int64 {
 	tt1 := TodayMs(t1)
 	tt2 := TodayMs(t2)
 	day := (tt1 - tt2) / Day
-	switch day > 0 {
-	case true:
+	if day > 0 {
 		return day
-	default:
-		return -day
 	}
+	return -day
+}
+
+func NowConvertTimeToEsFormat() string {
+	return Now().In(time.Local).Format(time.RFC3339Nano)
+}
+
+// IsTimeOverlap 时间重叠
+// startTime2, entTime2是否与startTime1, entTime1有重叠
+// 返回true有重叠 false没有重叠
+func IsTimeOverlap(startTime1, entTime1 int64, startTime2, entTime2 int64) bool {
+
+	t1 := time.Unix(startTime1, 0)
+	t2 := time.Unix(entTime1, 0)
+
+	t3 := time.Unix(startTime2, 0)
+	t4 := time.Unix(entTime2, 0)
+
+	if t3.After(t2) || t4.Before(t1) {
+		return false
+	}
+	return true
 }
