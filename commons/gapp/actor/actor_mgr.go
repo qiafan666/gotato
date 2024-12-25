@@ -211,12 +211,14 @@ func (m *Mgr) StopAll() {
 
 // ------------------------ inner ------------------------
 
+const sep = ":"
+
 // GenActorKeys 生成actor的redis key
 func GenActorKeys(actorPrefix string, actorID int64) string {
-	return gcommon.StrJoin(":", actorPrefix, gcast.ToString(actorID))
+	return gcommon.BuildStrWithSep(sep, actorPrefix, gcast.ToString(actorID))
 }
 
 // GenActorLockKeys 生成actor的redis lock key
 func GenActorLockKeys(globalRedisKey string, actorID int64) string {
-	return gcommon.StrJoin(":", globalRedisKey, gcast.ToString(actorID))
+	return gcommon.BuildStrWithSep(sep, globalRedisKey, gcast.ToString(actorID))
 }

@@ -19,5 +19,5 @@ func PrintPanicStack() string {
 func Stack() string {
 	buf := make([]byte, 2048)
 	l := runtime.Stack(buf, false)
-	return BytesToStr(buf[:l])
+	return Bytes2Str(buf[:l])
 }
