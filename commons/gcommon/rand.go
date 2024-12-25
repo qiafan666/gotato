@@ -5,6 +5,76 @@ import (
 	"time"
 )
 
+const Lower = "abcdefghijklmnopqrstuvwxyz"
+const Upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const Number = "0123456789"
+const Symbol = "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+const mixString = Lower + Upper + Number
+const lowerUpper = Lower + Upper
+
+// RandLower 生成随机小写
+func RandLower(stringSize int) string {
+	return randomStr(Lower, stringSize)
+}
+
+// RandUpper 生成随机大写字母
+func RandUpper(stringSize int) string {
+	return randomStr(Upper, stringSize)
+}
+
+// RandNum 生成随机数字
+func RandNum(stringSize int) string {
+	return randomStr(Number, stringSize)
+}
+
+// RandSymbol 生成随机符号
+func RandSymbol(stringSize int) string {
+	return randomStr(Symbol, stringSize)
+}
+
+// RandLowerUpper 生成大小写英文混合随机字符串
+func RandLowerUpper(stringSize int) string {
+	return randomStr(lowerUpper, stringSize)
+}
+
+// RandStr 生成随机字符串
+func RandStr(stringSize int) string {
+	return randomStr(mixString, stringSize)
+}
+
+// RandCusStr 生成自定义字符串
+func RandCusStr(src string, length int) string {
+	return randomStr(src, length)
+}
+
+func randomStr(str string, length int) string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, length)
+	for i := 0; i < length; i++ {
+		for j := range b {
+			b[j] = str[r.Intn(len(str))]
+		}
+	}
+	return string(b)
+}
+
+type NumberType interface {
+	int | int32 | int64 | float32 | float64
+}
+
+func RangeNum[T NumberType](min, max T) T {
+	if min > max {
+		panic("min must be less than or equal to max")
+	}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	switch any(min).(type) {
+	case float32, float64:
+		return T(r.Float64()*float64(max-min) + float64(min))
+	default:
+		return T(r.Intn(int(max-min+1)) + int(min))
+	}
+}
+
 const (
 	DefaultRandWeight = 10000
 )

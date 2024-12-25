@@ -7,10 +7,8 @@ import (
 	"github.com/qiafan666/gotato/commons/gcast"
 	uuid "github.com/satori/go.uuid"
 	"hash/fnv"
-	"math/rand"
 	"regexp"
 	"strings"
-	"time"
 	"unicode"
 	"unicode/utf8"
 	"unsafe"
@@ -21,79 +19,9 @@ func GenerateUUID() string {
 	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
 }
 
-// StringToSha256 字符串转SHA256
-func StringToSha256(str string) string {
+// Str2Sha256 字符串转SHA256
+func Str2Sha256(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte("hello world\n")))
-}
-
-const Lower = "abcdefghijklmnopqrstuvwxyz"
-const Upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const Number = "0123456789"
-const Symbol = "!@#$%^&*()_+-=[]{}|;':\",./<>?"
-const mixString = Lower + Upper + Number
-const lowerUpper = Lower + Upper
-
-// RandLower 生成随机小写
-func RandLower(stringSize int) string {
-	return randomStr(Lower, stringSize)
-}
-
-// RandUpper 生成随机大写字母
-func RandUpper(stringSize int) string {
-	return randomStr(Upper, stringSize)
-}
-
-// RandNum 生成随机数字
-func RandNum(stringSize int) string {
-	return randomStr(Number, stringSize)
-}
-
-// RandSymbol 生成随机符号
-func RandSymbol(stringSize int) string {
-	return randomStr(Symbol, stringSize)
-}
-
-// RandLowerUpper 生成大小写英文混合随机字符串
-func RandLowerUpper(stringSize int) string {
-	return randomStr(lowerUpper, stringSize)
-}
-
-// RandStr 生成随机字符串
-func RandStr(stringSize int) string {
-	return randomStr(mixString, stringSize)
-}
-
-// RandCusStr 生成自定义字符串
-func RandCusStr(src string, length int) string {
-	return randomStr(src, length)
-}
-
-func randomStr(str string, length int) string {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, length)
-	for i := 0; i < length; i++ {
-		for j := range b {
-			b[j] = str[r.Intn(len(str))]
-		}
-	}
-	return string(b)
-}
-
-type NumberType interface {
-	int | int32 | int64 | float32 | float64
-}
-
-func RangeNum[T NumberType](min, max T) T {
-	if min > max {
-		panic("min must be less than or equal to max")
-	}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	switch any(min).(type) {
-	case float32, float64:
-		return T(r.Float64()*float64(max-min) + float64(min))
-	default:
-		return T(r.Intn(int(max-min+1)) + int(min))
-	}
 }
 
 // StrCheck 检查输入的字符串是否有空值
@@ -111,8 +39,8 @@ func StrCheck(input ...string) []int {
 	return nullIndices
 }
 
-// StrToBytes 原地转换
-func StrToBytes(s string) []byte {
+// Str2Bytes 原地转换
+func Str2Bytes(s string) []byte {
 	return *(*[]byte)(unsafe.Pointer(
 		&struct {
 			string
@@ -121,7 +49,7 @@ func StrToBytes(s string) []byte {
 	))
 }
 
-func BytesToStr(b []byte) string {
+func Bytes2Str(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
@@ -214,8 +142,8 @@ func ParseChinese(str string) string {
 	return b.String()
 }
 
-// StrJoin 字符串连接
-func StrJoin(sep string, str ...any) string {
+// BuildStrWithSep 字符串连接
+func BuildStrWithSep(sep string, str ...any) string {
 	sb := strings.Builder{}
 
 	// 预先分配足够的内存，以减少内存分配和复制的开销
@@ -239,11 +167,19 @@ func StrParse(str string, sep string) []string {
 	return strings.Split(str, sep)
 }
 
-// BuildString 拼接字符串
-func BuildString(members ...any) string {
+// BuildStr 拼接字符串
+func BuildStr(str ...any) string {
 	sb := strings.Builder{}
-	for _, m := range members {
-		sb.WriteString(gcast.ToString(m))
+
+	// 预先分配足够的内存，以减少内存分配和复制的开销
+	total := 0
+	for _, s := range str {
+		total += len(gcast.ToString(s))
+	}
+	sb.Grow(total)
+
+	for _, s := range str {
+		sb.WriteString(gcast.ToString(s))
 	}
 	return sb.String()
 }

@@ -293,7 +293,7 @@ func TestSnowflake(t *testing.T) {
 
 func TestAppendString(t *testing.T) {
 	t.Log(AppendStr("hello", "world").Append("test"))
-	t.Log(StrJoin("-", "hello", "world", "test", 1, 1231.1231))
+	t.Log(BuildStrWithSep("-", "hello", "world", "test", 1, 1231.1231))
 }
 
 func TestSlice(t *testing.T) {
@@ -406,4 +406,29 @@ func TestRandStr(t *testing.T) {
 	t.Log(RandLowerUpper(10))
 	t.Log(RandStr(10))
 	t.Log(RandCusStr(Symbol+Number, 10))
+}
+
+func TestContainsEmoji(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"Hello, world! 😊", true},
+		{"No emojis here.", false},
+		{"🚀 Rocket to the moon!", true},
+		{"Some text and 🐱 a cat emoji.", true},
+		{"Just a smiley face :)", false},
+		{"Multiple emojis 😂😂", true},
+		{"Mix of text and emojis: 💡✨🌟", true},
+		{"含有汉字和表情 😊", true},
+		{"含有汉字但无表情", false},
+		{"芙蓉王⚪圈", true},
+	}
+
+	for _, test := range tests {
+		result := ContainsEmoji(test.input)
+		if result != test.expected {
+			t.Errorf("containsEmoji(%q) = %v; want %v", test.input, result, test.expected)
+		}
+	}
 }
