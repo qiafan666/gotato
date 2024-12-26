@@ -2,9 +2,8 @@ package timer
 
 import (
 	"fmt"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
-	"runtime"
-	"unsafe"
 )
 
 // Timer 默认定义
@@ -31,13 +30,8 @@ type Timer struct {
 // Cb 执行timer回调，在发起Timer的上下文中执行
 func (t *Timer) Cb() {
 	defer func() {
-		if r := recover(); r != nil {
-			buf := make([]byte, 2048)
-			l := runtime.Stack(buf, false)
-			b := buf[:l]
-			stack := *(*string)(unsafe.Pointer(&b))
-			t.logger.ErrorF("Timer Cb panic err:%v stack:%s", r, stack)
-		}
+		stack := gcommon.PrintPanicStack()
+		t.logger.ErrorF("Timer Cb panic error:%s", stack)
 	}()
 	defer func() {
 		t.cb = nil

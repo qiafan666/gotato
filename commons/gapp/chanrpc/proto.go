@@ -5,9 +5,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
 	"reflect"
-	"runtime"
 	"runtime/debug"
-	"unsafe"
 )
 
 // Handler 方法句柄  处理CallInfo
@@ -53,13 +51,8 @@ func (reqCtx *ReqCtx) ReplyErr(err error) {
 
 func (reqCtx *ReqCtx) doReply(ackCtx *AckCtx) {
 	defer func() {
-		if r := recover(); r != nil {
-			buf := make([]byte, 2048)
-			l := runtime.Stack(buf, false)
-			b := buf[:l]
-			stack := *(*string)(unsafe.Pointer(&b))
-			logger.DefaultLogger.ErrorF("chanrpc ReqCtx doReply panic error: %v, stack: %s", r, stack)
-		}
+		stack := gcommon.PrintPanicStack()
+		logger.DefaultLogger.ErrorF("chanrpc ReqCtx doReply panic error: %s", stack)
 	}()
 	// 检查返回通道，如果是Cast消息，则忽略Reply
 	if reqCtx.chanAck == nil {

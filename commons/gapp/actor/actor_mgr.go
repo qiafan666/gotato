@@ -7,9 +7,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/stores/redis_cli"
-	"runtime"
 	"sync"
-	"unsafe"
 )
 
 type Mgr struct {
@@ -88,13 +86,8 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 
 	go func() {
 		defer func() {
-			if r := recover(); r != nil {
-				buf := make([]byte, 2048)
-				l := runtime.Stack(buf, false)
-				b := buf[:l]
-				stack := *(*string)(unsafe.Pointer(&b))
-				logger.DefaultLogger.ErrorF("actorMgr StartActor panic actor:%v panic:%v stack:%v", actorID, r, stack)
-			}
+			stack := gcommon.PrintPanicStack()
+			logger.DefaultLogger.ErrorF("actorMgr StartActor panic error: %s", stack)
 		}()
 		defer m.allActorWg.Done()
 		defer a.wg.Done()

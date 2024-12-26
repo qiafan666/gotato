@@ -5,14 +5,13 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gapp/module"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"os"
 	"os/signal"
 	"reflect"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"syscall"
-	"unsafe"
 )
 
 // 节点全局状态
@@ -169,13 +168,8 @@ func (app *App) GetActorChanSrv(name string, actorID int64) chanrpc.IServer {
 // run 启动所有模块
 func (app *App) run(m *mod) {
 	defer func() {
-		if r := recover(); r != nil {
-			buf := make([]byte, 2048)
-			l := runtime.Stack(buf, false)
-			b := buf[:l]
-			stack := *(*string)(unsafe.Pointer(&b))
-			logger.DefaultLogger.ErrorF("app run panic error : %v, stack: %v", r, stack)
-		}
+		stack := gcommon.PrintPanicStack()
+		logger.DefaultLogger.ErrorF("app run panic error: %s", stack)
 	}()
 	defer m.wg.Done()
 	m.mi.Run(m.closeSig)
@@ -184,13 +178,8 @@ func (app *App) run(m *mod) {
 // destroy 销毁模块
 func (app *App) destroy(m *mod) {
 	defer func() {
-		if r := recover(); r != nil {
-			buf := make([]byte, 2048)
-			l := runtime.Stack(buf, false)
-			b := buf[:l]
-			stack := *(*string)(unsafe.Pointer(&b))
-			logger.DefaultLogger.ErrorF("app destroy panic error : %v, stack: %v", r, stack)
-		}
+		stack := gcommon.PrintPanicStack()
+		logger.DefaultLogger.ErrorF("app destroy panic error: %s", stack)
 	}()
 	m.mi.OnDestroy()
 }

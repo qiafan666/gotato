@@ -4,11 +4,10 @@ import (
 	"errors"
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gapp/timer"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
 	"github.com/qiafan666/gotato/commons/gid"
-	"runtime"
 	"time"
-	"unsafe"
 )
 
 const (
@@ -149,13 +148,8 @@ func (c *Client) exec(ackCtx *AckCtx) {
 	ackCtx.Ctx = req.ctx
 	func() {
 		defer func() {
-			if r := recover(); r != nil {
-				buf := make([]byte, 2048)
-				l := runtime.Stack(buf, false)
-				b := buf[:l]
-				stack := *(*string)(unsafe.Pointer(&b))
-				logger.DefaultLogger.ErrorF("chanrpc Client exec panic error: %v, stack: %s", r, stack)
-			}
+			stack := gcommon.PrintPanicStack()
+			logger.DefaultLogger.ErrorF("chanrpc Client exec panic error: %s", stack)
 		}()
 		req.cb(ackCtx)
 	}()

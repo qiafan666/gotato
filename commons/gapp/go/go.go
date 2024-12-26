@@ -2,8 +2,7 @@ package g
 
 import (
 	"github.com/qiafan666/gotato/commons/gapp/logger"
-	"runtime"
-	"unsafe"
+	"github.com/qiafan666/gotato/commons/gcommon"
 )
 
 // Go 非Groutine安全的异步任务
@@ -27,13 +26,8 @@ func (g *Go) SafeGo(f, cb func()) {
 	g.pendingGo++
 	go func() {
 		defer func() {
-			if r := recover(); r != nil {
-				buf := make([]byte, 2048)
-				l := runtime.Stack(buf, false)
-				b := buf[:l]
-				stack := *(*string)(unsafe.Pointer(&b))
-				logger.DefaultLogger.ErrorF("go SafeGo panic error : %v, stack : %s", r, stack)
-			}
+			stack := gcommon.PrintPanicStack()
+			logger.DefaultLogger.ErrorF("go SafeGo panic error: %s", stack)
 		}()
 		defer func() {
 			g.ChanCb <- cb
@@ -45,13 +39,8 @@ func (g *Go) SafeGo(f, cb func()) {
 // Cb 执行回调
 func (g *Go) Cb(cb func()) {
 	defer func() {
-		if r := recover(); r != nil {
-			buf := make([]byte, 2048)
-			l := runtime.Stack(buf, false)
-			b := buf[:l]
-			stack := *(*string)(unsafe.Pointer(&b))
-			logger.DefaultLogger.ErrorF("go Cb panic error : %v, stack : %s", r, stack)
-		}
+		stack := gcommon.PrintPanicStack()
+		logger.DefaultLogger.ErrorF("go Cb panic error: %s", stack)
 	}()
 	defer func() {
 		g.pendingGo--
