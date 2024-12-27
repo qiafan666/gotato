@@ -6,6 +6,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gapp/module"
 	"github.com/qiafan666/gotato/commons/gcommon"
+	"github.com/qiafan666/gotato/commons/gface"
 	"os"
 	"os/signal"
 	"reflect"
@@ -68,11 +69,12 @@ func (app *App) GetState() int32 {
 }
 
 // Start 非阻塞启动app，需要在当前goroutine调用Stop来停止app
-func (app *App) Start(mods ...module.Module) {
+func (app *App) Start(l gface.Logger, mods ...module.Module) {
 
-	if logger.DefaultLogger == nil {
+	if l == nil {
 		panic("logger not initialized")
 	}
+	logger.DefaultLogger = l
 
 	// 单个app不能启动两次
 	if app.GetState() != AppStateNone {
@@ -186,8 +188,8 @@ func (app *App) destroy(m *mod) {
 
 // Run 阻塞启动app，在监测到SIGINT SIGTERM信号时自动终止App
 // 也可在任意goroutine调用Terminate来终止
-func (app *App) Run(mods ...module.Module) {
-	app.Start(mods...)
+func (app *App) Run(l gface.Logger, mods ...module.Module) {
+	app.Start(l, mods...)
 	// 信号监听 优雅退出
 	for {
 		signal.Notify(app.closeSig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
