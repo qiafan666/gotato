@@ -50,7 +50,7 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 			return fmt.Errorf(gcommon.Kv2Str("StartActor redisClient nil", "actorId", actorID))
 		}
 
-		redisLock = redis_cli.NewRedisLock(m.redisClient, GenActorLockKeys(m.globalRedisKey, actorID))
+		redisLock = redis_cli.NewRedisLock(m.redisClient, GenActorGlobalLockKeys(m.globalRedisKey, actorID))
 		redisLock.SetExpire(1)
 		gotLock, gotLockErr := redisLock.Acquire()
 		if gotLockErr != nil {
@@ -204,12 +204,12 @@ func (m *Mgr) StopAll() {
 
 // ------------------------ inner ------------------------
 
-// GenActorKeys 生成actor的redis key
+// GenActorKeys 生成actor的redis key  redis存储 key：globalRedisKey:actorID value: 当前服务器的index
 func GenActorKeys(globalRedisKey string, actorID int64) string {
 	return gcommon.BuildStrWithSep(redis_cli.Sep, globalRedisKey, gcast.ToString(actorID))
 }
 
-// GenActorLockKeys 全局redis锁的key，用于集群唯一actor
-func GenActorLockKeys(globalRedisKey string, actorID int64) string {
+// GenActorGlobalLockKeys 全局redis锁的key，用于集群唯一actor校验
+func GenActorGlobalLockKeys(globalRedisKey string, actorID int64) string {
 	return gcommon.BuildStrWithSep(redis_cli.Sep, redis_cli.GlobalLock, globalRedisKey, gcast.ToString(actorID))
 }
