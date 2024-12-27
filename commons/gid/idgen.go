@@ -50,8 +50,8 @@ var idCounter = int64(0)
 // 上一次Counter重置时的时间戳
 var lastCounterResetTs int64
 
-// ServerID 获取一个唯一ID
-func ServerID() int64 {
+// ID 获取一个唯一ID
+func ID() int64 {
 	now := time.Now().Unix()
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -70,15 +70,15 @@ func ServerID() int64 {
 	return (now-epoch)<<(ServerIdBits+CounterBits) | serverID<<CounterBits | idCounter
 }
 
-// ParseServerID 解析一个id
-func ParseServerID(id int64) (serverID int32, createAt int64) {
+// ParseID 解析一个id
+func ParseID(id int64) (serverID int32, createAt int64) {
 	createAt = (id >> (ServerIdBits + CounterBits)) + epoch
 	serverID = int32(uint32(id) >> CounterBits)
 	return serverID, createAt
 }
 
-// RandServerID 生成一个随机ID serverID 随机
-func RandServerID() int64 {
+// RandID( 生成一个随机ID serverID 随机
+func RandID() int64 {
 	now := time.Now().Unix()
 	mutex.Lock()
 	defer mutex.Unlock()

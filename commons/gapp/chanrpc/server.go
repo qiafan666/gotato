@@ -86,7 +86,7 @@ func (s *Server) Exec(reqCtx *ReqCtx) {
 func (s *Server) Cast(req any) {
 	id := MsgID(req)
 	reqCtx := &ReqCtx{
-		reqID: gid.ServerID(),
+		reqID: gid.ID(),
 		id:    id,
 		Req:   req,
 	}

@@ -190,7 +190,7 @@ func (disp *Dispatcher) UpdateTimer(timerID, newEndTs int64) {
 func (disp *Dispatcher) NewTimer(timerType int32, timerID, timeout int64, cb timerCb, ownerChan chan *Timer) int64 {
 	id := timerID
 	if id == 0 {
-		id = gid.ServerID()
+		id = gid.ID()
 	}
 	newOp := &NewOp{Typ: timerType, ID: id, EndTs: timeout, Cb: cb, OwnerChan: ownerChan}
 	disp.pendOp(newOp)
@@ -215,7 +215,7 @@ func (disp *Dispatcher) BatchNewTimers(ops []*NewOp) []int64 {
 	for _, op := range ops {
 		timerID := op.ID
 		if timerID == 0 {
-			timerID = gid.ServerID()
+			timerID = gid.ID()
 		}
 		op1 := *op
 		op1.ID = timerID
