@@ -51,8 +51,8 @@ func SliceContains[T ~[]E, E comparable](list1 T, list2 T) bool {
 	return false
 }
 
-// Slice2String 将切片转换为分隔符分隔的字符串
-func Slice2String[T any](list []T, sep string) string {
+// Slice2Str 将切片转换为分隔符分隔的字符串
+func Slice2Str[T any](list []T, sep string) string {
 	if len(list) == 0 {
 		return ""
 	}
@@ -62,8 +62,8 @@ func Slice2String[T any](list []T, sep string) string {
 	return strings.Join(convert, sep)
 }
 
-// String2Slice 将字符串转换为切片
-func String2Slice(str string, sep string) []string {
+// Str2Slice 将字符串转换为切片
+func Str2Slice(str string, sep string) []string {
 	if str == "" {
 		return nil
 	}

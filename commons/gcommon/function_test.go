@@ -160,23 +160,23 @@ func TestSliceBatch(t *testing.T) {
 	t.Log(batch)
 }
 
-func TestSlice2String(t *testing.T) {
+func TestSlice2Str(t *testing.T) {
 
 	var slice1 = []int{1, 2, 3, 4, 5}
-	t.Log(Slice2String(slice1, ","))
-	t.Log(String2Slice(Slice2String(slice1, ","), ","))
+	t.Log(Slice2Str(slice1, ","))
+	t.Log(Str2Slice(Slice2Str(slice1, ","), ","))
 
 	var slice2 = []string{"apple", "banana", "orange"}
-	t.Log(Slice2String(slice2, ","))
-	t.Log(String2Slice(Slice2String(slice2, ","), ","))
+	t.Log(Slice2Str(slice2, ","))
+	t.Log(Str2Slice(Slice2Str(slice2, ","), ","))
 }
 
 type Test1 struct {
 	Id []int `json:"id"`
 }
 
-func TestKV2string(t *testing.T) {
-	t.Log(Kv2String("msg", "key1", "value1", "key2", "value2"))
+func TestKv2Str(t *testing.T) {
+	t.Log(Kv2Str("msg", "key1", "value1", "key2", "value2"))
 
 	test1 := Test1{Id: []int{1, 2, 3}}
 	t.Log(test1)

@@ -41,28 +41,28 @@ func NewMgr(creator Creator, globalRedisKey string, redisClient *redis_cli.Redis
 // 如果是集群唯一的actor，则需要抢到分布式锁，且actor不存在
 func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 	if actorID <= 0 {
-		return fmt.Errorf("actorId=%d illegal", actorID)
+		return fmt.Errorf(gcommon.Kv2Str("StartActor invalid actorId", "actorId", actorID))
 	}
 	var redisLock *redis_cli.RedisLock
 	// 集群唯一检查
 	if m.globalRedisKey != "" {
 		if m.redisClient == nil {
-			return fmt.Errorf("actorId=%d redis client is nil", actorID)
+			return fmt.Errorf(gcommon.Kv2Str("StartActor redisClient nil", "actorId", actorID))
 		}
 
 		redisLock = redis_cli.NewRedisLock(m.redisClient, GenActorLockKeys(m.globalRedisKey, actorID))
 		redisLock.SetExpire(1)
 		gotLock, gotLockErr := redisLock.Acquire()
 		if gotLockErr != nil {
-			return fmt.Errorf("actor%d got lock err %v", actorID, gotLockErr)
+			return fmt.Errorf(gcommon.Kv2Str("StartActor gotLockErr", "actorId", actorID, "err", gotLockErr))
 		}
 		if !gotLock {
-			return fmt.Errorf("actorId=%d got lock fail %v", actorID, gotLock)
+			return fmt.Errorf(gcommon.Kv2Str("StartActor gotLock false", "actorId", actorID))
 		}
 		exist, _ := m.redisClient.Exists(GenActorKeys(m.globalRedisKey, actorID))
 		logger.DefaultLogger.DebugF("StartActor actor:%v exist:%v", actorID, exist)
 		if exist {
-			return fmt.Errorf("actorId=%d already existed in cluster", actorID)
+			return fmt.Errorf(gcommon.Kv2Str("StartActor already exist", "actorId", actorID))
 		}
 	}
 	a := &Actor{
@@ -73,7 +73,7 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 	}
 	_, exist := m.Actors.LoadOrStore(actorID, a)
 	if exist {
-		return fmt.Errorf("actorId=%d already existed", actorID)
+		return fmt.Errorf(gcommon.Kv2Str("StartActor already exist", "actorId", actorID))
 	}
 	syncInitCh := make(chan error, 1)
 	a.wg.Add(1)
@@ -204,14 +204,12 @@ func (m *Mgr) StopAll() {
 
 // ------------------------ inner ------------------------
 
-const sep = ":"
-
 // GenActorKeys 生成actor的redis key
-func GenActorKeys(actorPrefix string, actorID int64) string {
-	return gcommon.BuildStrWithSep(sep, actorPrefix, gcast.ToString(actorID))
+func GenActorKeys(globalRedisKey string, actorID int64) string {
+	return gcommon.BuildStrWithSep(redis_cli.Sep, globalRedisKey, gcast.ToString(actorID))
 }
 
-// GenActorLockKeys 生成actor的redis lock key
+// GenActorLockKeys 全局redis锁的key，用于集群唯一actor
 func GenActorLockKeys(globalRedisKey string, actorID int64) string {
-	return gcommon.BuildStrWithSep(sep, globalRedisKey, gcast.ToString(actorID))
+	return gcommon.BuildStrWithSep(redis_cli.Sep, redis_cli.GlobalLock, globalRedisKey, gcast.ToString(actorID))
 }

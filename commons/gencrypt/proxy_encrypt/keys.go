@@ -201,7 +201,7 @@ func SM2PrivateToString(p *UmbralFieldElement) string {
 	return p.GetValue().Text(16)
 }
 
-func SM2StringToPrivate(s string) *UmbralFieldElement {
+func SM2StrToPrivate(s string) *UmbralFieldElement {
 	v, ok := new(big.Int).SetString(s, 16)
 	if !ok {
 		return nil
@@ -221,7 +221,7 @@ func SM2PublicToString(p *UmbralCurveElement) string {
 	return hex.EncodeToString(buf)
 }
 
-func SM2StringToPublic(s string) *UmbralCurveElement {
+func SM2StrToPublic(s string) *UmbralCurveElement {
 	byt, err := hex.DecodeString(s)
 	if err != nil {
 		return nil

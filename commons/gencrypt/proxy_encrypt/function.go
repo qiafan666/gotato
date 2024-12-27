@@ -170,7 +170,7 @@ func (proxyEncrypt *ProxyEncrypt) DecryptFragments(capsule *Capsule, reKeyFrags 
 		return nil, fmt.Errorf("encryptMethod error")
 	}
 }
-func (proxyEncrypt *ProxyEncrypt) Pri2String() string {
+func (proxyEncrypt *ProxyEncrypt) Pri2Str() string {
 
 	switch proxyEncrypt.EncryptMethod {
 	case Encrypt256k1:
@@ -182,7 +182,7 @@ func (proxyEncrypt *ProxyEncrypt) Pri2String() string {
 	}
 }
 
-func (proxyEncrypt *ProxyEncrypt) Pub2String() string {
+func (proxyEncrypt *ProxyEncrypt) Pub2Str() string {
 
 	switch proxyEncrypt.EncryptMethod {
 	case Encrypt256k1:
@@ -194,7 +194,7 @@ func (proxyEncrypt *ProxyEncrypt) Pub2String() string {
 	}
 }
 
-func (proxyEncrypt *ProxyEncrypt) String2Pri(pri string) *UmbralFieldElement {
+func (proxyEncrypt *ProxyEncrypt) Str2Pri(pri string) *UmbralFieldElement {
 
 	switch proxyEncrypt.EncryptMethod {
 	case Encrypt256k1:
@@ -203,13 +203,13 @@ func (proxyEncrypt *ProxyEncrypt) String2Pri(pri string) *UmbralFieldElement {
 		return obj
 
 	case EncryptSm2:
-		return SM2StringToPrivate(pri)
+		return SM2StrToPrivate(pri)
 	default:
 		return nil
 	}
 }
 
-func (proxyEncrypt *ProxyEncrypt) String2Pub(pub string) *UmbralCurveElement {
+func (proxyEncrypt *ProxyEncrypt) Str2Pub(pub string) *UmbralCurveElement {
 
 	switch proxyEncrypt.EncryptMethod {
 	case Encrypt256k1:
@@ -217,7 +217,7 @@ func (proxyEncrypt *ProxyEncrypt) String2Pub(pub string) *UmbralCurveElement {
 		StringToStruct(pub, obj)
 		return obj
 	case EncryptSm2:
-		return SM2StringToPublic(pub)
+		return SM2StrToPublic(pub)
 	default:
 		return nil
 	}

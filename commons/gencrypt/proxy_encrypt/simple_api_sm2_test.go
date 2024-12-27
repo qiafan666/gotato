@@ -17,11 +17,11 @@ func TestSM2APIBasics(t *testing.T) {
 	strPriv := SM2PrivateToString(privKeyAlice)
 
 	fmt.Println(strPriv, len(strPriv))
-	privKeyAlice = SM2StringToPrivate(strPriv)
+	privKeyAlice = SM2StrToPrivate(strPriv)
 
 	strPub := SM2PublicToString(pubKeyAlice)
 	fmt.Println(strPub, len(strPub))
-	pubKeyAlice = SM2StringToPublic(strPub)
+	pubKeyAlice = SM2StrToPublic(strPub)
 
 	fmt.Println(pubKeyAlice.DataX.String(), pubKeyAlice.DataY.String())
 

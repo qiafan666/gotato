@@ -50,7 +50,7 @@ func Num2AZ(num int) string {
 	return str
 }
 
-func string2Value(s string, rv reflect.Value) error {
+func Str2Value(s string, rv reflect.Value) error {
 	var (
 		val interface{}
 		err error

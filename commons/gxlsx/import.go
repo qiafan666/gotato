@@ -89,7 +89,7 @@ func ParseSheet(file *excelize.File, v interface{}) error {
 				continue
 			}
 			notEmpty++
-			if err = string2Value(s, item.Field(fieldIndex[column])); err != nil {
+			if err = Str2Value(s, item.Field(fieldIndex[column])); err != nil {
 				return err
 			}
 		}

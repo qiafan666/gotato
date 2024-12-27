@@ -100,7 +100,7 @@ func CopyStructFields(from any, to any) (err error) {
 	return copier.Copy(to, from)
 }
 
-func Kv2String(msg string, kv ...any) string {
+func Kv2Str(msg string, kv ...any) string {
 	if len(kv) == 0 {
 		return msg
 	} else {

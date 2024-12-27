@@ -15,7 +15,7 @@ func TestFunction256k1(t *testing.T) {
 	fmt.Println(len(alice.PrivateKeyString))
 	fmt.Println(len(alice.PublicKeyString))
 
-	alice.PrivateKey = alice.String2Pri(alice.Pri2String())
+	alice.PrivateKey = alice.Str2Pri(alice.Pri2Str())
 
 	msg := []byte("hellohellohellohellohellohellohello")
 	r, s := alice.Sign(msg)
@@ -142,8 +142,8 @@ func TestFunction2SM2(t *testing.T) {
 	fmt.Println(len(alice.PrivateKeyString))
 	fmt.Println(len(alice.PublicKeyString))
 
-	alice.PrivateKey = alice.String2Pri(alice.Pri2String())
-	alice.PublicKey = alice.String2Pub(alice.Pub2String())
+	alice.PrivateKey = alice.Str2Pri(alice.Pri2Str())
+	alice.PublicKey = alice.Str2Pub(alice.Pub2Str())
 
 	msg := []byte("hellohellohellohellohellohellohello")
 	r, s := alice.Sign(msg)
