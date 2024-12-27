@@ -17,3 +17,7 @@ swagger:
 pprof:
   enable: true
   port: 6060
+feiShu:
+  enable: true
+  url: "url"
+  group_id: "group_id"

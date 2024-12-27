@@ -104,6 +104,10 @@ func (slf *Server) WaitClose(stopFunc ...func()) {
 			time.Sleep(time.Second)
 		}
 
+		if gconfig.SC.FeiShuConfig.Enable {
+			glog.FeiShu.Close()
+		}
+
 		//关闭HTTP服务器之前关闭传入的stopFunc
 		if len(stopFunc) > 0 {
 			for _, f := range stopFunc {

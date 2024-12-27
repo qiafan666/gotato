@@ -146,6 +146,7 @@ type ServerConfig struct {
 	SConfigure    ServerBaseConfig `yaml:"server"`
 	SwaggerConfig SwaggerConfig    `yaml:"swagger"`
 	PProfConfig   PProfConfig      `yaml:"pprof"`
+	FeiShuConfig  FeiShuConfig     `yaml:"feiShu"`
 }
 type SwaggerConfig struct {
 	Enable   bool   `yaml:"enable"`
@@ -155,4 +156,9 @@ type SwaggerConfig struct {
 type PProfConfig struct {
 	Enable bool   `yaml:"enable"`
 	Port   string `yaml:"port"`
+}
+type FeiShuConfig struct {
+	Enable  bool   `yaml:"enable"`
+	Url     string `yaml:"url"`
+	GroupId string `yaml:"group_id"`
 }
