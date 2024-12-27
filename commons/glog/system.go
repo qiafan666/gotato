@@ -47,12 +47,6 @@ func init() {
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
 	core := zapcore.NewCore(Encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
-	if GormLog != nil {
-		_ = GormLog.Sync()
-	}
-	if ZapLog != nil {
-		_ = ZapLog.Sync()
-	}
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
 	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(5)).Sugar()
 	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
@@ -68,12 +62,6 @@ func ReInit() {
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
 	core := zapcore.NewCore(Encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
-	if GormLog != nil {
-		_ = GormLog.Sync()
-	}
-	if ZapLog != nil {
-		_ = ZapLog.Sync()
-	}
 	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
 	GormLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(GormSkip)).Sugar()
 	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
