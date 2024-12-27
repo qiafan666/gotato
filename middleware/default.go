@@ -57,6 +57,6 @@ func Default(ctx iris.Context) {
 			path += "?" + ctx.Request().URL.RawQuery
 		}
 
-		glog.Slog.InfoF(value, "【response code:%d】【%s】【%dms】【%s:%s】", ctx.GetStatusCode(), addr, time.Now().Sub(start).Milliseconds(), ctx.Request().Method, path)
+		glog.Slog.InfoF(value, "[response code:%d][%s][%dms][%s:%s]", ctx.GetStatusCode(), addr, time.Now().Sub(start).Milliseconds(), ctx.Request().Method, path)
 	}
 }

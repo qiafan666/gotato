@@ -76,10 +76,10 @@ func Default(ctx *gin.Context) {
 		}
 
 		if gconfig.SC.SConfigure.SimpleStdout {
-			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】",
+			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d]",
 				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
 		} else {
-			glog.Slog.InfoF(ctx, "【%s:%s】【%s】【%dms】【response code:%d】【request:%s】【response:%s】",
+			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d][request:%s][response:%s]",
 				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), string(bodyBytes), blw.body.String())
 		}
 	} else {

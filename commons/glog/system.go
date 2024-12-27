@@ -119,7 +119,7 @@ func DevEncoder() zapcore.Encoder {
 			}
 
 			// 输出格式为 文件:行号 [方法名]，避免重复
-			enc.AppendString(fmt.Sprintf("%s   【function_name:%s】", fileWithLine, funcName))
+			enc.AppendString(fmt.Sprintf("%s   [function_name:%s]", fileWithLine, funcName))
 		} else {
 			enc.AppendString("unknown")
 		}
@@ -145,7 +145,7 @@ func getLogWriter(logPath string) zapcore.WriteSyncer {
 
 func GetTraceId(ctx context.Context) string {
 	if traceId, ok := ctx.Value("trace_id").(string); ok {
-		return fmt.Sprintf("【trace_id:%s】", traceId)
+		return fmt.Sprintf("[trace_id:%s]", traceId)
 	} else {
 		return ""
 	}
