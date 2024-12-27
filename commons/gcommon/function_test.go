@@ -285,7 +285,7 @@ func TestEncode(t *testing.T) {
 
 func TestSnowflake(t *testing.T) {
 	t.Log(gid.RandSnowflakeID())
-	t.Log(gid.RandID())
+	t.Log(gid.RandServerID())
 	t.Log(RangeNum[float64](1.4, 11001.1214))
 	t.Log(RangeNum[float32](1.4, 11001.1214))
 	t.Log(RangeNum[int32](1, 100))

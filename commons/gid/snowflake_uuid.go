@@ -32,7 +32,7 @@ type IDWorker struct {
 	mutex         sync.Mutex
 }
 
-func NewIDWorker(workerId int64) (*IDWorker, error) {
+func NewWorkerID(workerId int64) (*IDWorker, error) {
 	if workerId < 0 || workerId > maxWorker {
 		return nil, fmt.Errorf("worker ID can't be greater than %d or less than 0", maxWorker)
 	}
@@ -77,7 +77,7 @@ func (w *IDWorker) nextMillisecond(currentTimestamp int64) int64 {
 
 func RandSnowflakeID() int64 {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	worker, _ := NewIDWorker(int64(r.Intn(gcast.ToInt(maxWorker))))
+	worker, _ := NewWorkerID(int64(r.Intn(gcast.ToInt(maxWorker))))
 	id, _ := worker.NextID()
 	return id
 }

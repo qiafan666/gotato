@@ -7,7 +7,7 @@ import (
 )
 
 func TestSnowFlakeUUID(t *testing.T) {
-	worker, err := NewIDWorker(1)
+	worker, err := NewWorkerID(1)
 	if err != nil {
 		fmt.Println(err)
 		return

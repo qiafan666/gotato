@@ -31,8 +31,8 @@ const MaxCounterInSecond = (1 << CounterBits) - 1
 // 2024-01-01 00:00:00 标准时间，不得修改
 const epoch = 1704038400
 
-// Init 初始化服务器ID
-func Init(sid int) {
+// NewServerID 初始化服务器ID
+func NewServerID(sid int) {
 	maxID := 1<<(ServerIdBits) - 1
 	if sid > maxID {
 		panic(fmt.Sprintf("Init fail; sid %d must be lower or equal than %d", sid, maxID))
@@ -50,8 +50,8 @@ var idCounter = int64(0)
 // 上一次Counter重置时的时间戳
 var lastCounterResetTs int64
 
-// NewID 获取一个唯一ID
-func NewID() int64 {
+// ServerID 获取一个唯一ID
+func ServerID() int64 {
 	now := time.Now().Unix()
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -70,15 +70,15 @@ func NewID() int64 {
 	return (now-epoch)<<(ServerIdBits+CounterBits) | serverID<<CounterBits | idCounter
 }
 
-// ParseID 解析一个id
-func ParseID(id int64) (serverID int32, createAt int64) {
+// ParseServerID 解析一个id
+func ParseServerID(id int64) (serverID int32, createAt int64) {
 	createAt = (id >> (ServerIdBits + CounterBits)) + epoch
 	serverID = int32(uint32(id) >> CounterBits)
 	return serverID, createAt
 }
 
-// RandID 生成一个随机ID serverID 随机
-func RandID() int64 {
+// RandServerID 生成一个随机ID serverID 随机
+func RandServerID() int64 {
 	now := time.Now().Unix()
 	mutex.Lock()
 	defer mutex.Unlock()

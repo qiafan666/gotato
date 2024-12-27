@@ -48,7 +48,7 @@ func (c *Client) Call(s IServer, req any) *AckCtx {
 
 // CallT 同步带超时调用
 func (c *Client) CallT(s IServer, req any, timeout time.Duration) *AckCtx {
-	reqID := gid.NewID()
+	reqID := gid.ServerID()
 	reqCtx := &ReqCtx{
 		reqID:   reqID,
 		id:      MsgID(req),
@@ -86,7 +86,7 @@ func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout
 		cb(ackCtx)
 		return
 	}
-	reqID := gid.NewID()
+	reqID := gid.ServerID()
 	reqCtx := &ReqCtx{
 		reqID:   reqID,
 		id:      MsgID(req),
