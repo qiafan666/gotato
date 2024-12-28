@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/qiafan666/gotato/commons/gapp"
-	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
-	"github.com/qiafan666/gotato/commons/gapp/example/def"
-	"github.com/qiafan666/gotato/commons/gapp/example/module1"
-	"github.com/qiafan666/gotato/commons/gapp/example/module2"
-	"github.com/qiafan666/gotato/commons/gapp/example/module3"
-	"github.com/qiafan666/gotato/commons/gapp/timer"
+	"github.com/qiafan666/gotato/commons/gapp2"
+	"github.com/qiafan666/gotato/commons/gapp2/chanrpc"
+	"github.com/qiafan666/gotato/commons/gapp2/example/def"
+	"github.com/qiafan666/gotato/commons/gapp2/example/module1"
+	"github.com/qiafan666/gotato/commons/gapp2/example/module2"
+	"github.com/qiafan666/gotato/commons/gapp2/example/module3"
+	"github.com/qiafan666/gotato/commons/gapp2/timer"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
 	"log"
 	"time"
@@ -35,15 +35,15 @@ func main() {
 	m1 := module1.NewModule()
 	m2 := module2.NewModule()
 	m3 := module3.NewModule()
-	gapp.DefaultApp().Start(&StdLogger{}, m1, m2, m3)
+	gapp2.DefaultApp().Start(&StdLogger{}, m1, m2, m3)
 
 	// m1.ChanSrv().Cast(&iproto.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
 	// 异步消息
-	m2.Cast(def.TEST1, &def.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
+	m2.Cast(1111, def.TEST1, &def.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
 	// 异步回调
-	m2.AsyncCall(def.TEST1, &def.Test1Req{
+	m2.AsyncCall(222, def.TEST1, &def.Test1Req{
 		PlayerID: 222,
 		Name:     "ning2",
 		T1:       []int64{2, 3, 4},
@@ -56,7 +56,7 @@ func main() {
 	}, nil)
 
 	// 异步回调带上下文
-	m2.AsyncCall(def.TEST1, &def.Test1Req{
+	m2.AsyncCall(333, def.TEST1, &def.Test1Req{
 		PlayerID: 222,
 		Name:     "ning2",
 		T1:       []int64{3, 4, 5},
@@ -69,7 +69,7 @@ func main() {
 	}, sval.M{"111": sval.Int64(4444)})
 
 	// 同步调用
-	ret := m2.Call(def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
+	ret := m2.Call(444, def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
 	if ret.Err != nil {
 		log.Printf("call err:%v", ret.Err)
 	} else {
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// 同步调用actor
-	actorRet := m2.CallActor(def.TEST3, 111, &def.Test1ActorReq{PlayerID: 444, Name: "ning4", T1: []int64{4, 5, 6}})
+	actorRet := m2.CallActor(555, def.TEST3, 111, &def.Test1ActorReq{PlayerID: 444, Name: "ning4", T1: []int64{4, 5, 6}})
 	if actorRet.Err != nil {
 		log.Printf("call actor err:%v", actorRet.Err)
 	} else {

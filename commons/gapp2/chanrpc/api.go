@@ -1,0 +1,39 @@
+package chanrpc
+
+import (
+	"errors"
+	"github.com/qiafan666/gotato/commons/gcommon/sval"
+	"time"
+)
+
+// chanrpc 对端错误定义，用于Cast/Call/AsyncCall，使用errors Wrap机制
+// 因此请使用errros.Is(err, ErrPeerPanic)判断错误类型，而非直接"=="
+var (
+	ErrPeerChanRPCClosed    = errors.New("peer chanrpc closed")
+	ErrPeerMsgNotRegsitered = errors.New("msg not register")
+	ErrPeerChanRPCFull      = errors.New("peer chanrpc full")
+	ErrPeerPanic            = errors.New("peer panic")
+	ErrTimeout              = errors.New("timeout")
+)
+
+// IServer chanrpc server接口
+type IServer interface {
+	// API
+	Register(msg any, f Handler)
+	RegisterByName(msgName string, f Handler)
+	Cast(uid uint32, req any)
+	Call(uid uint32, req any) *AckCtx
+	CallT(uid uint32, req any, timeout time.Duration) *AckCtx
+	PendReq(reqCtx *ReqCtx, block bool)
+	Len() int // 当前消息队列长度
+}
+
+// IClient chanrpc client接口
+type IClient interface {
+	// API
+	Call(uid uint32, s IServer, req any) *AckCtx
+	CallT(uid uint32, s IServer, req any, timeout time.Duration) *AckCtx
+	AsyncCall(uid uint32, s IServer, req any, cb Callback, ctx sval.M)
+	AsyncCallT(uid uint32, s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration)
+	ChanAck() chan *AckCtx
+}
