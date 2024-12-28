@@ -92,25 +92,17 @@ func (hook *FeiShuHook) DefaultRegisterHook() {
 		hook.stats[caller] = nowSec
 		hook.accCount++
 
+		ip, _ := gcommon.GetLocalIP()
+
 		// 组装飞书消息
 		sb := strings.Builder{}
-		sb.WriteString(entry.Time.Format(time.DateTime))
-		sb.WriteString(" | ")
-		sb.WriteString(entry.Level.String())
-		sb.WriteString(" | ")
-		sb.WriteString(caller)
-		sb.WriteString(" | ")
-		sb.WriteString(entry.Message)
-		if entry.Stack != "" {
-			sb.WriteString(" | ")
-			sb.WriteString(entry.Stack)
-		}
-
-		ip, err := gcommon.GetLocalIP()
-		if err == nil {
-			sb.WriteString(" | ")
-			sb.WriteString(ip)
-		}
+		sb.WriteString(gcommon.Kv2Str("",
+			"time", entry.Time.Format(time.DateTime),
+			"level", entry.Level.String(),
+			"caller", caller,
+			"message", entry.Message,
+			"stack", entry.Stack,
+			"ip", ip))
 
 		payload := map[string]string{
 			"group_id": hook.groupID,
