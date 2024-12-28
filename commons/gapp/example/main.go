@@ -69,7 +69,7 @@ func main() {
 	}, sval.M{"111": sval.Int64(4444)})
 
 	// 同步调用
-	ret := m2.Call(def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
+	ret := m2.Call(def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}}, 3234)
 	if ret.Err != nil {
 		log.Printf("call err:%v", ret.Err)
 	} else {

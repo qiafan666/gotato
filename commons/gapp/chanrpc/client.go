@@ -42,24 +42,26 @@ func NewClient(l int) *Client {
 }
 
 // Call 同步调用
-func (c *Client) Call(s IServer, req any) *AckCtx {
-	return c.CallT(s, req, defaultTimeout)
+func (c *Client) Call(s IServer, req any, uid ...uint32) *AckCtx {
+	return c.CallT(s, req, defaultTimeout, uid...)
 }
 
 // CallT 同步带超时调用
-func (c *Client) CallT(s IServer, req any, timeout time.Duration) *AckCtx {
+func (c *Client) CallT(s IServer, req any, timeout time.Duration, uid ...uint32) *AckCtx {
 	reqID := gid.ID()
 	reqCtx := &ReqCtx{
 		reqID:   reqID,
 		id:      MsgID(req),
 		Req:     req,
 		chanAck: c.chanSyncAck,
+		uid:     getUid(uid...),
 	}
 	timer.NewSysDelegate().NewTimer(0, reqID, time.Now().UnixMilli()+timeout.Milliseconds(), func(i int64) {
 		logger.DefaultLogger.WarnF("chanrpc Client CallT timeout req:%+v msg id:%v server msg len:%v stat name:%s", req, reqCtx.id, s.Len(), reqCtx.GetStatName())
 		reqCtx.PendAck(&AckCtx{
 			reqID: reqID,
 			Err:   ErrTimeout,
+			uid:   getUid(uid...),
 		})
 	})
 	s.PendReq(reqCtx, true)
@@ -69,19 +71,21 @@ func (c *Client) CallT(s IServer, req any, timeout time.Duration) *AckCtx {
 		ackCtx = <-c.chanSyncAck
 	}
 	timer.NewSysDelegate().CancelTimer(reqID)
+	ackCtx.uid = getUid(uid...)
 	return ackCtx
 }
 
 // AsyncCall 异步调用，使用默认超时，函数本身不返回error，所有的error都在回调中处理
-func (c *Client) AsyncCall(s IServer, req any, cb Callback, ctx sval.M) {
-	c.AsyncCallT(s, req, cb, ctx, defaultTimeout)
+func (c *Client) AsyncCall(s IServer, req any, cb Callback, ctx sval.M, uid ...uint32) {
+	c.AsyncCallT(s, req, cb, ctx, defaultTimeout, uid...)
 }
 
 // AsyncCallT 异步调用，函数本身不返回error，所有的error都在回调中处理
-func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration) {
+func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration, uid ...uint32) {
 	if c.chanAsyncAck == nil || cap(c.chanAsyncAck) == 0 {
 		ackCtx := &AckCtx{
 			Err: errors.New("invalid asyncCallLen"),
+			uid: getUid(uid...),
 		}
 		cb(ackCtx)
 		return
@@ -92,6 +96,7 @@ func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout
 		id:      MsgID(req),
 		Req:     req,
 		chanAck: c.chanAsyncAck,
+		uid:     getUid(uid...),
 	}
 	// 复用唯一请求ID，作为TimerID
 	deadlineTs := time.Now().UnixMilli() + timeout.Milliseconds()
@@ -122,6 +127,7 @@ func (c *Client) checkExpiredAsyncReqs() {
 			pendOk := info.reqCtx.PendAck(&AckCtx{
 				Err:   ErrTimeout,
 				reqID: reqID,
+				uid:   info.reqCtx.uid,
 			})
 			// 如果 pend 成功，则标记下，否则下一轮还会重复pend
 			if pendOk {

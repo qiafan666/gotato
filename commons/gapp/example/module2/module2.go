@@ -70,8 +70,8 @@ func (m *Module2) AsyncCall(modName string, req any, callback chanrpc.Callback, 
 }
 
 // Call 同步调用，逻辑层面的Call都应该加上超时
-func (m *Module2) Call(modName string, req any) *chanrpc.AckCtx {
-	return m.skeleton.Client().CallT(gapp.DefaultApp().GetChanSrv(modName), req, 5*time.Second)
+func (m *Module2) Call(modName string, req any, uid uint32) *chanrpc.AckCtx {
+	return m.skeleton.Client().CallT(gapp.DefaultApp().GetChanSrv(modName), req, 5*time.Second, uid)
 }
 
 // CallActor 同步调用，逻辑层面的Call都应该加上超时

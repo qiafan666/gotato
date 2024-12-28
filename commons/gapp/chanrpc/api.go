@@ -21,9 +21,9 @@ type IServer interface {
 	// API
 	Register(msg any, f Handler)
 	RegisterByName(msgName string, f Handler)
-	Cast(req any)
-	Call(req any) *AckCtx
-	CallT(req any, timeout time.Duration) *AckCtx
+	Cast(req any, uid ...uint32)
+	Call(req any, uid ...uint32) *AckCtx
+	CallT(req any, timeout time.Duration, uid ...uint32) *AckCtx
 	PendReq(reqCtx *ReqCtx, block bool)
 	Len() int // 当前消息队列长度
 }
@@ -31,9 +31,9 @@ type IServer interface {
 // IClient chanrpc client接口
 type IClient interface {
 	// API
-	Call(s IServer, req any) *AckCtx
-	CallT(s IServer, req any, timeout time.Duration) *AckCtx
-	AsyncCall(s IServer, req any, cb Callback, ctx sval.M)
-	AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration)
+	Call(s IServer, req any, uid ...uint32) *AckCtx
+	CallT(s IServer, req any, timeout time.Duration, uid ...uint32) *AckCtx
+	AsyncCall(s IServer, req any, cb Callback, ctx sval.M, uid ...uint32)
+	AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration, uid ...uint32)
 	ChanAck() chan *AckCtx
 }

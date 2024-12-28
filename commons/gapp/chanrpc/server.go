@@ -83,24 +83,25 @@ func (s *Server) Exec(reqCtx *ReqCtx) {
 }
 
 // Cast 异步投递消息
-func (s *Server) Cast(req any) {
+func (s *Server) Cast(req any, uid ...uint32) {
 	id := MsgID(req)
 	reqCtx := &ReqCtx{
 		reqID: gid.ID(),
 		id:    id,
 		Req:   req,
+		uid:   getUid(uid...),
 	}
 	s.PendReq(reqCtx, false)
 }
 
 // Call 发起同步调用，不带超时机制
-func (s *Server) Call(req any) *AckCtx {
-	return NewClient(0).Call(s, req)
+func (s *Server) Call(req any, uid ...uint32) *AckCtx {
+	return NewClient(0).Call(s, req, uid...)
 }
 
 // CallT 发起同步调用，带超时机制
-func (s *Server) CallT(req any, timeout time.Duration) *AckCtx {
-	return NewClient(0).CallT(s, req, timeout)
+func (s *Server) CallT(req any, timeout time.Duration, uid ...uint32) *AckCtx {
+	return NewClient(0).CallT(s, req, timeout, uid...)
 }
 
 // ChanReq 返回Call Channel
