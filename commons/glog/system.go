@@ -29,11 +29,6 @@ var GormSkip = 5
 // GormSlowSqlDuration 慢sql日志打印的阈值
 var GormSlowSqlDuration = time.Second * 3
 
-// Encoder 日志格式，可选择
-// DevEncoder 开发测试环境用这个
-// SimpleEncoder 稳定环境用这个
-var Encoder = DevEncoder()
-
 type Logger struct {
 }
 
@@ -46,7 +41,14 @@ func init() {
 	}
 
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
-	core := zapcore.NewCore(Encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+
+	var encoder zapcore.Encoder
+	if gconfig.SC.SConfigure.FunctionName {
+		encoder = DevEncoder()
+	} else {
+		encoder = SimpleEncoder()
+	}
+	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
 	if gconfig.SC.FeiShuConfig.Enable {
 		FeiShu = NewFeiShuHook(gconfig.SC.FeiShuConfig.Url, gconfig.SC.FeiShuConfig.GroupId)
@@ -66,7 +68,13 @@ func ReInit() {
 		SlowSqlTime:               GormSlowSqlDuration,
 	}
 	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", gconfig.SC.SConfigure.LogPath, gconfig.SC.SConfigure.LogName))
-	core := zapcore.NewCore(Encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	var encoder zapcore.Encoder
+	if gconfig.SC.SConfigure.FunctionName {
+		encoder = DevEncoder()
+	} else {
+		encoder = SimpleEncoder()
+	}
+	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
 	if gconfig.SC.FeiShuConfig.Enable {
 		FeiShu = NewFeiShuHook(gconfig.SC.FeiShuConfig.Url, gconfig.SC.FeiShuConfig.GroupId)
@@ -109,9 +117,20 @@ func DevEncoder() zapcore.Encoder {
 			// 提取方法名
 			funcName := runtime.FuncForPC(caller.PC).Name()
 			if funcName != "" {
-				lastDot := strings.LastIndex(funcName, ".")
-				if lastDot != -1 {
-					funcName = funcName[lastDot+1:] // 提取方法名
+				// 分割并提取最后一级方法名
+				split := strings.Split(funcName, ".")
+				if len(split) > 2 {
+					if strings.HasPrefix(split[len(split)-1], "func") {
+						funcName = split[len(split)-2]
+					} else {
+						funcName = split[len(split)-1] // 只有方法名
+					}
+				} else if len(split) == 2 {
+					funcName = split[1] // 只有方法名
+				} else if len(split) == 1 {
+					funcName = split[0] // 只有方法名
+				} else {
+					funcName = "unknown"
 				}
 			} else {
 				funcName = "unknown"

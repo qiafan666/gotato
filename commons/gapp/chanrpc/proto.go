@@ -26,7 +26,6 @@ type ReqCtx struct {
 	Req     any          // 入参
 	chanAck chan *AckCtx // 结果信息返回通道
 	replied bool         // 是否已经返回 由被调用方使用
-	uid     uint32       // 调用方ID
 }
 
 // ReqID 返回唯一请求ID
@@ -98,18 +97,12 @@ func (reqCtx *ReqCtx) GetStatName() string {
 	return reflect.TypeOf(reqCtx.Req).String()
 }
 
-// GetUid 获取调用方ID
-func (reqCtx *ReqCtx) GetUid() uint32 {
-	return reqCtx.uid
-}
-
 // AckCtx 结果信息
 type AckCtx struct {
 	reqID int64
 	Ack   any   // 结果值 作为回调函数的入参
 	Err   error // 错误
 	Ctx   sval.M
-	uid   uint32 // 调用方ID
 }
 
 // GetStatName 获取消息统计Key
@@ -119,11 +112,6 @@ func (ackCtx *AckCtx) GetStatName() string {
 	}
 
 	return reflect.TypeOf(ackCtx.Ack).String()
-}
-
-// GetUid 获取调用方ID
-func (ackCtx *AckCtx) GetUid() uint32 {
-	return ackCtx.uid
 }
 
 // IMsgID 消息可实现该接口来自定义MsgID，达成如消息结构体复用等高级功能

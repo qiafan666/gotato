@@ -10,6 +10,7 @@ server:
   logPath: .\log
   logName:  iris
   simple_stdout: false
+  function_name: true
 swagger:
   enable: true
   ui_path: /swagger/

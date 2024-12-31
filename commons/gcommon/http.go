@@ -12,7 +12,7 @@ type ProxyRequestHeader struct {
 	ContentType string
 }
 
-var TimeOut = time.Second * 5
+var TimeOut = time.Second * 3
 
 func ProxyRequest(method string, header http.Header, url string, body []byte) (response []byte, respHeader ProxyRequestHeader, err error) {
 	req := fasthttp.AcquireRequest()
@@ -34,11 +34,15 @@ func ProxyRequest(method string, header http.Header, url string, body []byte) (r
 	return resp.Body(), ProxyRequestHeader{ContentType: string(resp.Header.ContentType())}, nil
 }
 
-// GetRequestURL append request url
+// GetRequestURL 获取请求的url地址 map转换为url参数
 func GetRequestURL(url string, params map[string]string) string {
+	if len(params) == 0 {
+		return url
+	}
+
 	var urlAddress = ""
-	lastCharctor := url[len(url)-1:]
-	if lastCharctor == "?" {
+	lastChar := url[len(url)-1:]
+	if lastChar == "?" {
 		urlAddress = url + urlAddress
 	} else {
 		urlAddress = url + "?" + urlAddress

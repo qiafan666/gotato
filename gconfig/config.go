@@ -141,6 +141,7 @@ type ServerBaseConfig struct {
 	LogName      string `yaml:"logName"`
 	ConfigPath   string `yaml:"configPath"`
 	SimpleStdout bool   `yaml:"simple_stdout"`
+	FunctionName bool   `yaml:"function_name"`
 }
 type ServerConfig struct {
 	SConfigure    ServerBaseConfig `yaml:"server"`
