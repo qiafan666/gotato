@@ -85,7 +85,7 @@ func (tm *TimerMgr) initAfterDB() {
 		})
 	}
 	tm.dispatcher.BatchNewTimers(ops)
-	tm.dispatcher.Logger().DebugF("timermgr initAfterDB: ops %v", len(ops))
+	tm.dispatcher.Logger().DebugF(nil, "timermgr initAfterDB: ops %v", len(ops))
 }
 
 // 添加一个timer
@@ -141,7 +141,7 @@ func (tm *TimerMgr) timerCommonCb(timerID int64) {
 	}
 	now := logictime.NowMs()
 	if now < t.EndTs {
-		tm.dispatcher.Logger().ErrorF("timerCommonCb timer endTs smaller than nowMs")
+		tm.dispatcher.Logger().ErrorF(nil, "timerCommonCb timer endTs smaller than nowMs")
 	}
 	timerType := t.TimerType
 	f := tm.handlers[timerType].handler
@@ -184,7 +184,7 @@ func (tm *TimerMgr) GetTimerByType(timerType int32) *Timer {
 func (tm *TimerMgr) newTimer(startTs, endTs int64, timerType int32, timerData sval.M, isTicker bool) int64 {
 	h, ok := tm.handlers[timerType]
 	if !ok {
-		tm.dispatcher.Logger().ErrorF("timer type %v cannot found", timerType)
+		tm.dispatcher.Logger().ErrorF(nil, "timer type %v cannot founnil,d", timerType)
 		return 0
 	}
 	timerID := tm.dispatcher.NewTimer(timerType, 0, endTs, tm.timerCommonCb)
@@ -287,7 +287,7 @@ func (tm *TimerMgr) DelayTimer(timerID int64, accType AccType, value int64) erro
 // CancelTimer 取消一个定时器
 func (tm *TimerMgr) CancelTimer(timerID int64) {
 	if timerID == 0 {
-		tm.dispatcher.Logger().ErrorF("TimerMgr CancelTimer timerID = 0")
+		tm.dispatcher.Logger().ErrorF(nil, "TimerMgr CancelTimer timerID = 0")
 		return
 	}
 	tm.dispatcher.CancelTimer(timerID)
@@ -297,11 +297,11 @@ func (tm *TimerMgr) CancelTimer(timerID int64) {
 // RegisterTimer 注册指定类型timer处理函数
 func (tm *TimerMgr) RegisterTimer(timerType int32, handler TimerHandler, needDB bool) {
 	if _, ok := tm.handlers[timerType]; ok {
-		tm.dispatcher.Logger().ErrorF("TimerMgr RegisterTimer repeat register; timerType:%d", timerType)
+		tm.dispatcher.Logger().ErrorF(nil, "TimerMgr RegisterTimer repeat register; timerType:%d", timerType)
 	}
 	// 如果TimerMgr本身以NoDB模式启动，则不能注册needDB为true的Timer
 	if tm.Timers == nil && needDB {
-		tm.dispatcher.Logger().ErrorF("TimerMgr no db RegisterTimer need db, timerType:%d", timerType)
+		tm.dispatcher.Logger().ErrorF(nil, "TimerMgr no db RegisterTimer need db, timerType:%d", timerType)
 	}
 	tti := &TimerMeta{
 		handler: handler,

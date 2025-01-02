@@ -60,7 +60,7 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 			return fmt.Errorf(gcommon.Kv2Str("StartActor gotLock false", "actorId", actorID))
 		}
 		exist, _ := m.redisClient.Exists(GenActorKeys(m.globalRedisKey, actorID))
-		logger.DefaultLogger.DebugF("StartActor actor:%v exist:%v", actorID, exist)
+		logger.DefaultLogger.DebugF(nil, "StartActor actor:%v exist:%v", actorID, exist)
 		if exist {
 			return fmt.Errorf(gcommon.Kv2Str("StartActor already exist", "actorId", actorID))
 		}
@@ -87,7 +87,7 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 	go func() {
 		defer func() {
 			stack := gcommon.PrintPanicStack()
-			logger.DefaultLogger.ErrorF("actorMgr StartActor panic error: %s", stack)
+			logger.DefaultLogger.ErrorF(nil, "actorMgr StartActor panic error: %s", stack)
 		}()
 		defer m.allActorWg.Done()
 		defer a.wg.Done()
@@ -111,13 +111,13 @@ func (m *Mgr) StopActor(actorID int64, syncWait bool) {
 	}()
 	a := m.GetActor(actorID)
 	if a == nil {
-		logger.DefaultLogger.DebugF("stop actor[%d] fail", actorID)
+		logger.DefaultLogger.DebugF(nil, "stop actor[%d] fail", actorID)
 		return
 	}
 	// 删除actor的redis数据
 	if m.globalRedisKey != "" && m.redisClient != nil {
 		_, err := m.redisClient.Del(GenActorKeys(m.globalRedisKey, actorID))
-		logger.DefaultLogger.DebugF("del actor[%d] key result[%v]", actorID, err)
+		logger.DefaultLogger.DebugF(nil, "del actor[%d] key result[%v]", actorID, err)
 	}
 	a.Stop(syncWait)
 }
@@ -133,7 +133,7 @@ func (m *Mgr) StopAllActor(syncWait bool) {
 		return true
 	})
 	// 删除redis actor数据
-	logger.DefaultLogger.InfoF("StopAllActor actorIDs%v global redis key[%v] redisC[%v]", actorIDs, m.globalRedisKey, m.redisClient != nil)
+	logger.DefaultLogger.InfoF(nil, "StopAllActor actorIDs%v global redis key[%v] redisC[%v]", actorIDs, m.globalRedisKey, m.redisClient != nil)
 	if len(actorIDs) > 0 && m.globalRedisKey != "" && m.redisClient != nil {
 		keys := make([]string, 0, len(actorIDs))
 		for _, actorID := range actorIDs {
@@ -141,7 +141,7 @@ func (m *Mgr) StopAllActor(syncWait bool) {
 		}
 		_, err := m.redisClient.Del(keys...)
 		if err != nil {
-			logger.DefaultLogger.ErrorF("StopActor and del redis role actor err: %v", err)
+			logger.DefaultLogger.ErrorF(nil, "StopActor and del redis role actor err: %v", err)
 		}
 	}
 
@@ -171,7 +171,7 @@ func (m *Mgr) GetActorChanSrv(actorID int64) chanrpc.IServer {
 // delActor 删除指定Actor
 func (m *Mgr) delActor(actorID int64) {
 	m.Actors.Delete(actorID)
-	logger.DefaultLogger.DebugF("delActor[%d]", actorID)
+	logger.DefaultLogger.DebugF(nil, "delActor[%d]", actorID)
 }
 
 // SetCreator 重设新的Creator

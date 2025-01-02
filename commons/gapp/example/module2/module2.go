@@ -1,6 +1,7 @@
 package module2
 
 import (
+	"context"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
@@ -8,6 +9,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/module"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
 	"github.com/qiafan666/gotato/commons/gface"
+	"github.com/qiafan666/gotato/commons/glog"
 	"go.uber.org/zap"
 	"log"
 	"time"
@@ -37,7 +39,7 @@ func (m *Module2) OnInit() error {
 	return nil
 }
 
-func (m *Module2) onHandleTest1(ci *chanrpc.ReqCtx) {
+func (m *Module2) onHandleTest1(ctx context.Context, ci *chanrpc.ReqCtx) {
 	//req := ci.Req.(*iproto.Test1Ntf)
 	//fmt.Printf("onHandleTest1 msg:%+v\n", req)
 }
@@ -68,36 +70,36 @@ func (m *Module2) Logger() gface.Logger {
 
 type logger struct{}
 
-func (l *logger) ErrorF(format string, args ...interface{}) {
+func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) WarnF(format string, args ...interface{}) {
+func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) InfoF(format string, args ...interface{}) {
+func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Infof(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) DebugF(format string, args ...interface{}) {
+func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *logger) Logger() *zap.SugaredLogger {
-	return def.ZapLog
+	return nil
 }
 func (l *logger) Prefix() string {
 	return "module2"
@@ -106,26 +108,26 @@ func (l *logger) Prefix() string {
 // --------------------------------------模块初始化相关----------------------------------
 
 // Cast 异步调用
-func (m *Module2) Cast(modName string, msg any) {
-	gapp.DefaultApp().GetChanSrv(modName).Cast(msg)
+func (m *Module2) Cast(ctx context.Context, modName string, msg any) {
+	gapp.DefaultApp().GetChanSrv(modName).Cast(ctx, msg)
 }
 
 // AsyncCall 异步调用
-func (m *Module2) AsyncCall(modName string, req any, callback chanrpc.Callback, ctx sval.M) {
-	m.skeleton.Client().AsyncCall(gapp.DefaultApp().GetChanSrv(modName), req, callback, ctx)
+func (m *Module2) AsyncCall(ctx context.Context, modName string, req any, callback chanrpc.Callback, sm sval.M) {
+	m.skeleton.Client().AsyncCall(gapp.DefaultApp().GetChanSrv(modName), ctx, req, callback, sm)
 }
 
 // Call 同步调用，逻辑层面的Call都应该加上超时
-func (m *Module2) Call(modName string, req any) *chanrpc.AckCtx {
-	return m.skeleton.Client().CallT(gapp.DefaultApp().GetChanSrv(modName), req, 5*time.Second)
+func (m *Module2) Call(ctx context.Context, modName string, req any) *chanrpc.AckCtx {
+	return m.skeleton.Client().CallT(gapp.DefaultApp().GetChanSrv(modName), ctx, req, 5*time.Second)
 }
 
 // CallActor 同步调用，逻辑层面的Call都应该加上超时
-func (m *Module2) CallActor(modName string, actorID int64, req any) *chanrpc.AckCtx {
-	return m.skeleton.Client().CallT(gapp.DefaultApp().GetActorChanSrv(modName, actorID), req, 5*time.Second)
+func (m *Module2) CallActor(ctx context.Context, modName string, actorID int64, req any) *chanrpc.AckCtx {
+	return m.skeleton.Client().CallT(gapp.DefaultApp().GetActorChanSrv(modName, actorID), ctx, req, 5*time.Second)
 }
 
 // CastActor 同步调用，逻辑层面的Call都应该加上超时
-func (m *Module2) CastActor(modName string, actorID int64, req any) {
-	gapp.DefaultApp().GetActorChanSrv(modName, actorID).Cast(req)
+func (m *Module2) CastActor(ctx context.Context, modName string, actorID int64, req any) {
+	gapp.DefaultApp().GetActorChanSrv(modName, actorID).Cast(ctx, req)
 }

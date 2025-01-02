@@ -12,7 +12,7 @@ func (disp *Dispatcher) doOp(op any) {
 	case *BatchOp:
 		disp.doBatchOp(o)
 	default:
-		disp.logger.ErrorF("unknown type of op: %v", op)
+		disp.logger.ErrorF(nil, "unknown type of op: %v", op)
 	}
 }
 
@@ -32,7 +32,7 @@ func (disp *Dispatcher) doUpdateOp(op *UpdateOp) {
 	// 找到并删除Timer
 	old := disp.delete(op.TimerID)
 	if old == nil {
-		disp.logger.ErrorF("update TimerId=%d, not found", op.TimerID)
+		disp.logger.ErrorF(nil, "update TimerId=%d, not found", op.TimerID)
 		return
 	}
 

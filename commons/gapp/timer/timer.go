@@ -31,7 +31,7 @@ type Timer struct {
 func (t *Timer) Cb() {
 	defer func() {
 		if stack := gcommon.PrintPanicStack(); stack != "" {
-			t.logger.ErrorF("Timer Cb panic error: %s", stack)
+			t.logger.ErrorF(nil, "Timer Cb panic error: %s", stack)
 		}
 	}()
 	defer func() {

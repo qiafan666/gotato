@@ -84,7 +84,7 @@ func (s *skeleton) Run(closeSig chan bool) {
 				cost := time.Now().UnixMicro() - ts1
 				s.stat.Add(reqCtx.GetStatName(), cost)
 				if cost > 300000 { // 大于300毫秒的warn log
-					s.logger.DebugF("skeleton exec too long cost:%v stat name:%s len:%v", cost, reqCtx.GetStatName(), s.chanSrv.Len())
+					s.logger.DebugF(nil, "skeleton exec too long cost:%v stat name:%s len:%v", cost, reqCtx.GetStatName(), s.chanSrv.Len())
 				}
 			}
 		case cb := <-s.Go.ChanCb:
@@ -105,7 +105,7 @@ func (s *skeleton) close() {
 	s.Go.Close()
 	s.chanCli.Close()
 	if s.stat != nil {
-		s.logger.InfoF("skeleton stat: %v", s.stat.Statistic())
+		s.logger.InfoF(nil, "skeleton stat: %v", s.stat.Statistic())
 	}
 }
 

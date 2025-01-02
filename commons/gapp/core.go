@@ -78,7 +78,7 @@ func (app *App) Start(l gface.Logger, mods ...module.Module) {
 
 	// 单个app不能启动两次
 	if app.GetState() != AppStateNone {
-		logger.DefaultLogger.ErrorF("app already started")
+		logger.DefaultLogger.ErrorF(nil, "app already started")
 	}
 	if len(mods) == 0 {
 		return
@@ -97,7 +97,7 @@ func (app *App) Start(l gface.Logger, mods ...module.Module) {
 	for _, m := range app.mods {
 		mi := m.mi
 		if err := mi.OnInit(); err != nil {
-			logger.DefaultLogger.ErrorF("module %v init error %v", reflect.TypeOf(mi), err)
+			logger.DefaultLogger.ErrorF(nil, "module %v init error %v", reflect.TypeOf(mi), err)
 		}
 	}
 	// 模块启动
@@ -171,7 +171,7 @@ func (app *App) GetActorChanSrv(name string, actorID int64) chanrpc.IServer {
 func (app *App) run(m *mod) {
 	defer func() {
 		stack := gcommon.PrintPanicStack()
-		logger.DefaultLogger.ErrorF("app run panic error: %s", stack)
+		logger.DefaultLogger.ErrorF(nil, "app run panic error: %s", stack)
 	}()
 	defer m.wg.Done()
 	m.mi.Run(m.closeSig)
@@ -181,7 +181,7 @@ func (app *App) run(m *mod) {
 func (app *App) destroy(m *mod) {
 	defer func() {
 		stack := gcommon.PrintPanicStack()
-		logger.DefaultLogger.ErrorF("app destroy panic error: %s", stack)
+		logger.DefaultLogger.ErrorF(nil, "app destroy panic error: %s", stack)
 	}()
 	m.mi.OnDestroy()
 }
@@ -194,7 +194,7 @@ func (app *App) Run(l gface.Logger, mods ...module.Module) {
 	for {
 		signal.Notify(app.closeSig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 		sig := <-app.closeSig
-		logger.DefaultLogger.InfoF("server closing down (signal: %v)", sig)
+		logger.DefaultLogger.InfoF(nil, "server closing down (signal: %v)", sig)
 		if sig == syscall.SIGHUP {
 			continue
 		}
@@ -209,6 +209,6 @@ func (app *App) Terminate() {
 	if app.GetState() != AppStateRun {
 		return
 	}
-	app.closeSig <- syscall.SIGUSR1
+	//app.closeSig <- syscall.SIGUSR1
 	app.wg.Wait()
 }

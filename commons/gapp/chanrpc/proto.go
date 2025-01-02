@@ -1,6 +1,7 @@
 package chanrpc
 
 import (
+	"context"
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
@@ -9,7 +10,7 @@ import (
 )
 
 // Handler 方法句柄  处理CallInfo
-type Handler func(reqCtx *ReqCtx)
+type Handler func(ctx context.Context, reqCtx *ReqCtx)
 
 // Callback 回调
 type Callback func(ackCtx *AckCtx)
@@ -21,11 +22,12 @@ type Raw struct {
 
 // ReqCtx 调用参数
 type ReqCtx struct {
-	reqID   int64        // 请求唯一ID
-	id      uint32       // 消息类型id
-	Req     any          // 入参
-	chanAck chan *AckCtx // 结果信息返回通道
-	replied bool         // 是否已经返回 由被调用方使用
+	reqID   int64           // 请求唯一ID
+	id      uint32          // 消息类型id
+	Req     any             // 入参
+	chanAck chan *AckCtx    // 结果信息返回通道
+	replied bool            // 是否已经返回 由被调用方使用
+	ctx     context.Context // 调用链ID
 }
 
 // ReqID 返回唯一请求ID
@@ -34,38 +36,40 @@ func (reqCtx *ReqCtx) ReqID() int64 {
 }
 
 // Reply 执行请求响应逻辑
-func (reqCtx *ReqCtx) Reply(ack any) {
+func (reqCtx *ReqCtx) Reply(ctx context.Context, ack any) {
 	reqCtx.doReply(&AckCtx{
 		reqID: reqCtx.reqID,
 		Ack:   ack,
+		ctx:   ctx,
 	})
 }
 
 // ReplyErr 回复通用错误信息，通常由框架层使用
-func (reqCtx *ReqCtx) ReplyErr(err error) {
+func (reqCtx *ReqCtx) ReplyErr(ctx context.Context, err error) {
 	reqCtx.doReply(&AckCtx{
 		reqID: reqCtx.reqID,
 		Err:   err,
+		ctx:   ctx,
 	})
 }
 
 func (reqCtx *ReqCtx) doReply(ackCtx *AckCtx) {
 	defer func() {
 		if stack := gcommon.PrintPanicStack(); stack != "" {
-			logger.DefaultLogger.ErrorF("chanrpc Client exec panic error: %s", stack)
+			logger.DefaultLogger.ErrorF(reqCtx.ctx, "chanrpc Client exec panic error: %s", stack)
 		}
 	}()
 	// 检查返回通道，如果是Cast消息，则忽略Reply
 	if reqCtx.chanAck == nil {
 		// 如果Cast消息遇到错误，打印日志
 		if ackCtx.Err != nil {
-			logger.DefaultLogger.ErrorF("chanrpc ReqCtx doReply cast msg %v with error: %v, msg: %+v", reflect.TypeOf(reqCtx.Req), ackCtx.Err, reqCtx.Req)
+			logger.DefaultLogger.ErrorF(reqCtx.ctx, "chanrpc ReqCtx doReply cast msg %v with error: %v, msg: %+v", reflect.TypeOf(reqCtx.Req), ackCtx.Err, reqCtx.Req)
 		}
 		return
 	}
 	// 检查是否已经被响应过
 	if reqCtx.replied {
-		logger.DefaultLogger.ErrorF("chanrpc ReqCtx doReply can not ret twice, %v", string(debug.Stack()))
+		logger.DefaultLogger.ErrorF(reqCtx.ctx, "chanrpc ReqCtx doReply can not ret twice, %v", string(debug.Stack()))
 		return
 	}
 	reqCtx.replied = true
@@ -78,7 +82,7 @@ func (reqCtx *ReqCtx) PendAck(ackCtx *AckCtx) bool {
 	case reqCtx.chanAck <- ackCtx:
 		return true
 	default:
-		logger.DefaultLogger.ErrorF("chanrpc ReqCtx PendAck channel full, Ack: %v, Err: %v", ackCtx.Ack, ackCtx.Err)
+		logger.DefaultLogger.ErrorF(reqCtx.ctx, "chanrpc ReqCtx PendAck channel full, Ack: %v, Err: %v", ackCtx.Ack, ackCtx.Err)
 		return false
 	}
 }
@@ -102,7 +106,8 @@ type AckCtx struct {
 	reqID int64
 	Ack   any   // 结果值 作为回调函数的入参
 	Err   error // 错误
-	Ctx   sval.M
+	M     sval.M
+	ctx   context.Context
 }
 
 // GetStatName 获取消息统计Key
@@ -129,12 +134,4 @@ func MsgID(m any) uint32 {
 		return gcommon.Str2Uint32(typ.Name())
 	}
 	return gcommon.Str2Uint32(typ.Elem().Name())
-}
-
-// getUid 内部方法
-func getUid(uid ...uint32) uint32 {
-	if len(uid) > 0 {
-		return uid[0]
-	}
-	return 0
 }

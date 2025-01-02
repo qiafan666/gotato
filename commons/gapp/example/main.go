@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
@@ -10,6 +11,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/example/module3"
 	"github.com/qiafan666/gotato/commons/gapp/timer"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
+	"github.com/qiafan666/gotato/commons/glog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -24,32 +26,32 @@ import (
 
 type logger struct{}
 
-func (l *logger) ErrorF(format string, args ...interface{}) {
+func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) WarnF(format string, args ...interface{}) {
+func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) InfoF(format string, args ...interface{}) {
+func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Infof(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) DebugF(format string, args ...interface{}) {
+func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *logger) Logger() *zap.SugaredLogger {
@@ -71,10 +73,17 @@ func main() {
 	// m1.ChanSrv().Cast(&iproto.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
 	// 异步消息
-	m2.Cast(def.TEST1, &def.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
+	m2.Cast(glog.SetTraceId("m2 cast ctx"), def.TEST1, &def.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
+	ackCtx := m2.Call(glog.SetTraceId("m2 call ctx"), def.TEST1, &def.Test1Req{PlayerID: 222, Name: "ning2", T1: []int64{2, 3, 4}})
+	if ackCtx.Err != nil {
+		m2.Logger().ErrorF(glog.SetTraceId("m2 call ctx"), "call err:%v", ackCtx.Err)
+	} else {
+		ack := ackCtx.Ack.(*def.Test1Ack)
+		m2.Logger().InfoF(glog.SetTraceId("m2 call result"), "call ret:%v", ack)
+	}
 	// 异步回调
-	m2.AsyncCall(def.TEST1, &def.Test1Req{
+	m2.AsyncCall(glog.SetTraceId("m2 AsyncCall ctx"), def.TEST1, &def.Test1Req{
 		PlayerID: 222,
 		Name:     "ning2",
 		T1:       []int64{2, 3, 4},
@@ -83,11 +92,11 @@ func main() {
 			return
 		}
 		ack := ackCtx.Ack.(*def.Test1Ack)
-		m2.Logger().InfoF("async call:%+v", ack)
+		m2.Logger().InfoF(glog.SetTraceId("m2 AsyncCall ctx"), "async call:%+v", ack)
 	}, nil)
 
 	// 异步回调带上下文
-	m2.AsyncCall(def.TEST1, &def.Test1Req{
+	m2.AsyncCall(glog.SetTraceId("m2 AsyncCall ctx"), def.TEST1, &def.Test1Req{
 		PlayerID: 222,
 		Name:     "ning2",
 		T1:       []int64{3, 4, 5},
@@ -96,11 +105,11 @@ func main() {
 			return
 		}
 		ack := ackCtx.Ack.(*def.Test1Ack)
-		log.Printf("async call with ctx:%+v %+v", ack, ackCtx.Ctx)
+		m2.Logger().WarnF(glog.SetTraceId("m2 AsyncCall ctx"), "async call with ctx:%+v %+v", ack, ackCtx.M)
 	}, sval.M{"111": sval.Int64(4444)})
 
 	// 同步调用
-	ret := m2.Call(def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
+	ret := m2.Call(glog.SetTraceId("m2 call ctx"), def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
 	if ret.Err != nil {
 		log.Printf("call err:%v", ret.Err)
 	} else {
@@ -109,11 +118,12 @@ func main() {
 	}
 
 	// 同步调用actor
-	actorRet := m2.CallActor(def.TEST3, 111, &def.Test1ActorReq{PlayerID: 444, Name: "ning4", T1: []int64{4, 5, 6}})
+	actorRet := m2.CallActor(glog.SetTraceId("m2 callActor"), def.TEST3, 111, &def.Test1ActorReq{PlayerID: 444, Name: "ning4", T1: []int64{4, 5, 6}})
 	if actorRet.Err != nil {
 		log.Printf("call actor err:%v", actorRet.Err)
 	} else {
 		ack := actorRet.Ack.(*def.Test1ActorAck)
+
 		log.Printf("call actor ret:%+v", ack)
 	}
 	time.Sleep(3 * time.Second)

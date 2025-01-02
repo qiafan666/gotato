@@ -27,7 +27,7 @@ func (g *Go) SafeGo(f, cb func()) {
 	go func() {
 		defer func() {
 			stack := gcommon.PrintPanicStack()
-			logger.DefaultLogger.ErrorF("go SafeGo panic error: %s", stack)
+			logger.DefaultLogger.ErrorF(nil, "go SafeGo panic error: %s", stack)
 		}()
 		defer func() {
 			g.ChanCb <- cb
@@ -40,7 +40,7 @@ func (g *Go) SafeGo(f, cb func()) {
 func (g *Go) Cb(cb func()) {
 	defer func() {
 		stack := gcommon.PrintPanicStack()
-		logger.DefaultLogger.ErrorF("go Cb panic error: %s", stack)
+		logger.DefaultLogger.ErrorF(nil, "go Cb panic error: %s", stack)
 	}()
 	defer func() {
 		g.pendingGo--

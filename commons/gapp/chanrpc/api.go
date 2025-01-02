@@ -1,6 +1,7 @@
 package chanrpc
 
 import (
+	"context"
 	"errors"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
 	"time"
@@ -21,9 +22,9 @@ type IServer interface {
 	// API
 	Register(msg any, f Handler)
 	RegisterByName(msgName string, f Handler)
-	Cast(req any)
-	Call(req any) *AckCtx
-	CallT(req any, timeout time.Duration) *AckCtx
+	Cast(ctx context.Context, req any)
+	Call(ctx context.Context, req any) *AckCtx
+	CallT(ctx context.Context, req any, timeout time.Duration) *AckCtx
 	PendReq(reqCtx *ReqCtx, block bool)
 	Len() int // 当前消息队列长度
 }
@@ -31,9 +32,9 @@ type IServer interface {
 // IClient chanrpc client接口
 type IClient interface {
 	// API
-	Call(s IServer, req any) *AckCtx
-	CallT(s IServer, req any, timeout time.Duration) *AckCtx
-	AsyncCall(s IServer, req any, cb Callback, ctx sval.M)
-	AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration)
+	Call(s IServer, ctx context.Context, req any) *AckCtx
+	CallT(s IServer, ctx context.Context, req any, timeout time.Duration) *AckCtx
+	AsyncCall(s IServer, ctx context.Context, req any, cb Callback, m sval.M)
+	AsyncCallT(s IServer, ctx context.Context, req any, cb Callback, m sval.M, timeout time.Duration)
 	ChanAck() chan *AckCtx
 }

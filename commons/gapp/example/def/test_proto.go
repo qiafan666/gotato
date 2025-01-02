@@ -24,6 +24,7 @@ type Test1Req struct {
 
 type Test1Ack struct {
 	ErrCode int64
+	Result  int64
 }
 
 type Test1CallReq struct {

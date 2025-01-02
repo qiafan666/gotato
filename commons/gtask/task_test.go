@@ -1,7 +1,9 @@
 package gtask
 
 import (
+	"context"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/glog"
 	"go.uber.org/zap"
 	"log"
 	"strconv"
@@ -11,32 +13,32 @@ import (
 
 type logger struct{}
 
-func (l *logger) ErrorF(format string, args ...interface{}) {
+func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) WarnF(format string, args ...interface{}) {
+func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) InfoF(format string, args ...interface{}) {
+func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Infof(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) DebugF(format string, args ...interface{}) {
+func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+glog.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *logger) Logger() *zap.SugaredLogger {

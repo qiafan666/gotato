@@ -44,7 +44,7 @@ func (disp *Dispatcher) Run() {
 func (disp *Dispatcher) run() {
 	defer func() {
 		if x := recover(); x != nil {
-			disp.logger.ErrorF("TIMER CRASHED %v", x)
+			disp.logger.ErrorF(nil, "TIMER CRASHED %v", x)
 		}
 	}()
 
@@ -180,7 +180,7 @@ func (disp *Dispatcher) Stop() {
 // UpdateTimer 加速 Timer
 func (disp *Dispatcher) UpdateTimer(timerID, newEndTs int64) {
 	if timerID == 0 {
-		disp.logger.ErrorF("TimerDispatcher UpdateTimer: timerID == 0")
+		disp.logger.ErrorF(nil, "TimerDispatcher UpdateTimer: timerID == 0")
 		return
 	}
 	disp.pendOp(&UpdateOp{TimerID: timerID, NewEndTs: newEndTs})
@@ -200,7 +200,7 @@ func (disp *Dispatcher) NewTimer(timerType int32, timerID, timeout int64, cb tim
 // CancelTimer 取消定时器
 func (disp *Dispatcher) CancelTimer(timerID int64) {
 	if timerID == 0 {
-		disp.logger.ErrorF("TimerDispatcher CancelTimer: timerID == 0")
+		disp.logger.ErrorF(nil, "TimerDispatcher CancelTimer: timerID == 0")
 		return
 	}
 	disp.pendOp(&CancelOp{TimerID: timerID})

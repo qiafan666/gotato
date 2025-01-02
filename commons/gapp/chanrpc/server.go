@@ -1,6 +1,7 @@
 package chanrpc
 
 import (
+	"context"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gcommon"
@@ -54,17 +55,18 @@ func (s *Server) exec(reqCtx *ReqCtx) (err error) {
 			str := string(buf[:l])
 			err = fmt.Errorf("%v: %s", r, str)
 			// 如果是Cast，那么消息不会被返回
-			reqCtx.ReplyErr(fmt.Errorf("%w: %v", ErrPeerPanic, r))
+			reqCtx.ReplyErr(reqCtx.ctx, fmt.Errorf("%w: %v", ErrPeerPanic, r))
 		}
 	}()
 	// 根据id取handler
 	handler, ok := s.handlers[reqCtx.id]
 	if !ok {
 		err = fmt.Errorf("%w: msgType: %v, msgID: %v", ErrPeerMsgNotRegsitered, reflect.TypeOf(reqCtx.Req), reqCtx.id)
-		reqCtx.ReplyErr(err)
+		reqCtx.ReplyErr(reqCtx.ctx, err)
 		return err
 	}
-	handler(reqCtx)
+
+	handler(reqCtx.ctx, reqCtx)
 	return err
 }
 
@@ -78,29 +80,30 @@ func (s *Server) Exec(reqCtx *ReqCtx) {
 	reqCtx.replied = false
 	err := s.exec(reqCtx)
 	if err != nil {
-		logger.DefaultLogger.ErrorF("chanrpc Server Exec error: %v", err)
+		logger.DefaultLogger.ErrorF(reqCtx.ctx, "chanrpc Server Exec error: %v", err)
 	}
 }
 
 // Cast 异步投递消息
-func (s *Server) Cast(req any) {
+func (s *Server) Cast(ctx context.Context, req any) {
 	id := MsgID(req)
 	reqCtx := &ReqCtx{
 		reqID: gid.ID(),
 		id:    id,
 		Req:   req,
+		ctx:   ctx,
 	}
 	s.PendReq(reqCtx, false)
 }
 
 // Call 发起同步调用，不带超时机制
-func (s *Server) Call(req any) *AckCtx {
-	return NewClient(0).Call(s, req)
+func (s *Server) Call(ctx context.Context, req any) *AckCtx {
+	return NewClient(0).Call(s, ctx, req)
 }
 
 // CallT 发起同步调用，带超时机制
-func (s *Server) CallT(req any, timeout time.Duration) *AckCtx {
-	return NewClient(0).CallT(s, req, timeout)
+func (s *Server) CallT(ctx context.Context, req any, timeout time.Duration) *AckCtx {
+	return NewClient(0).CallT(s, ctx, req, timeout)
 }
 
 // ChanReq 返回Call Channel
@@ -113,7 +116,7 @@ func (s *Server) PendReq(reqCtx *ReqCtx, block bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			err := r.(error)
-			reqCtx.ReplyErr(err)
+			reqCtx.ReplyErr(reqCtx.ctx, err)
 		}
 	}()
 
@@ -126,7 +129,7 @@ func (s *Server) PendReq(reqCtx *ReqCtx, block bool) {
 	select {
 	case s.chanReq <- reqCtx:
 	default:
-		reqCtx.ReplyErr(ErrPeerChanRPCFull)
+		reqCtx.ReplyErr(reqCtx.ctx, ErrPeerChanRPCFull)
 	}
 }
 
@@ -134,6 +137,6 @@ func (s *Server) PendReq(reqCtx *ReqCtx, block bool) {
 func (s *Server) Close() {
 	close(s.chanReq)
 	for reqCtx := range s.chanReq {
-		reqCtx.ReplyErr(ErrPeerChanRPCClosed)
+		reqCtx.ReplyErr(reqCtx.ctx, ErrPeerChanRPCClosed)
 	}
 }

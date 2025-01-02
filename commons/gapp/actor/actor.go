@@ -40,7 +40,7 @@ func (a *Actor) InitAndRun(initData any, syncInitChan chan error) {
 	err := a.delegate.OnInit(initData)
 	syncInitChan <- err
 	if err != nil {
-		logger.DefaultLogger.DebugF("actor[%d] init failed: %v", a.id, err)
+		logger.DefaultLogger.DebugF(nil, "actor[%d] init failed: %v", a.id, err)
 		return
 	}
 	a.state = StateRun
@@ -52,12 +52,12 @@ func (a *Actor) InitAndRun(initData any, syncInitChan chan error) {
 // Stop 终止Actor
 // syncWait == true 表示同步等待终止完成
 func (a *Actor) Stop(syncWait bool) {
-	logger.DefaultLogger.DebugF("actor Stop actor id begin:%v state:%v wait:%v", a.id, a.state, syncWait)
+	logger.DefaultLogger.DebugF(nil, "actor Stop actor id begin:%v state:%v wait:%v", a.id, a.state, syncWait)
 	a.closeSig <- true
 	if syncWait {
 		a.wg.Wait()
 	}
-	logger.DefaultLogger.DebugF("actor Stop actor id end:%v state:%v wait:%v", a.id, a.state, syncWait)
+	logger.DefaultLogger.DebugF(nil, "actor Stop actor id end:%v state:%v wait:%v", a.id, a.state, syncWait)
 }
 
 // Delegate 慎用（为了场景注入）

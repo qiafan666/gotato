@@ -1,6 +1,7 @@
 package chanrpc
 
 import (
+	"context"
 	"errors"
 	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gapp/timer"
@@ -17,9 +18,10 @@ const (
 type pendingAsyncCall struct {
 	reqCtx     *ReqCtx
 	cb         Callback
-	ctx        sval.M
+	m          sval.M
 	deadlineTs int64
 	expired    bool // 是否已经检查过超时
+	ctx        context.Context
 }
 
 // Client 客户端
@@ -42,30 +44,32 @@ func NewClient(l int) *Client {
 }
 
 // Call 同步调用
-func (c *Client) Call(s IServer, req any) *AckCtx {
-	return c.CallT(s, req, defaultTimeout)
+func (c *Client) Call(s IServer, ctx context.Context, req any) *AckCtx {
+	return c.CallT(s, ctx, req, defaultTimeout)
 }
 
 // CallT 同步带超时调用
-func (c *Client) CallT(s IServer, req any, timeout time.Duration) *AckCtx {
+func (c *Client) CallT(s IServer, ctx context.Context, req any, timeout time.Duration) *AckCtx {
 	reqID := gid.ID()
 	reqCtx := &ReqCtx{
 		reqID:   reqID,
 		id:      MsgID(req),
 		Req:     req,
 		chanAck: c.chanSyncAck,
+		ctx:     ctx,
 	}
 	timer.NewSysDelegate().NewTimer(0, reqID, time.Now().UnixMilli()+timeout.Milliseconds(), func(i int64) {
-		logger.DefaultLogger.WarnF("chanrpc Client CallT timeout req:%+v msg id:%v server msg len:%v stat name:%s", req, reqCtx.id, s.Len(), reqCtx.GetStatName())
+		logger.DefaultLogger.WarnF(ctx, "chanrpc Client CallT timeout req:%+v msg id:%v server msg len:%v stat name:%s", req, reqCtx.id, s.Len(), reqCtx.GetStatName())
 		reqCtx.PendAck(&AckCtx{
 			reqID: reqID,
 			Err:   ErrTimeout,
+			ctx:   ctx,
 		})
 	})
 	s.PendReq(reqCtx, true)
 	ackCtx := <-c.chanSyncAck
 	if ackCtx.reqID != reqID { // 在debug模式下会出现，超时Ack和本身的Ack都返回的情况，应该直接丢掉
-		logger.DefaultLogger.WarnF("chanrpc Client CallT rpc client call error")
+		logger.DefaultLogger.WarnF(ctx, "chanrpc Client CallT rpc client call error")
 		ackCtx = <-c.chanSyncAck
 	}
 	timer.NewSysDelegate().CancelTimer(reqID)
@@ -73,12 +77,12 @@ func (c *Client) CallT(s IServer, req any, timeout time.Duration) *AckCtx {
 }
 
 // AsyncCall 异步调用，使用默认超时，函数本身不返回error，所有的error都在回调中处理
-func (c *Client) AsyncCall(s IServer, req any, cb Callback, ctx sval.M) {
-	c.AsyncCallT(s, req, cb, ctx, defaultTimeout)
+func (c *Client) AsyncCall(s IServer, ctx context.Context, req any, cb Callback, m sval.M) {
+	c.AsyncCallT(s, ctx, req, cb, m, defaultTimeout)
 }
 
 // AsyncCallT 异步调用，函数本身不返回error，所有的error都在回调中处理
-func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout time.Duration) {
+func (c *Client) AsyncCallT(s IServer, ctx context.Context, req any, cb Callback, m sval.M, timeout time.Duration) {
 	if c.chanAsyncAck == nil || cap(c.chanAsyncAck) == 0 {
 		ackCtx := &AckCtx{
 			Err: errors.New("invalid asyncCallLen"),
@@ -92,6 +96,7 @@ func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout
 		id:      MsgID(req),
 		Req:     req,
 		chanAck: c.chanAsyncAck,
+		ctx:     ctx,
 	}
 	// 复用唯一请求ID，作为TimerID
 	deadlineTs := time.Now().UnixMilli() + timeout.Milliseconds()
@@ -99,12 +104,13 @@ func (c *Client) AsyncCallT(s IServer, req any, cb Callback, ctx sval.M, timeout
 		reqCtx.PendAck(&AckCtx{
 			reqID: reqID,
 			Err:   ErrTimeout,
+			ctx:   ctx,
 		})
 	})
 	c.pendingAsyncCalls[reqID] = &pendingAsyncCall{
 		reqCtx:     reqCtx,
 		cb:         cb,
-		ctx:        ctx,
+		m:          m,
 		deadlineTs: deadlineTs,
 	}
 	s.PendReq(reqCtx, false)
@@ -118,10 +124,11 @@ func (c *Client) checkExpiredAsyncReqs() {
 			if info.expired {
 				continue
 			}
-			logger.DefaultLogger.ErrorF("chanrpc Client expired asyncReq: reqID: %d, reqName: %v", reqID, info.reqCtx.GetStatName())
+			logger.DefaultLogger.ErrorF(info.ctx, "chanrpc Client expired asyncReq: reqID: %d, reqName: %v", reqID, info.reqCtx.GetStatName())
 			pendOk := info.reqCtx.PendAck(&AckCtx{
 				Err:   ErrTimeout,
 				reqID: reqID,
+				ctx:   info.ctx,
 			})
 			// 如果 pend 成功，则标记下，否则下一轮还会重复pend
 			if pendOk {
@@ -145,11 +152,12 @@ func (c *Client) exec(ackCtx *AckCtx) {
 	}
 	delete(c.pendingAsyncCalls, ackCtx.reqID)
 	timer.NewSysDelegate().CancelTimer(ackCtx.reqID)
-	ackCtx.Ctx = req.ctx
+	ackCtx.M = req.m
+	ackCtx.ctx = req.ctx
 	func() {
 		defer func() {
 			if stack := gcommon.PrintPanicStack(); stack != "" {
-				logger.DefaultLogger.ErrorF("chanrpc Client exec panic error: %s", stack)
+				logger.DefaultLogger.ErrorF(req.ctx, "chanrpc Client exec panic error: %s", stack)
 			}
 		}()
 		req.cb(ackCtx)
@@ -164,11 +172,12 @@ func (c *Client) Close() {
 		case msg := <-c.chanAsyncAck:
 			c.exec(msg)
 		case <-timeoutTimer:
-			logger.DefaultLogger.ErrorF("chanrpc Client Close timeout, discard pendAsyncCalls: %d", c.pendingAsyncCalls)
-			for reqID := range c.pendingAsyncCalls {
+			logger.DefaultLogger.ErrorF(nil, "chanrpc Client Close timeout, discard pendAsyncCalls: %d", c.pendingAsyncCalls)
+			for reqID, info := range c.pendingAsyncCalls {
 				c.exec(&AckCtx{
 					reqID: reqID,
 					Err:   ErrTimeout,
+					ctx:   info.ctx,
 				})
 			}
 			return

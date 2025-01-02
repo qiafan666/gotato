@@ -24,7 +24,7 @@ var (
 func Run(logicMowMs func() int64, logger gface.Logger) {
 	success := atomic.CompareAndSwapInt32(&_running, 0, 1)
 	if !success {
-		logger.WarnF("timer dispatcher Run twice")
+		logger.WarnF(nil, "timer dispatcher Run twice")
 	}
 	sysNowMs := func() int64 {
 		return time.Now().UnixMilli()
