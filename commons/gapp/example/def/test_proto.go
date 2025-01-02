@@ -1,5 +1,9 @@
 package def
 
+import "go.uber.org/zap"
+
+var ZapLog *zap.SugaredLogger
+
 const (
 	TEST1 = "test1"
 	TEST2 = "test2"

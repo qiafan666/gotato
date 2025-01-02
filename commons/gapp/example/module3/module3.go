@@ -1,10 +1,13 @@
 package module3
 
 import (
+	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp/actor"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/example/def"
 	"github.com/qiafan666/gotato/commons/gapp/module"
+	"github.com/qiafan666/gotato/commons/gface"
+	"go.uber.org/zap"
 	"log"
 )
 
@@ -25,11 +28,11 @@ func NewModule() *Module3 {
 	creator := func(actorID int64) actor.IActor {
 		return &testActor{
 			id:       actorID,
-			skeleton: module.NewSkeleton(10, 100000, 100000),
+			skeleton: module.NewSkeleton(10, 100000, 100000, &logger{}),
 		}
 	}
 	return &Module3{
-		skeleton: module.NewSkeleton(GoLen, ChanRPCLen, AsynCallLen),
+		skeleton: module.NewSkeleton(GoLen, ChanRPCLen, AsynCallLen, &logger{}),
 		Mgr:      actor.NewMgr(creator, "", nil, 1),
 	}
 }
@@ -63,4 +66,46 @@ func (m *Module3) Name() string {
 // ChanSrv 消息通道
 func (m *Module3) ChanSrv() chanrpc.IServer {
 	return m.skeleton.Server()
+}
+
+// Logger 日志
+func (m *Module3) Logger() gface.Logger {
+	return m.skeleton.Logger()
+}
+
+type logger struct{}
+
+func (l *logger) ErrorF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) WarnF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) InfoF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) DebugF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) Logger() *zap.SugaredLogger {
+	return def.ZapLog
+}
+func (l *logger) Prefix() string {
+	return "module3"
 }

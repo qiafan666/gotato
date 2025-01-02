@@ -3,9 +3,9 @@ package module
 import (
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	g "github.com/qiafan666/gotato/commons/gapp/go"
-	"github.com/qiafan666/gotato/commons/gapp/logger"
 	"github.com/qiafan666/gotato/commons/gapp/stat"
 	"github.com/qiafan666/gotato/commons/gapp/timer"
+	"github.com/qiafan666/gotato/commons/gface"
 	"time"
 )
 
@@ -26,6 +26,9 @@ type ISkeleton interface {
 
 	// MsgStat 消息状态统计
 	MsgStat() map[string]string
+
+	// Logger 日志
+	Logger() gface.Logger
 }
 
 // skeleton 模块基础框架
@@ -38,11 +41,13 @@ type skeleton struct {
 	chanSrv *chanrpc.Server
 	// cb运行时间统计
 	stat *stat.MsgStat[string]
+
+	logger gface.Logger
 }
 
 // NewSkeleton .
-func NewSkeleton(goLen, chanrpcLen, asyncCallLen int) ISkeleton {
-	if goLen <= 0 || chanrpcLen < 0 || asyncCallLen < 0 {
+func NewSkeleton(goLen, chanrpcLen, asyncCallLen int, logger gface.Logger) ISkeleton {
+	if goLen <= 0 || chanrpcLen < 0 || asyncCallLen < 0 || logger == nil {
 		panic("invalid skeleton args")
 	}
 
@@ -52,6 +57,7 @@ func NewSkeleton(goLen, chanrpcLen, asyncCallLen int) ISkeleton {
 		chanCli:       chanrpc.NewClient(asyncCallLen),
 		Go:            g.New(goLen),
 		stat:          stat.NewStat[string](),
+		logger:        logger,
 	}
 
 	return s
@@ -78,7 +84,7 @@ func (s *skeleton) Run(closeSig chan bool) {
 				cost := time.Now().UnixMicro() - ts1
 				s.stat.Add(reqCtx.GetStatName(), cost)
 				if cost > 300000 { // 大于300毫秒的warn log
-					logger.DefaultLogger.DebugF("skeleton exec too long cost:%v stat name:%s len:%v", cost, reqCtx.GetStatName(), s.chanSrv.Len())
+					s.logger.DebugF("skeleton exec too long cost:%v stat name:%s len:%v", cost, reqCtx.GetStatName(), s.chanSrv.Len())
 				}
 			}
 		case cb := <-s.Go.ChanCb:
@@ -99,7 +105,7 @@ func (s *skeleton) close() {
 	s.Go.Close()
 	s.chanCli.Close()
 	if s.stat != nil {
-		logger.DefaultLogger.InfoF("skeleton stat: %v", s.stat.Statistic())
+		s.logger.InfoF("skeleton stat: %v", s.stat.Statistic())
 	}
 }
 
@@ -124,4 +130,9 @@ func (s *skeleton) Client() chanrpc.IClient {
 // TimerAPI .
 func (s *skeleton) TimerAPI() timer.ITimerAPI {
 	return s.timerDelegate
+}
+
+// Logger .
+func (s *skeleton) Logger() gface.Logger {
+	return s.logger
 }

@@ -1,11 +1,15 @@
 package module2
 
 import (
+	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/example/def"
 	"github.com/qiafan666/gotato/commons/gapp/module"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
+	"github.com/qiafan666/gotato/commons/gface"
+	"go.uber.org/zap"
+	"log"
 	"time"
 )
 
@@ -23,7 +27,7 @@ type Module2 struct {
 
 func NewModule() *Module2 {
 	return &Module2{
-		skeleton: module.NewSkeleton(GoLen, ChanRPCLen, AsynCallLen),
+		skeleton: module.NewSkeleton(GoLen, ChanRPCLen, AsynCallLen, &logger{}),
 	}
 }
 
@@ -55,6 +59,48 @@ func (m *Module2) Name() string {
 // ChanSrv 消息通道
 func (m *Module2) ChanSrv() chanrpc.IServer {
 	return m.skeleton.Server()
+}
+
+// Logger 日志
+func (m *Module2) Logger() gface.Logger {
+	return m.skeleton.Logger()
+}
+
+type logger struct{}
+
+func (l *logger) ErrorF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) WarnF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) InfoF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) DebugF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) Logger() *zap.SugaredLogger {
+	return def.ZapLog
+}
+func (l *logger) Prefix() string {
+	return "module2"
 }
 
 // --------------------------------------模块初始化相关----------------------------------

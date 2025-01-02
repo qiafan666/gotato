@@ -10,32 +10,63 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/example/module3"
 	"github.com/qiafan666/gotato/commons/gapp/timer"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"io"
 	"log"
+	"os"
+	"path"
+	"runtime"
+	"strings"
 	"time"
 )
 
-type StdLogger struct{}
+type logger struct{}
 
-func (l *StdLogger) ErrorF(format string, args ...interface{}) {
-	log.Printf("[ERROR] "+format, args...)
+func (l *logger) ErrorF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
 }
-func (l *StdLogger) WarnF(format string, args ...interface{}) {
-	log.Printf("[WARN] "+format, args...)
+func (l *logger) WarnF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
 }
-func (l *StdLogger) InfoF(format string, args ...interface{}) {
-	log.Printf("[INFO] "+format, args...)
+func (l *logger) InfoF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
 }
-func (l *StdLogger) DebugF(format string, args ...interface{}) {
-	log.Printf("[DEBUG] "+format, args...)
+func (l *logger) DebugF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) Logger() *zap.SugaredLogger {
+	return def.ZapLog
+}
+func (l *logger) Prefix() string {
+	return "gapp"
 }
 
 func main() {
 	fmt.Println("test start")
-	timer.Run(nil, &StdLogger{})
+	zapLog()
+	timer.Run(nil, &logger{})
 	m1 := module1.NewModule()
 	m2 := module2.NewModule()
 	m3 := module3.NewModule()
-	gapp.DefaultApp().Start(&StdLogger{}, m1, m2, m3)
+	gapp.DefaultApp().Start(&logger{}, m1, m2, m3)
 
 	// m1.ChanSrv().Cast(&iproto.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
@@ -52,7 +83,7 @@ func main() {
 			return
 		}
 		ack := ackCtx.Ack.(*def.Test1Ack)
-		log.Printf("async call:%+v", ack)
+		m2.Logger().InfoF("async call:%+v", ack)
 	}, nil)
 
 	// 异步回调带上下文
@@ -88,4 +119,91 @@ func main() {
 	time.Sleep(3 * time.Second)
 	timer.Stop()
 	fmt.Println("test end")
+}
+
+func zapLog() {
+
+	writeSyncer := getLogWriter(fmt.Sprintf("%s/%s.log", "./log", "test"))
+
+	encoder := DevEncoder()
+
+	core := zapcore.NewCore(encoder, writeSyncer, zapcore.DebugLevel)
+
+	// zap.AddCaller()  添加将调用函数信息记录到日志中的功能。
+	def.ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
+}
+
+func getLogWriter(logPath string) zapcore.WriteSyncer {
+	dir := path.Dir(logPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		panic(fmt.Sprintf("failed to create log directory: %s", err))
+	}
+	return zapcore.AddSync(io.MultiWriter(&lumberjack.Logger{
+		Filename:   logPath,
+		MaxSize:    500, // megabytes
+		MaxBackups: 3,
+		MaxAge:     1, //days
+		LocalTime:  true,
+		Compress:   true, // disabled by default
+	}, os.Stdout))
+}
+
+// SimpleEncoder 自定义日志格式 生产环境用这个
+func SimpleEncoder() zapcore.Encoder {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encoderConfig.LineEnding = zapcore.DefaultLineEnding
+	return zapcore.NewConsoleEncoder(encoderConfig)
+}
+
+// DevEncoder 自定义日志格式 开发测试环境用这个
+func DevEncoder() zapcore.Encoder {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encoderConfig.LineEnding = zapcore.DefaultLineEnding
+
+	// 自定义 EncodeCaller 方法，提取方法名
+	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+		if caller.Defined {
+			// 提取文件路径和行号
+			fileWithLine := fmt.Sprintf("%s:%d", caller.File, caller.Line)
+
+			// 提取最后两级路径部分
+			pathParts := strings.Split(fileWithLine, "/")
+			if len(pathParts) > 2 {
+				fileWithLine = strings.Join(pathParts[len(pathParts)-2:], "/")
+			}
+
+			// 提取方法名
+			funcName := runtime.FuncForPC(caller.PC).Name()
+			if funcName != "" {
+				// 分割并提取最后一级方法名
+				split := strings.Split(funcName, ".")
+				if len(split) > 2 {
+					if strings.HasPrefix(split[len(split)-1], "func") {
+						funcName = split[len(split)-2]
+					} else {
+						funcName = split[len(split)-1] // 只有方法名
+					}
+				} else if len(split) == 2 {
+					funcName = split[1] // 只有方法名
+				} else if len(split) == 1 {
+					funcName = split[0] // 只有方法名
+				} else {
+					funcName = "unknown"
+				}
+			} else {
+				funcName = "unknown"
+			}
+
+			// 输出格式为 文件:行号 [方法名]，避免重复
+			enc.AppendString(fmt.Sprintf("%s   [function_name:%s]", fileWithLine, funcName))
+		} else {
+			enc.AppendString("unknown")
+		}
+	}
+
+	return zapcore.NewConsoleEncoder(encoderConfig)
 }

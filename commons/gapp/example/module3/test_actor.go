@@ -15,7 +15,7 @@ type testActor struct {
 }
 
 func (ta *testActor) OnInit(initData any) error {
-	log.Printf("actor%d OnInit with %v", ta.id, initData)
+	ta.skeleton.Logger().DebugF("actor%d OnInit with %v", ta.id, initData)
 	ta.skeleton.Server().Register(&def.Test1ActorReq{}, ta.onTestMsg)
 	return nil
 }
@@ -25,7 +25,7 @@ func (ta *testActor) ChanSrv() chanrpc.IServer {
 }
 
 func (ta *testActor) Run(closeSig chan bool) {
-	log.Printf("actor%d Run", ta.id)
+	ta.skeleton.Logger().ErrorF("actor%d Run", ta.id)
 	ta.skeleton.Run(closeSig)
 }
 

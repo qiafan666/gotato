@@ -4,32 +4,52 @@ import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gpromise"
 	"github.com/qiafan666/gotato/commons/gtime/logictime"
+	"go.uber.org/zap"
 	"log"
 	"testing"
 	"time"
 )
 
-type StdLogger struct{}
+type logger struct{}
 
-func (l *StdLogger) ErrorF(format string, args ...interface{}) {
-	log.Printf("[ERROR] "+format, args...)
+func (l *logger) ErrorF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Errorf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
 }
-
-func (l *StdLogger) WarnF(format string, args ...interface{}) {
-	log.Printf("[WARN] "+format, args...)
+func (l *logger) WarnF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Warnf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
 }
-
-func (l *StdLogger) InfoF(format string, args ...interface{}) {
-	log.Printf("[INFO] "+format, args...)
+func (l *logger) InfoF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Infof(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
 }
-
-func (l *StdLogger) DebugF(format string, args ...interface{}) {
-	log.Printf("[DEBUG] "+format, args...)
+func (l *logger) DebugF(format string, args ...interface{}) {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+format, args...)
+	} else {
+		l.Logger().Debugf(fmt.Sprintf("[%s] ", l.Prefix())+format, args...)
+	}
+}
+func (l *logger) Logger() *zap.SugaredLogger {
+	return nil
+}
+func (l *logger) Prefix() string {
+	return "promise"
 }
 
 func TestCommonFutureAfter(t *testing.T) {
 	now := time.Now()
-	pm := gpromise.NewManager(1, func() int { return 100 }, &StdLogger{})
+	pm := gpromise.NewManager(1, func() int { return 100 }, &logger{})
 
 	p := pm.NewPromise("promise", func(context *gpromise.Context) {
 		if context.Err != nil {

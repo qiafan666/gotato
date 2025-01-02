@@ -3,7 +3,6 @@ package module1
 import (
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/example/def"
-	"log"
 )
 
 func (m *Module1) initHandler() {
@@ -14,12 +13,12 @@ func (m *Module1) initHandler() {
 
 func (m *Module1) onHandleTestNtf(ci *chanrpc.ReqCtx) {
 	req := ci.Req.(*def.Test1Ntf)
-	log.Printf("onHandleTest ntf msg:%+v", req)
+	m.Logger().DebugF("onHandleTestNtf msg:%+v", req)
 }
 
 func (m *Module1) onHandleTestReq(ci *chanrpc.ReqCtx) {
 	req := ci.Req.(*def.Test1Req)
-	log.Printf("onHandleTest req msg:%+v", req)
+	m.Logger().InfoF("onHandleTestReq msg:%+v", req)
 	ret := &def.Test1Ack{ErrCode: 222}
 	ci.Reply(ret)
 }
@@ -27,5 +26,6 @@ func (m *Module1) onHandleTestReq(ci *chanrpc.ReqCtx) {
 func (m *Module1) onHandleTestCallReq(ci *chanrpc.ReqCtx) {
 	// req := ci.Req.(*iproto.Test1CallReq)
 	ret := &def.Test1CallAck{ErrCode: 333}
+	m.Logger().WarnF("onHandleTestCallReq msg:%+v", ret)
 	ci.Reply(ret)
 }
