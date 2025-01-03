@@ -36,20 +36,20 @@ func (reqCtx *ReqCtx) ReqID() int64 {
 }
 
 // Reply 执行请求响应逻辑
-func (reqCtx *ReqCtx) Reply(ctx context.Context, ack any) {
+func (reqCtx *ReqCtx) Reply(ack any) {
 	reqCtx.doReply(&AckCtx{
 		reqID: reqCtx.reqID,
 		Ack:   ack,
-		ctx:   ctx,
+		ctx:   reqCtx.ctx,
 	})
 }
 
 // ReplyErr 回复通用错误信息，通常由框架层使用
-func (reqCtx *ReqCtx) ReplyErr(ctx context.Context, err error) {
+func (reqCtx *ReqCtx) ReplyErr(err error) {
 	reqCtx.doReply(&AckCtx{
 		reqID: reqCtx.reqID,
 		Err:   err,
-		ctx:   ctx,
+		ctx:   reqCtx.ctx,
 	})
 }
 
