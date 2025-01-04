@@ -45,11 +45,11 @@ func (f *Future) Name() string {
 
 func (f *Future) init(promise *Promise) {
 	if f == nil {
-		f.logger.ErrorF("Future: future is nil")
+		f.logger.ErrorF(nil, "Future: future is nil")
 		return
 	}
 	if promise == nil {
-		f.logger.ErrorF("Future: promise is nil")
+		f.logger.ErrorF(nil, "Future: promise is nil")
 		return
 	}
 	f.id = promise.futureIdIndex
@@ -89,7 +89,7 @@ func (f *Future) PushAfter(future IFuture) {
 	var ok bool
 	e, ok = f.promise.futureMap[f.id]
 	if !ok {
-		f.logger.ErrorF("Future: not find future[%v] in promise[%v]", f.id, f.promise.Id)
+		f.logger.ErrorF(nil, "Future: not find future[%v] in promise[%v]", f.id, f.promise.Id)
 		return
 	} else {
 		future.init(f.promise)
@@ -120,7 +120,7 @@ func NewCommonFuture(name string) *CommonFuture {
 
 func (f *CommonFuture) Do() error {
 	if f.OnDo != nil {
-		f.logger.DebugF("CommonFuture: do future name:%v", f.name)
+		f.logger.DebugF(nil, "CommonFuture: do future name:%v", f.name)
 		return f.OnDo()
 	}
 
@@ -129,7 +129,7 @@ func (f *CommonFuture) Do() error {
 
 func (f *CommonFuture) CallBack(args []interface{}) error {
 	if f.OnCallBack != nil {
-		f.logger.DebugF("CommonFuture: callback future name:%v", f.name)
+		f.logger.DebugF(nil, "CommonFuture: callback future name:%v", f.name)
 		return f.OnCallBack(args)
 	}
 

@@ -86,7 +86,7 @@ func (p *Pool) Stop() {
 // AddTask poolDecide 决定固定到指定的 pool 上
 func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 	if len(p.Tasks) == 0 {
-		p.logger.ErrorF("pool task len 0")
+		p.logger.ErrorF(nil, "pool task len 0")
 		return
 	}
 	var index uint32
@@ -125,9 +125,9 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 		id := "[" + fileName + ":" + strconv.Itoa(line) + "] "
 
 		if chanAllFull {
-			p.logger.WarnF("add task[%v]. all task is full", id)
+			p.logger.WarnF(nil, "add task[%v]. all task is full", id)
 		} else {
-			p.logger.WarnF("add task[%v]. taskPool index:%d is full", id, index)
+			p.logger.WarnF(nil, "add task[%v]. taskPool index:%d is full", id, index)
 		}
 	}
 
@@ -137,7 +137,7 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 		cb: cb,
 	}:
 	default:
-		p.logger.ErrorF("task is full")
+		p.logger.ErrorF(nil, "task is full")
 	}
 }
 
@@ -146,7 +146,7 @@ func (t *UpdateTask) executeFun(pair *taskFuncPair, logger gface.Logger) {
 		if r := recover(); r != nil {
 			buf := make([]byte, 4096)
 			l := runtime.Stack(buf, false)
-			logger.ErrorF("%v: %s", r, buf[:l])
+			logger.ErrorF(nil, "%v: %s", r, buf[:l])
 		}
 	}()
 

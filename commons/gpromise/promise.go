@@ -173,12 +173,12 @@ func (pm *Manager) GetPromise(Id uint32) *Promise {
 
 func (p *Promise) Push(future IFuture) {
 	if future == nil {
-		p.logger.ErrorF("Promise: future is nil")
+		p.logger.ErrorF(nil, "Promise: future is nil")
 		return
 	}
 
 	if p == nil {
-		p.logger.ErrorF("Promise: promise is nil")
+		p.logger.ErrorF(nil, "Promise: promise is nil")
 		return
 	}
 
@@ -234,7 +234,7 @@ func (p *Promise) Start() {
 		if er != nil {
 			if !errors.Is(er, ContinueErr) {
 				p.context.Err = er
-				p.logger.WarnF("Promise: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
+				p.logger.WarnF(nil, "Promise: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
 					p.pm.owner, p.Id, f.Id(), GetPfId(p.Id, f.Id()), p.context.Err.Error())
 				promiseFinish = true
 				break
@@ -279,21 +279,21 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 
 	p, ok := pm.promises[promiseId]
 	if !ok {
-		p.logger.WarnF("Manager: Owner[%v] promise[%v] future[%v] %v is not exist",
+		p.logger.WarnF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v is not exist",
 			pm.owner, promiseId, futureId, pfId)
 		return
 	}
 
 	e, ok := p.futureMap[futureId]
 	if !ok {
-		p.logger.ErrorF("Manager: Owner[%v] promise[%v] future[%v] %v is not exist",
+		p.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v is not exist",
 			pm.owner, promiseId, futureId, pfId)
 		return
 	}
 
 	f, ok := e.Value.(IFuture)
 	if !ok {
-		p.logger.ErrorF("Manager: Owner[%v] promise[%v] future[%v] %v element is not future",
+		p.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v element is not future",
 			pm.owner, promiseId, futureId, pfId)
 		p.context.Err = errors.New("element is not future")
 		if p.cbFunc != nil {
@@ -304,7 +304,7 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 	}
 
 	if errInfo != nil {
-		p.logger.ErrorF("Manager: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
+		p.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
 			pm.owner, promiseId, futureId, pfId, errInfo.Error())
 		p.context.Err = errInfo
 		if p.cbFunc != nil {
@@ -326,7 +326,7 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 	if er != nil {
 		if !errors.Is(er, ContinueErr) {
 			p.context.Err = er
-			p.logger.WarnF("Manager: Owner[%v] promise[%v] future[%v] %v CallBack fail[%v]",
+			p.logger.WarnF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v CallBack fail[%v]",
 				pm.owner, promiseId, futureId, pfId, p.context.Err.Error())
 			if p.cbFunc != nil {
 				p.cbFunc(p.context)
@@ -373,7 +373,7 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 		if er != nil {
 			if !errors.Is(er, ContinueErr) {
 				p.context.Err = er
-				p.logger.WarnF("Manager: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
+				p.logger.WarnF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
 					pm.owner, p.Id, f.Id(), pfId, p.context.Err.Error())
 				promiseFinish = true
 				break
@@ -414,7 +414,7 @@ func (pm *Manager) Update(during time.Duration) {
 				p.cbFunc(p.context)
 			}
 			p.pm.DeletePromise(p.Id)
-			pm.logger.ErrorF("Manager: Owner[%v] promise[%v][%v] run timeout, delete", pm.owner, p.Id, p.Name)
+			pm.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v][%v] run timeout, delete", pm.owner, p.Id, p.Name)
 		}
 	}
 
@@ -457,12 +457,12 @@ func (pm *Manager) printStat() {
 	count := len(pm.statResults)
 
 	if len(pm.statResults) > 0 {
-		pm.logger.InfoF("Manager: Owner[%v] PromiseStatus [PromiseCount(%v), AvgPromiseDuration(%v), MaxPromiseDuration(%v) PromiseName(%v)",
+		pm.logger.InfoF(nil, "Manager: Owner[%v] PromiseStatus [PromiseCount(%v), AvgPromiseDuration(%v), MaxPromiseDuration(%v) PromiseName(%v)",
 			pm.owner, count, getDurationDesc(avgDuration), getDurationDesc(maxDuration), pm.maxResult.Name)
 		if pm.warnThresholdFunc != nil {
 			thresholdValue := pm.warnThresholdFunc()
 			if thresholdValue != 0 && maxDuration >= time.Duration(thresholdValue)*time.Millisecond {
-				pm.logger.WarnF("Manager: Owner[%v] PromiseName %v timeout excute %v exceed limit %v",
+				pm.logger.WarnF(nil, "Manager: Owner[%v] PromiseName %v timeout excute %v exceed limit %v",
 					pm.owner, pm.maxResult.Name, getDurationDesc(pm.maxResult.Duration), thresholdValue)
 			}
 		}

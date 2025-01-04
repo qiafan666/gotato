@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"time"
@@ -21,17 +22,17 @@ func (l *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 }
 func (l *GormLogger) Info(ctx context.Context, template string, args ...interface{}) {
 	if l.LogLevel <= commons.Debug {
-		GormLog.Infof(GetTraceId(ctx)+template, args...)
+		GormLog.Infof(gcommon.GetTraceId(ctx)+template, args...)
 	}
 }
 func (l *GormLogger) Warn(ctx context.Context, template string, args ...interface{}) {
 	if l.LogLevel <= commons.Warn {
-		GormLog.Warnf(GetTraceId(ctx)+template, args...)
+		GormLog.Warnf(gcommon.GetTraceId(ctx)+template, args...)
 	}
 }
 func (l *GormLogger) Error(ctx context.Context, template string, args ...interface{}) {
 	if l.LogLevel <= commons.Error {
-		GormLog.Errorf(GetTraceId(ctx)+template, args...)
+		GormLog.Errorf(gcommon.GetTraceId(ctx)+template, args...)
 	}
 }
 

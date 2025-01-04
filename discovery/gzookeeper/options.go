@@ -1,12 +1,12 @@
 package gzookeeper
 
 import (
-	"github.com/qiafan666/gotato/commons/glog"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"google.golang.org/grpc"
 	"time"
 )
 
-var GetZkCtx = glog.SetTraceId("gzookeeper")
+var GetZkCtx = gcommon.SetTraceId("gzookeeper")
 
 type ZkOption func(*ZkClient)
 

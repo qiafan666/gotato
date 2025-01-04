@@ -40,7 +40,7 @@ func (t *Task) AddTask(f func(), cb func()) {
 		fileName := ss[len(ss)-1]
 
 		id := "[" + fileName + ":" + strconv.Itoa(line) + "] "
-		t.logger.WarnF("add task[%v], but full.", id)
+		t.logger.WarnF(nil, "add task[%v], but full.", id)
 	}
 
 	select {
@@ -50,7 +50,7 @@ func (t *Task) AddTask(f func(), cb func()) {
 	}:
 
 	default:
-		t.logger.ErrorF("task is full")
+		t.logger.ErrorF(nil, "task is full")
 	}
 }
 
@@ -63,7 +63,7 @@ func (t *Task) executeFunc(pair *taskFuncPair) {
 		if r := recover(); r != nil {
 			buf := make([]byte, 4096)
 			l := runtime.Stack(buf, false)
-			t.logger.ErrorF("%v: %s", r, buf[:l])
+			t.logger.ErrorF(nil, "%v: %s", r, buf[:l])
 		}
 	}()
 
@@ -80,7 +80,7 @@ func (t *Task) run() {
 	for {
 		pair, ok := <-t.functions
 		if !ok {
-			t.logger.WarnF("task.functions closed")
+			t.logger.WarnF(nil, "task.functions closed")
 			break
 		}
 		t.executeFunc(pair)

@@ -2,6 +2,7 @@ package gcommon
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
@@ -11,6 +12,26 @@ import (
 	"regexp"
 	"strings"
 )
+
+// GetTraceId 获取trace_id
+func GetTraceId(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if traceId, ok := ctx.Value("trace_id").(string); ok {
+		return fmt.Sprintf("[trace_id:%s] ", traceId)
+	} else {
+		return ""
+	}
+}
+
+func SetTraceId(traceId string) context.Context {
+	return context.WithValue(context.Background(), "trace_id", traceId)
+}
+
+func SetTraceIdWithCtx(ctx context.Context, traceId string) context.Context {
+	return context.WithValue(ctx, "trace_id", traceId)
+}
 
 // RetryFunction 重试函数
 func RetryFunction(c func() bool, times int) bool {
