@@ -1,54 +1,14 @@
 package timermgr
 
 import (
-	"context"
-	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp/timer"
-	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
+	"github.com/qiafan666/gotato/commons/gface"
 	"github.com/qiafan666/gotato/commons/gtime/logictime"
-	"go.uber.org/zap"
 	"log"
 	"testing"
 	"time"
 )
-
-type logger struct{}
-
-func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Infof(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) Logger() *zap.SugaredLogger {
-	return nil
-}
-func (l *logger) Prefix() string {
-	return "timer"
-}
 
 const (
 	TimerTypeTest = 1
@@ -57,7 +17,7 @@ const (
 func TestDispatcher(t *testing.T) {
 
 	// 启动全局定时器逻辑
-	timer.Run(func() int64 { return logictime.NowMs() }, &logger{})
+	timer.Run(func() int64 { return logictime.NowMs() }, gface.NewLogger("timer", nil))
 
 	// 初始化逻辑代理，只实例化一次
 	logicDelegate := timer.NewLogicDelegate()

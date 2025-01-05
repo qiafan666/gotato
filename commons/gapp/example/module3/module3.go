@@ -1,15 +1,11 @@
 package module3
 
 import (
-	"context"
-	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp/actor"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/example/def"
 	"github.com/qiafan666/gotato/commons/gapp/module"
-	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
-	"go.uber.org/zap"
 	"log"
 )
 
@@ -30,11 +26,11 @@ func NewModule() *Module3 {
 	creator := func(actorID int64) actor.IActor {
 		return &testActor{
 			id:       actorID,
-			skeleton: module.NewSkeleton(10, 100000, 100000, &logger{}),
+			skeleton: module.NewSkeleton(10, 100000, 100000, gface.NewLogger("actor", def.ZapLog)),
 		}
 	}
 	return &Module3{
-		skeleton: module.NewSkeleton(GoLen, ChanRPCLen, AsynCallLen, &logger{}),
+		skeleton: module.NewSkeleton(GoLen, ChanRPCLen, AsynCallLen, gface.NewLogger(def.TEST3, def.ZapLog)),
 		Mgr:      actor.NewMgr(creator, "", nil, 1),
 	}
 }
@@ -73,41 +69,4 @@ func (m *Module3) ChanSrv() chanrpc.IServer {
 // Logger 日志
 func (m *Module3) Logger() gface.Logger {
 	return m.skeleton.Logger()
-}
-
-type logger struct{}
-
-func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Infof(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) Logger() *zap.SugaredLogger {
-	return def.ZapLog
-}
-func (l *logger) Prefix() string {
-	return "module3"
 }

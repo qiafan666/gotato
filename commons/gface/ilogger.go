@@ -20,39 +20,51 @@ type Logger interface {
 }
 
 // ------------------------ example ------------------------
-type logger struct{}
 
-func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
+// LoggerImpl 实现了Logger接口,也可在项目中自己实现Logger接口
+type LoggerImpl struct {
+	module string
+	logger *zap.SugaredLogger
+}
+
+// NewLogger 创建一个新的Logger实例，接受一个module名称作为前缀
+func NewLogger(module string, logger *zap.SugaredLogger) *LoggerImpl {
+	return &LoggerImpl{
+		module: module,
+		logger: logger,
+	}
+}
+func (l *LoggerImpl) ErrorF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
 		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
 		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
+func (l *LoggerImpl) WarnF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
 		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
 		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
+func (l *LoggerImpl) InfoF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
 		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
 		l.Logger().Infof(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
+func (l *LoggerImpl) DebugF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
 		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
 		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
-func (l *logger) Logger() *zap.SugaredLogger {
-	return nil
+func (l *LoggerImpl) Logger() *zap.SugaredLogger {
+	return l.logger
 }
-func (l *logger) Prefix() string {
-	return "[module:example] "
+func (l *LoggerImpl) Prefix() string {
+	return fmt.Sprintf("[module:%s] ", l.module)
 }
