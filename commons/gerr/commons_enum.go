@@ -38,10 +38,10 @@ func GetLanguageMsg(code int, language string) string {
 		if value, ok := languageValue[code]; ok {
 			return value
 		} else {
-			return ""
+			return "unknown code"
 		}
 	} else {
-		return ""
+		return "unknown language"
 	}
 }
 
