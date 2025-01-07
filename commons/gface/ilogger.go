@@ -36,30 +36,30 @@ func NewLogger(module string, logger *zap.SugaredLogger) *LoggerImpl {
 }
 func (l *LoggerImpl) ErrorF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		log.Printf(fmt.Sprintf("[ERROR] %s ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		l.Logger().Errorf(l.Prefix()+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *LoggerImpl) WarnF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		log.Printf(fmt.Sprintf("[WARN] %s ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		l.Logger().Warnf(l.Prefix()+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *LoggerImpl) InfoF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		log.Printf(fmt.Sprintf("[INFO] %s ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Infof(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		l.Logger().Infof(l.Prefix()+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *LoggerImpl) DebugF(ctx context.Context, format string, args ...interface{}) {
 	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		log.Printf(fmt.Sprintf("[DEBUG] %s ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
 	} else {
-		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
+		l.Logger().Debugf(l.Prefix()+gcommon.GetTraceId(ctx)+format, args...)
 	}
 }
 func (l *LoggerImpl) Logger() *zap.SugaredLogger {
