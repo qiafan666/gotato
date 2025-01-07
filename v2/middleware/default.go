@@ -80,9 +80,11 @@ func Default(ctx *gin.Context) {
 			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d]",
 				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
 		} else {
+			replace := strings.Replace(string(bodyBytes), "\n", "", -1)
+			request := strings.Replace(replace, "\r", "", -1)
 			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d][request:%s][response:%s]",
 				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(),
-				ctx.Writer.Status(), strings.Replace(string(bodyBytes), "\n", "", -1), blw.body.String())
+				ctx.Writer.Status(), request, blw.body.String())
 		}
 	} else {
 		ctx.Next()
