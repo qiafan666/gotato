@@ -206,10 +206,10 @@ func (m *Mgr) StopAll() {
 
 // GenActorKeys 生成actor的redis key  redis存储 key：globalRedisKey:actorID value: 当前服务器的index
 func GenActorKeys(globalRedisKey string, actorID int64) string {
-	return gcommon.BuildStrWithSep(redis_cli.Sep, globalRedisKey, gcast.ToString(actorID))
+	return gcommon.BuildStrWithSep(redis_cli.SplitTag, globalRedisKey, gcast.ToString(actorID))
 }
 
 // GenActorGlobalLockKeys 全局redis锁的key，用于集群唯一actor校验
 func GenActorGlobalLockKeys(globalRedisKey string, actorID int64) string {
-	return gcommon.BuildStrWithSep(redis_cli.Sep, redis_cli.GlobalLock, globalRedisKey, gcast.ToString(actorID))
+	return gcommon.BuildStrWithSep(redis_cli.SplitTag, redis_cli.GlobalLock, globalRedisKey, gcast.ToString(actorID))
 }

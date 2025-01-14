@@ -24,7 +24,7 @@ const (
 	// Nil is an alias of redis_cli.Nil.
 	Nil = red.Nil
 
-	Sep                  = ":"
+	SplitTag             = ":"
 	GlobalLock           = "global_lock"
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
