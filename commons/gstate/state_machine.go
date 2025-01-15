@@ -21,9 +21,8 @@ type StateMachine struct {
 }
 
 // NewStateMachine 创建一个新的状态机
-func NewStateMachine(ctx context.Context, initialState State) *StateMachine {
+func NewStateMachine(ctx context.Context) *StateMachine {
 	return &StateMachine{
-		state:       initialState,
 		transitions: make(map[State]map[Event]State),
 		handlers:    make(map[Event]func(data []interface{})),
 		ctx:         ctx,
@@ -31,15 +30,19 @@ func NewStateMachine(ctx context.Context, initialState State) *StateMachine {
 }
 
 // AddTransition 添加状态转换
-func (sm *StateMachine) AddTransition(fromState State, event Event, toState State) {
+func (sm *StateMachine) AddTransition(fromState State, toState State, event Event, handler func(data []interface{})) {
+
+	// 初始状态为空，则设置初始状态,所以AddTransition必须从初始状态开始
+	if sm.state == "" {
+		sm.state = fromState
+	}
+
 	if sm.transitions[fromState] == nil {
 		sm.transitions[fromState] = make(map[Event]State)
 	}
 	sm.transitions[fromState][event] = toState
-}
 
-// SetHandler 设置事件处理函数
-func (sm *StateMachine) SetHandler(event Event, handler func(data []interface{})) {
+	// 事件处理函数
 	sm.handlers[event] = handler
 }
 
@@ -51,7 +54,7 @@ func (sm *StateMachine) handleEvent(name string, event Event, data []interface{}
 
 		sm.logger.InfoF(sm.ctx, "name：%s，event：%v，state switch: %v -> %v", name, event, sm.state, nextState)
 		sm.state = nextState
-		if handler, exists := sm.handlers[event]; exists {
+		if handler, exists := sm.handlers[event]; exists && handler != nil {
 			handler(data) // 执行事件处理函数
 		}
 	} else {

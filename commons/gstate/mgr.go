@@ -25,6 +25,10 @@ func (smm *StateMachineManager) AddMachine(name string, sm *StateMachine) {
 	smm.mu.Lock()
 	defer smm.mu.Unlock()
 	sm.logger = smm.logger
+	if _, exists := smm.machines[name]; exists {
+		smm.logger.ErrorF(nil, "state machine %s already exists", name)
+		return
+	}
 	smm.machines[name] = sm
 }
 
