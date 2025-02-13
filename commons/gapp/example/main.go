@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gapp"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
@@ -12,6 +11,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/timer"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
+	"github.com/qiafan666/gotato/commons/gface"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -24,51 +24,14 @@ import (
 	"time"
 )
 
-type logger struct{}
-
-func (l *logger) ErrorF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[ERROR] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Errorf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) WarnF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[WARN] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Warnf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) InfoF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[INFO] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Infof(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) DebugF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() == nil {
-		log.Printf(fmt.Sprintf("[DEBUG] [%s] ", l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	} else {
-		l.Logger().Debugf(fmt.Sprintf(l.Prefix())+gcommon.GetTraceId(ctx)+format, args...)
-	}
-}
-func (l *logger) Logger() *zap.SugaredLogger {
-	return def.ZapLog
-}
-func (l *logger) Prefix() string {
-	return "gapp"
-}
-
 func main() {
 	fmt.Println("test start")
 	zapLog()
-	timer.Run(nil, &logger{})
+	timer.Run(nil, gface.NewLogger("timer", def.ZapLog))
 	m1 := module1.NewModule()
 	m2 := module2.NewModule()
 	m3 := module3.NewModule()
-	gapp.DefaultApp().Start(&logger{}, m1, m2, m3)
+	gapp.DefaultApp().Start(gface.NewLogger("app", def.ZapLog), m1, m2, m3)
 
 	// m1.ChanSrv().Cast(&iproto.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
@@ -158,22 +121,11 @@ func getLogWriter(logPath string) zapcore.WriteSyncer {
 	}, os.Stdout))
 }
 
-// SimpleEncoder 自定义日志格式 生产环境用这个
-func SimpleEncoder() zapcore.Encoder {
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-	return zapcore.NewConsoleEncoder(encoderConfig)
-}
-
 // DevEncoder 自定义日志格式 开发测试环境用这个
 func DevEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-
 	// 自定义 EncodeCaller 方法，提取方法名
 	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 		if caller.Defined {

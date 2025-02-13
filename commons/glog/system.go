@@ -89,7 +89,7 @@ func ReInit() {
 // SimpleEncoder 自定义日志格式 生产环境用这个
 func SimpleEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
 	return zapcore.NewConsoleEncoder(encoderConfig)
@@ -98,10 +98,8 @@ func SimpleEncoder() zapcore.Encoder {
 // DevEncoder 自定义日志格式 开发测试环境用这个
 func DevEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-
 	// 自定义 EncodeCaller 方法，提取方法名
 	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 		if caller.Defined {
@@ -142,7 +140,6 @@ func DevEncoder() zapcore.Encoder {
 			enc.AppendString("unknown")
 		}
 	}
-
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 

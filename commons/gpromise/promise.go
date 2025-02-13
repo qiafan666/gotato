@@ -3,6 +3,7 @@ package gpromise
 import (
 	"bytes"
 	"container/list"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gface"
@@ -32,6 +33,7 @@ type Context struct {
 	Err   error
 	Kw    map[string]interface{}
 	trace strings.Builder
+	Ctx   context.Context
 }
 
 func (pc *Context) Get(k string) interface{} {
@@ -58,6 +60,10 @@ func (pc *Context) Trace(name string, id uint32) {
 
 func (pc *Context) GetTrace() string {
 	return pc.trace.String()
+}
+
+func (pc *Context) GetCtx() context.Context {
+	return pc.Ctx
 }
 
 type Promise struct {
@@ -108,7 +114,7 @@ func NewManager(owner int64, f func() int, logger gface.Logger) *Manager {
 	return pm
 }
 
-func (pm *Manager) NewPromise(name string, cbFunc func(context *Context), args ...interface{}) *Promise {
+func (pm *Manager) NewPromise(ctx context.Context, name string, cbFunc func(context *Context), args ...interface{}) *Promise {
 	p := &Promise{
 		Id:         pm.promiseIdIndex,
 		Name:       name,
@@ -119,6 +125,7 @@ func (pm *Manager) NewPromise(name string, cbFunc func(context *Context), args .
 		context: &Context{
 			Args:  args,
 			trace: strings.Builder{},
+			Ctx:   ctx,
 		},
 		futureIdIndex: 1,
 		logger:        pm.logger,
@@ -129,6 +136,13 @@ func (pm *Manager) NewPromise(name string, cbFunc func(context *Context), args .
 
 	p.cbFunc = func(context *Context) {
 		if cbFunc != nil {
+			if context.Err != nil {
+				p.logger.ErrorF(context.Ctx, "Owner[%v] promise[%v] %v do fail[%v]",
+					p.pm.owner, p.Id, p.Name, context.Err.Error())
+			} else {
+				p.logger.DebugF(context.Ctx, "Owner[%v] promise[%v] %v do success",
+					p.pm.owner, p.Id, p.Name)
+			}
 			cbFunc(p.context)
 		}
 
@@ -173,12 +187,12 @@ func (pm *Manager) GetPromise(Id uint32) *Promise {
 
 func (p *Promise) Push(future IFuture) {
 	if future == nil {
-		p.logger.ErrorF(nil, "Promise: future is nil")
+		p.logger.ErrorF(future.Ctx(), "Promise: future is nil")
 		return
 	}
 
 	if p == nil {
-		p.logger.ErrorF(nil, "Promise: promise is nil")
+		p.logger.ErrorF(future.Ctx(), "Promise: promise is nil")
 		return
 	}
 
@@ -234,7 +248,7 @@ func (p *Promise) Start() {
 		if er != nil {
 			if !errors.Is(er, ContinueErr) {
 				p.context.Err = er
-				p.logger.WarnF(nil, "Promise: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
+				p.logger.WarnF(f.Ctx(), "Promise: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
 					p.pm.owner, p.Id, f.Id(), GetPfId(p.Id, f.Id()), p.context.Err.Error())
 				promiseFinish = true
 				break
@@ -279,21 +293,21 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 
 	p, ok := pm.promises[promiseId]
 	if !ok {
-		p.logger.WarnF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v is not exist",
+		p.logger.WarnF(nil, "Owner[%v] promise[%v] future[%v] %v is not exist",
 			pm.owner, promiseId, futureId, pfId)
 		return
 	}
 
 	e, ok := p.futureMap[futureId]
 	if !ok {
-		p.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v is not exist",
+		p.logger.ErrorF(nil, "Owner[%v] promise[%v] future[%v] %v is not exist",
 			pm.owner, promiseId, futureId, pfId)
 		return
 	}
 
 	f, ok := e.Value.(IFuture)
 	if !ok {
-		p.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v element is not future",
+		p.logger.ErrorF(f.Ctx(), "Owner[%v] promise[%v] future[%v] %v element is not future",
 			pm.owner, promiseId, futureId, pfId)
 		p.context.Err = errors.New("element is not future")
 		if p.cbFunc != nil {
@@ -304,7 +318,7 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 	}
 
 	if errInfo != nil {
-		p.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
+		p.logger.ErrorF(f.Ctx(), "Owner[%v] promise[%v] future[%v] %v do fail[%v]",
 			pm.owner, promiseId, futureId, pfId, errInfo.Error())
 		p.context.Err = errInfo
 		if p.cbFunc != nil {
@@ -326,7 +340,7 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 	if er != nil {
 		if !errors.Is(er, ContinueErr) {
 			p.context.Err = er
-			p.logger.WarnF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v CallBack fail[%v]",
+			p.logger.WarnF(f.Ctx(), "Owner[%v] promise[%v] future[%v] %v CallBack fail[%v]",
 				pm.owner, promiseId, futureId, pfId, p.context.Err.Error())
 			if p.cbFunc != nil {
 				p.cbFunc(p.context)
@@ -373,7 +387,7 @@ func (pm *Manager) Process(pfId uint64, args []interface{}, errInfo error) {
 		if er != nil {
 			if !errors.Is(er, ContinueErr) {
 				p.context.Err = er
-				p.logger.WarnF(nil, "Manager: Owner[%v] promise[%v] future[%v] %v do fail[%v]",
+				p.logger.WarnF(f.Ctx(), "Owner[%v] promise[%v] future[%v] %v do fail[%v]",
 					pm.owner, p.Id, f.Id(), pfId, p.context.Err.Error())
 				promiseFinish = true
 				break
@@ -414,7 +428,7 @@ func (pm *Manager) Update(during time.Duration) {
 				p.cbFunc(p.context)
 			}
 			p.pm.DeletePromise(p.Id)
-			pm.logger.ErrorF(nil, "Manager: Owner[%v] promise[%v][%v] run timeout, delete", pm.owner, p.Id, p.Name)
+			pm.logger.ErrorF(nil, "Owner[%v] promise[%v][%v] run timeout, delete", pm.owner, p.Id, p.Name)
 		}
 	}
 
@@ -457,12 +471,12 @@ func (pm *Manager) printStat() {
 	count := len(pm.statResults)
 
 	if len(pm.statResults) > 0 {
-		pm.logger.InfoF(nil, "Manager: Owner[%v] PromiseStatus [PromiseCount(%v), AvgPromiseDuration(%v), MaxPromiseDuration(%v) PromiseName(%v)",
+		pm.logger.InfoF(nil, "Owner[%v] PromiseStatus [PromiseCount(%v), AvgPromiseDuration(%v), MaxPromiseDuration(%v) PromiseName(%v)",
 			pm.owner, count, getDurationDesc(avgDuration), getDurationDesc(maxDuration), pm.maxResult.Name)
 		if pm.warnThresholdFunc != nil {
 			thresholdValue := pm.warnThresholdFunc()
 			if thresholdValue != 0 && maxDuration >= time.Duration(thresholdValue)*time.Millisecond {
-				pm.logger.WarnF(nil, "Manager: Owner[%v] PromiseName %v timeout excute %v exceed limit %v",
+				pm.logger.WarnF(nil, "Owner[%v] PromiseName %v timeout excute %v exceed limit %v",
 					pm.owner, pm.maxResult.Name, getDurationDesc(pm.maxResult.Duration), thresholdValue)
 			}
 		}

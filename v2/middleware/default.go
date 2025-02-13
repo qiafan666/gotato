@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -80,7 +81,8 @@ func Default(ctx *gin.Context) {
 				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
 		} else {
 			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d][request:%s][response:%s]",
-				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status(), string(bodyBytes), blw.body.String())
+				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(),
+				ctx.Writer.Status(), strings.ReplaceAll(strings.Replace(string(bodyBytes), "\n", "", -1), " ", ""), blw.body.String())
 		}
 	} else {
 		ctx.Next()

@@ -139,19 +139,36 @@ func RandNumNoPutBack(num int32, sample map[int32]int32) []int32 {
 
 // RandRedPacket 随机红包算法
 func RandRedPacket(num int32, totalCount int64) []int64 {
-	if num <= 0 {
-		return nil
+	// 确保红包数不大于总金额
+	if num <= 0 || totalCount < int64(num) {
+		return nil // 或者返回错误
 	}
+
 	envelopes := make([]int64, num)
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	remainingCount := totalCount
+
+	// 先给每个红包分配1元，确保每个红包至少有1元
+	for i := 0; i < int(num); i++ {
+		envelopes[i] = 1
+		remainingCount -= 1
+	}
+
+	// 分配剩余的钱
 	for i := 0; i < int(num)-1; i++ {
-		maxCount := (remainingCount / (int64(num) - int64(i))) * 2
+		// 最大可分配金额
+		maxCount := remainingCount / int64(num-int32(i)-1)
+
+		// 随机分配金额
 		amount := r.Int63n(maxCount + 1)
-		envelopes[i] = amount
+
+		// 分配金额大于0且不超过剩余金额
+		envelopes[i] += amount
 		remainingCount -= amount
 	}
+
+	// 最后一个红包拿到剩余的所有金额
 	envelopes[num-1] = remainingCount
 
 	return envelopes

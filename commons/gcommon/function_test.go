@@ -396,6 +396,7 @@ func TestHideStr(t *testing.T) {
 	t.Log(hideStr)
 	t.Log(RandRedPacket(10, 100))
 	t.Log(RandByWeight([]int32{14121, 21130, 30}))
+	t.Log(RandNumNoPutBack(2, map[int32]int32{1: 10, 2: 20, 3: 30}))
 }
 
 func TestRandStr(t *testing.T) {

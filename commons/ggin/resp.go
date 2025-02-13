@@ -85,5 +85,5 @@ func ParseError(err error) *ApiResponse {
 		}
 		return &resp
 	}
-	return &ApiResponse{Code: gerr.UnKnowError, Msg: err.Error(), Dlt: "api response parse error", Time: time.Now().UnixNano() / 1e6, RequestId: ""}
+	return &ApiResponse{Code: gerr.UnKnowError, Msg: err.Error(), Dlt: "error type is not gerr.CodeError", Time: time.Now().UnixNano() / 1e6, RequestId: ""}
 }
