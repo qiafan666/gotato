@@ -55,14 +55,14 @@ func (s *Server) exec(reqCtx *ReqCtx) (err error) {
 			str := string(buf[:l])
 			err = fmt.Errorf("%v: %s", r, str)
 			// 如果是Cast，那么消息不会被返回
-			reqCtx.ReplyErr(reqCtx.ctx, fmt.Errorf("%w: %v", ErrPeerPanic, r))
+			reqCtx.ReplyErr(fmt.Errorf("%w: %v", ErrPeerPanic, r))
 		}
 	}()
 	// 根据id取handler
 	handler, ok := s.handlers[reqCtx.id]
 	if !ok {
 		err = fmt.Errorf("%w: msgType: %v, msgID: %v", ErrPeerMsgNotRegsitered, reflect.TypeOf(reqCtx.Req), reqCtx.id)
-		reqCtx.ReplyErr(reqCtx.ctx, err)
+		reqCtx.ReplyErr(err)
 		return err
 	}
 
@@ -116,7 +116,7 @@ func (s *Server) PendReq(reqCtx *ReqCtx, block bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			err := r.(error)
-			reqCtx.ReplyErr(reqCtx.ctx, err)
+			reqCtx.ReplyErr(err)
 		}
 	}()
 
@@ -129,7 +129,7 @@ func (s *Server) PendReq(reqCtx *ReqCtx, block bool) {
 	select {
 	case s.chanReq <- reqCtx:
 	default:
-		reqCtx.ReplyErr(reqCtx.ctx, ErrPeerChanRPCFull)
+		reqCtx.ReplyErr(ErrPeerChanRPCFull)
 	}
 }
 
@@ -137,6 +137,6 @@ func (s *Server) PendReq(reqCtx *ReqCtx, block bool) {
 func (s *Server) Close() {
 	close(s.chanReq)
 	for reqCtx := range s.chanReq {
-		reqCtx.ReplyErr(reqCtx.ctx, ErrPeerChanRPCClosed)
+		reqCtx.ReplyErr(ErrPeerChanRPCClosed)
 	}
 }

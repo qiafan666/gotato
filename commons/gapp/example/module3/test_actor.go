@@ -2,12 +2,13 @@ package module3
 
 import (
 	"context"
+	"log"
+	"time"
+
 	"github.com/qiafan666/gotato/commons/gapp"
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/example/def"
 	"github.com/qiafan666/gotato/commons/gapp/module"
-	"log"
-	"time"
 )
 
 type testActor struct {
@@ -37,7 +38,7 @@ func (ta *testActor) OnDestroy() {
 func (ta *testActor) onTestMsg(ctx context.Context, reqCtx *chanrpc.ReqCtx) {
 	// req := reqCtx.Req.(*iproto.Test1ActorReq)
 	// fmt.Printf("actor%d receive testReq: %+v\n", ta.id, req)
-	reqCtx.Reply(ctx, &def.Test1ActorAck{ErrCode: 2222})
+	reqCtx.Reply(&def.Test1ActorAck{ErrCode: 2222})
 }
 
 func (ta *testActor) Call(ctx context.Context, modName string, req any) *chanrpc.AckCtx {

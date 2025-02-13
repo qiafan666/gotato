@@ -2,6 +2,7 @@ package module1
 
 import (
 	"context"
+
 	"github.com/qiafan666/gotato/commons/gapp/chanrpc"
 	"github.com/qiafan666/gotato/commons/gapp/example/def"
 )
@@ -25,12 +26,12 @@ func (m *Module1) onHandleTestReq(ctx context.Context, ci *chanrpc.ReqCtx) {
 		result += i
 	}
 	ret := &def.Test1Ack{ErrCode: 222, Result: result}
-	ci.Reply(ctx, ret)
+	ci.Reply(ret)
 }
 
 func (m *Module1) onHandleTestCallReq(ctx context.Context, ci *chanrpc.ReqCtx) {
 	// req := ci.Req.(*iproto.Test1CallReq)
 	ret := &def.Test1CallAck{ErrCode: 333}
 	m.Logger().WarnF(ctx, "onHandleTestCallReq msg:%+v", ret)
-	ci.Reply(ctx, ret)
+	ci.Reply(ret)
 }
