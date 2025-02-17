@@ -13,7 +13,7 @@ func TestStateMachine(t *testing.T) {
 	stateMachineManager := NewStateMachineManager(gface.NewLogger("state_machine", nil))
 
 	// 创建任务状态机
-	taskMachine := NewStateMachine(gcommon.SetTraceId("create_event"))
+	taskMachine := NewStateMachine(gcommon.SetRequestId("create_event"))
 	// 添加状态转换
 	taskMachine.AddTransition("TaskCreated", "TaskInProgress", "Start", func(data []interface{}) {
 		m := data[0].(map[string]interface{})
@@ -44,7 +44,7 @@ func TestStateMachine(t *testing.T) {
 	fmt.Println("当前状态：", taskMachine.GetState()) // 输出：TaskCompleted
 
 	// 测试任务取消
-	cancelMachine := NewStateMachine(gcommon.SetTraceId("cancel_event"))
+	cancelMachine := NewStateMachine(gcommon.SetRequestId("cancel_event"))
 	cancelMachine.AddTransition("TaskCreated", "TaskInProgress", "Start", func(data []interface{}) {
 		fmt.Println("任务开始执行")
 	})
@@ -61,7 +61,7 @@ func TestStateMachine(t *testing.T) {
 	fmt.Println("当前状态：", cancelMachine.GetState()) // 输出：TaskCancelled
 
 	// 测试无效事件
-	invalidMachine := NewStateMachine(gcommon.SetTraceId("invalid_event"))
+	invalidMachine := NewStateMachine(gcommon.SetRequestId("invalid_event"))
 	stateMachineManager.AddMachine("Invalid", invalidMachine)
 
 	invalidMachine.AddTransition("TaskCreated", "TaskInProgress", "Start", func(data []interface{}) {

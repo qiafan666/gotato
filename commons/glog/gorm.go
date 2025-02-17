@@ -22,17 +22,17 @@ func (l *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 }
 func (l *GormLogger) Info(ctx context.Context, template string, args ...interface{}) {
 	if l.LogLevel <= commons.Debug {
-		GormLog.Infof(gcommon.GetTraceId(ctx)+template, args...)
+		GormLog.Infof(gcommon.GetRequestIdFormat(ctx)+template, args...)
 	}
 }
 func (l *GormLogger) Warn(ctx context.Context, template string, args ...interface{}) {
 	if l.LogLevel <= commons.Warn {
-		GormLog.Warnf(gcommon.GetTraceId(ctx)+template, args...)
+		GormLog.Warnf(gcommon.GetRequestIdFormat(ctx)+template, args...)
 	}
 }
 func (l *GormLogger) Error(ctx context.Context, template string, args ...interface{}) {
 	if l.LogLevel <= commons.Error {
-		GormLog.Errorf(gcommon.GetTraceId(ctx)+template, args...)
+		GormLog.Errorf(gcommon.GetRequestIdFormat(ctx)+template, args...)
 	}
 }
 

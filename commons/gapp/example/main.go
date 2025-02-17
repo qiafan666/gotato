@@ -36,17 +36,17 @@ func main() {
 	// m1.ChanSrv().Cast(&iproto.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
 	// 异步消息
-	m2.Cast(gcommon.SetTraceId("m2 cast ctx"), def.TEST1, &def.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
+	m2.Cast(gcommon.SetRequestId("m2 cast ctx"), def.TEST1, &def.Test1Ntf{PlayerID: 111, Name: "ning1", T1: []int64{1, 2, 3}})
 
-	ackCtx := m2.Call(gcommon.SetTraceId("m2 call ctx"), def.TEST1, &def.Test1Req{PlayerID: 222, Name: "ning2", T1: []int64{2, 3, 4}})
+	ackCtx := m2.Call(gcommon.SetRequestId("m2 call ctx"), def.TEST1, &def.Test1Req{PlayerID: 222, Name: "ning2", T1: []int64{2, 3, 4}})
 	if ackCtx.Err != nil {
-		m2.Logger().ErrorF(gcommon.SetTraceId("m2 call ctx"), "call err:%v", ackCtx.Err)
+		m2.Logger().ErrorF(gcommon.SetRequestId("m2 call ctx"), "call err:%v", ackCtx.Err)
 	} else {
 		ack := ackCtx.Ack.(*def.Test1Ack)
-		m2.Logger().InfoF(gcommon.SetTraceId("m2 call result"), "call ret:%v", ack)
+		m2.Logger().InfoF(gcommon.SetRequestId("m2 call result"), "call ret:%v", ack)
 	}
 	// 异步回调
-	m2.AsyncCall(gcommon.SetTraceId("m2 AsyncCall ctx"), def.TEST1, &def.Test1Req{
+	m2.AsyncCall(gcommon.SetRequestId("m2 AsyncCall ctx"), def.TEST1, &def.Test1Req{
 		PlayerID: 222,
 		Name:     "ning2",
 		T1:       []int64{2, 3, 4},
@@ -55,11 +55,11 @@ func main() {
 			return
 		}
 		ack := ackCtx.Ack.(*def.Test1Ack)
-		m2.Logger().InfoF(gcommon.SetTraceId("m2 AsyncCall ctx"), "async call:%+v", ack)
+		m2.Logger().InfoF(gcommon.SetRequestId("m2 AsyncCall ctx"), "async call:%+v", ack)
 	}, nil)
 
 	// 异步回调带上下文
-	m2.AsyncCall(gcommon.SetTraceId("m2 AsyncCall ctx"), def.TEST1, &def.Test1Req{
+	m2.AsyncCall(gcommon.SetRequestId("m2 AsyncCall ctx"), def.TEST1, &def.Test1Req{
 		PlayerID: 222,
 		Name:     "ning2",
 		T1:       []int64{3, 4, 5},
@@ -68,11 +68,11 @@ func main() {
 			return
 		}
 		ack := ackCtx.Ack.(*def.Test1Ack)
-		m2.Logger().WarnF(gcommon.SetTraceId("m2 AsyncCall ctx"), "async call with ctx:%+v %+v", ack, ackCtx.M)
+		m2.Logger().WarnF(gcommon.SetRequestId("m2 AsyncCall ctx"), "async call with ctx:%+v %+v", ack, ackCtx.M)
 	}, sval.M{"111": sval.Int64(4444)})
 
 	// 同步调用
-	ret := m2.Call(gcommon.SetTraceId("m2 call ctx"), def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
+	ret := m2.Call(gcommon.SetRequestId("m2 call ctx"), def.TEST1, &def.Test1CallReq{PlayerID: 333, Name: "ning3", T1: []int64{3, 4, 5}})
 	if ret.Err != nil {
 		log.Printf("call err:%v", ret.Err)
 	} else {
@@ -81,7 +81,7 @@ func main() {
 	}
 
 	// 同步调用actor
-	actorRet := m2.CallActor(gcommon.SetTraceId("m2 callActor"), def.TEST3, 111, &def.Test1ActorReq{PlayerID: 444, Name: "ning4", T1: []int64{4, 5, 6}})
+	actorRet := m2.CallActor(gcommon.SetRequestId("m2 callActor"), def.TEST3, 111, &def.Test1ActorReq{PlayerID: 444, Name: "ning4", T1: []int64{4, 5, 6}})
 	if actorRet.Err != nil {
 		log.Printf("call actor err:%v", actorRet.Err)
 	} else {

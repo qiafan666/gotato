@@ -13,7 +13,7 @@ import (
 func TestCommonFutureAfter(t *testing.T) {
 	now := time.Now()
 	pm := gpromise.NewManager(1, func() int { return 100 }, gface.NewLogger("promise Manager", nil))
-	traceCtx := gcommon.SetTraceId("test promise future")
+	traceCtx := gcommon.SetRequestId("test promise future")
 	p := pm.NewPromise(traceCtx, "promise", func(context *gpromise.Context) {
 	})
 

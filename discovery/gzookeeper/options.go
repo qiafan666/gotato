@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var GetZkCtx = gcommon.SetTraceId("gzookeeper")
+var GetZkCtx = gcommon.SetRequestId("gzookeeper")
 
 type ZkOption func(*ZkClient)
 

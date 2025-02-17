@@ -13,24 +13,34 @@ import (
 	"strings"
 )
 
-// GetTraceId 获取trace_id
-func GetTraceId(ctx context.Context) string {
+// GetRequestId 获取request_id
+func GetRequestId(ctx context.Context) string {
 	if ctx == nil {
 		return ""
 	}
-	if traceId, ok := ctx.Value("trace_id").(string); ok {
-		return fmt.Sprintf("[trace_id:%s] ", traceId)
+	if requestId, ok := ctx.Value("request_id").(string); ok {
+		return requestId
 	} else {
 		return ""
 	}
 }
 
-func SetTraceId(traceId string) context.Context {
+func GetRequestIdFormat(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if requestId, ok := ctx.Value("request_id").(string); ok {
+		return fmt.Sprintf("[request_id:%s] ", requestId)
+	} else {
+		return ""
+	}
+}
+func SetRequestId(traceId string) context.Context {
 	return context.WithValue(context.Background(), "trace_id", traceId)
 }
 
-func SetTraceIdWithCtx(ctx context.Context, traceId string) context.Context {
-	return context.WithValue(ctx, "trace_id", traceId)
+func SetRequestIdWithCtx(ctx context.Context, requestId string) context.Context {
+	return context.WithValue(ctx, "request_id", requestId)
 }
 
 // RetryFunction 重试函数
