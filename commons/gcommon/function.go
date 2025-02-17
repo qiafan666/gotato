@@ -35,8 +35,8 @@ func GetRequestIdFormat(ctx context.Context) string {
 		return ""
 	}
 }
-func SetRequestId(traceId string) context.Context {
-	return context.WithValue(context.Background(), "trace_id", traceId)
+func SetRequestId(requestId string) context.Context {
+	return context.WithValue(context.Background(), "request_id", requestId)
 }
 
 func SetRequestIdWithCtx(ctx context.Context, requestId string) context.Context {
