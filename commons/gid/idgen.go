@@ -28,8 +28,8 @@ const ServerIdBits = 12
 // MaxCounterInSecond 单秒允许生成的最大ID数量
 const MaxCounterInSecond = (1 << CounterBits) - 1
 
-// 2024-01-01 00:00:00 标准时间，不得修改
-const epoch = 1704038400
+// 2025-01-01 00:00:00 标准时间，不得修改
+const epoch = 1735717273
 
 // NewServerID 初始化服务器ID
 func NewServerID(sid int) {
