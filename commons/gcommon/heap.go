@@ -2,32 +2,32 @@ package gcommon
 
 import "container/heap"
 
-// GenericHeap 实现了 heap.Interface 接口，用于自定义排序。
-type GenericHeap[T any] struct {
+// genericHeap 实现了 heap.Interface 接口，用于自定义排序。
+type genericHeap[T any] struct {
 	data []T
 	less func(a, b T) bool // 用于自定义排序的比较函数
 }
 
 // Len 返回堆中元素的数量。
-func (h *GenericHeap[T]) Len() int { return len(h.data) }
+func (h *genericHeap[T]) Len() int { return len(h.data) }
 
 // Less 根据自定义的比较函数比较两个元素。
-func (h *GenericHeap[T]) Less(i, j int) bool {
+func (h *genericHeap[T]) Less(i, j int) bool {
 	return h.less(h.data[i], h.data[j])
 }
 
 // Swap 交换堆中两个元素的位置。
-func (h *GenericHeap[T]) Swap(i, j int) {
+func (h *genericHeap[T]) Swap(i, j int) {
 	h.data[i], h.data[j] = h.data[j], h.data[i]
 }
 
 // Push 向堆中添加一个元素。
-func (h *GenericHeap[T]) Push(x interface{}) {
+func (h *genericHeap[T]) Push(x interface{}) {
 	h.data = append(h.data, x.(T))
 }
 
 // Pop 移除并返回最小的元素（根据 Less 定义）。
-func (h *GenericHeap[T]) Pop() interface{} {
+func (h *genericHeap[T]) Pop() interface{} {
 	old := h.data
 	n := len(old)
 	item := old[n-1]
@@ -38,7 +38,7 @@ func (h *GenericHeap[T]) Pop() interface{} {
 // HeapSort 使用自定义的比较函数对任意类型的切片进行排序。
 func HeapSort[T any](data []T, less func(a, b T) bool) []T {
 	// 使用提供的数据和比较函数初始化泛型堆。
-	h := &GenericHeap[T]{data: data, less: less}
+	h := &genericHeap[T]{data: data, less: less}
 	heap.Init(h)
 
 	// 从堆中逐个弹出元素，获取排序后的结果。
@@ -53,7 +53,7 @@ func HeapSort[T any](data []T, less func(a, b T) bool) []T {
 // HeapSortFilter 对数据进行排序并按过滤条件筛选元素。
 func HeapSortFilter[T any](data []T, less func(a, b T) bool, filter func(T) bool) []T {
 	// 使用提供的数据和比较函数初始化泛型堆。
-	h := &GenericHeap[T]{data: data, less: less}
+	h := &genericHeap[T]{data: data, less: less}
 	heap.Init(h)
 
 	// 从堆中逐个弹出元素，获取排序后的结果。
