@@ -442,3 +442,11 @@ func TestContainsEmoji(t *testing.T) {
 		}
 	}
 }
+
+func TestMathCompare(t *testing.T) {
+	tests := []float64{
+		1, 31, 234.2341, 123.123, 12, 1235141, 0.1251,
+	}
+	t.Log(Max(tests...))
+	t.Log(Min(tests...))
+}

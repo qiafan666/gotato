@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
+	"golang.org/x/exp/constraints"
 	"gorm.io/gorm"
 	"math"
 	"reflect"
@@ -246,4 +247,32 @@ func MultiPointDistance(p ...float64) float64 {
 		i += 2
 	}
 	return math.Sqrt(sum)
+}
+
+// Max 最大值
+func Max[T constraints.Ordered](nums ...T) T {
+	if len(nums) == 0 {
+		panic("Max: 至少需要一个数")
+	}
+	maxVal := nums[0]
+	for _, num := range nums[1:] {
+		if num > maxVal {
+			maxVal = num
+		}
+	}
+	return maxVal
+}
+
+// Min 最小值
+func Min[T constraints.Ordered](nums ...T) T {
+	if len(nums) == 0 {
+		panic("Min: 至少需要一个数")
+	}
+	minVal := nums[0]
+	for _, num := range nums[1:] {
+		if num < minVal {
+			minVal = num
+		}
+	}
+	return minVal
 }
