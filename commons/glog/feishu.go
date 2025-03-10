@@ -1,7 +1,7 @@
 package glog
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"go.uber.org/zap/zapcore"
@@ -16,6 +16,7 @@ var (
 	FeiShuLogCountPerSec    = 3    // 每秒3条日志, 飞书限制每秒50条，但有多个server
 	FeiShuSameCallerTick    = 1800 // 相同caller的log，每半个小时push一次飞书
 	FeiShuRegisterEntryFunc func(zapcore.Entry) error
+	json                    = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 // FeiShuHook 封装了飞书消息发送逻辑和状态管理

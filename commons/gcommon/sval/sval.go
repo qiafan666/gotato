@@ -1,11 +1,13 @@
 package sval
 
 import (
-	"encoding/json"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"reflect"
 	"strconv"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
 	int32Tag  = "i32"

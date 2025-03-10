@@ -1,8 +1,10 @@
 package gerr
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func Marshal(v any) ([]byte, error) {
 	m, err := json.Marshal(v)
