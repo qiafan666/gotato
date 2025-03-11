@@ -13,7 +13,7 @@ type CodeError interface {
 	Detail() string
 	WithDetail(detail string) CodeError
 	RequestID() string
-	ErrorInterface
+	Error
 }
 
 // NewLang 返回多语言的错误信息 strings[0] 为language，strings[1] 为request_id

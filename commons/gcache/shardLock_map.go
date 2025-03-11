@@ -19,12 +19,12 @@ type Stringer interface {
 // K 和 V 分别代表键和值的类型
 type ShardLockMap[K comparable, V any] struct {
 	shardCount int                        // 分片数
-	shards     []*ShardLockMapShard[K, V] // 分片数组
+	shards     []*shardLockMapShard[K, V] // 分片数组
 	sharding   func(key K) uint32         // 分片函数
 }
 
-// ShardLockMapShard 是分片的具体实现
-type ShardLockMapShard[K comparable, V any] struct {
+// shardLockMapShard 是分片的具体实现
+type shardLockMapShard[K comparable, V any] struct {
 	items        map[K]V
 	sync.RWMutex // 读写锁
 }
@@ -58,16 +58,16 @@ func create[K comparable, V any](sharding func(key K) uint32, defaultShardCount 
 	newMap := &ShardLockMap[K, V]{
 		shardCount: defaultShardCount,
 		sharding:   sharding,
-		shards:     make([]*ShardLockMapShard[K, V], defaultShardCount),
+		shards:     make([]*shardLockMapShard[K, V], defaultShardCount),
 	}
 	for i := 0; i < defaultShardCount; i++ {
-		newMap.shards[i] = &ShardLockMapShard[K, V]{items: make(map[K]V)}
+		newMap.shards[i] = &shardLockMapShard[K, V]{items: make(map[K]V)}
 	}
 	return newMap
 }
 
 // 根据键获取对应的分片
-func (m *ShardLockMap[K, V]) getShard(key K) *ShardLockMapShard[K, V] {
+func (m *ShardLockMap[K, V]) getShard(key K) *shardLockMapShard[K, V] {
 	return m.shards[uint(m.sharding(key))%uint(m.shardCount)]
 }
 
@@ -183,6 +183,15 @@ func (m *ShardLockMap[K, V]) Pop(key K) (v V, exists bool) {
 	return v, exists
 }
 
+// Clear 清空Map
+func (m *ShardLockMap[K, V]) Clear() {
+	for _, shard := range m.shards {
+		shard.Lock()
+		shard.items = make(map[K]V)
+		shard.Unlock()
+	}
+}
+
 // Items 返回所有键值对
 func (m *ShardLockMap[K, V]) Items() map[K]V {
 	tmp := make(map[K]V)
@@ -241,7 +250,7 @@ func (m *ShardLockMap[K, V]) Keys() []K {
 		wg := sync.WaitGroup{}
 		wg.Add(m.shardCount)
 		for _, shard := range m.shards {
-			go func(shard *ShardLockMapShard[K, V]) {
+			go func(shard *shardLockMapShard[K, V]) {
 				shard.RLock()
 				for key := range shard.items {
 					ch <- key
@@ -301,7 +310,7 @@ func (m *ShardLockMap[K, V]) snapshot() []chan KVPairs[K, V] {
 	wg := sync.WaitGroup{}
 	wg.Add(m.shardCount)
 	for index, shard := range m.shards {
-		go func(index int, shard *ShardLockMapShard[K, V]) {
+		go func(index int, shard *shardLockMapShard[K, V]) {
 			defer wg.Done() // 完成任务后递减计数
 			shard.RLock()
 			defer shard.RUnlock()

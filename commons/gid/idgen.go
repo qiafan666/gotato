@@ -77,7 +77,7 @@ func ParseID(id int64) (serverID int32, createAt int64) {
 	return serverID, createAt
 }
 
-// RandID( 生成一个随机ID serverID 随机
+// RandID 生成一个随机ID serverID 随机
 func RandID() int64 {
 	now := time.Now().Unix()
 	mutex.Lock()

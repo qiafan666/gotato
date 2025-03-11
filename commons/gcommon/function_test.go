@@ -450,3 +450,13 @@ func TestMathCompare(t *testing.T) {
 	t.Log(Max(tests...))
 	t.Log(Min(tests...))
 }
+
+func TestSerialId(t *testing.T) {
+	serialId := gid.NewSerialId[uint8]()
+
+	for i := 0; i < 258; i++ {
+		fmt.Println(uint8(i))
+		id := serialId.Id()
+		fmt.Println(id)
+	}
+}

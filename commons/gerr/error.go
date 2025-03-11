@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-type ErrorInterface interface {
+type Error interface {
 	Is(err error) bool
 	Wrap() error
 	WrapMsg(msg string, kv ...any) error
 	error
 }
 
-func New(s string, kv ...any) ErrorInterface {
+func New(s string, kv ...any) Error {
 	return &errorString{
 		s: toString(s, kv),
 	}
