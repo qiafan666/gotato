@@ -15,6 +15,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/jinzhu/copier v0.4.0
+	github.com/json-iterator/go v1.1.12
 	github.com/kataras/iris/v12 v12.2.1
 	github.com/klauspost/compress v1.17.9
 	github.com/minio/minio-go/v7 v7.0.76

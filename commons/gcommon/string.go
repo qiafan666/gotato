@@ -53,14 +53,6 @@ func Bytes2Str(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// Str2BytesNoCopy
-// 无拷贝 string 转 []byte
-func Str2BytesNoCopy(s string) []byte {
-	tmp := (*[2]uintptr)(unsafe.Pointer(&s))
-	h := [3]uintptr{tmp[0], tmp[1], tmp[1]}
-	return *(*[]byte)(unsafe.Pointer(&h))
-}
-
 // UnderscoreName 驼峰式写法转为下划线写法
 func UnderscoreName(name string) string {
 	// 使用 strings.Builder 代替自定义的 NewBuffer
