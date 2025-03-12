@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"github.com/qiafan666/gotato/discovery/getcd"
-	gzookeeper2 "github.com/qiafan666/gotato/discovery/gzookeeper"
+	"github.com/qiafan666/gotato/discovery/gzookeeper"
 	"google.golang.org/grpc"
 	"time"
 )
@@ -15,7 +15,6 @@ type Conn interface {
 	GetSelfConnTarget() string                                                                             //3
 	AddOption(opts ...grpc.DialOption)                                                                     //4
 	CloseConn(conn *grpc.ClientConn)                                                                       //5
-	// do not use this method for call rpc
 }
 type SvcDiscoveryRegistry interface {
 	Conn
@@ -47,13 +46,13 @@ type Etcd struct {
 func NewDiscoveryRegister(mode string, discovery DiscoveryRegister) (SvcDiscoveryRegistry, error) {
 	switch mode {
 	case "zookeeper":
-		return gzookeeper2.NewZkClient(
+		return gzookeeper.NewZkClient(
 			discovery.Zookeeper.Address,
 			discovery.Zookeeper.Schema,
-			gzookeeper2.WithFreq(time.Hour),
-			gzookeeper2.WithUserNameAndPassword(discovery.Zookeeper.Username, discovery.Zookeeper.Password),
-			gzookeeper2.WithRoundRobin(),
-			gzookeeper2.WithTimeout(10),
+			gzookeeper.WithFreq(time.Hour),
+			gzookeeper.WithUserNameAndPassword(discovery.Zookeeper.Username, discovery.Zookeeper.Password),
+			gzookeeper.WithRoundRobin(),
+			gzookeeper.WithTimeout(10),
 		)
 	case "etcd":
 		return getcd.NewSvcDiscoveryRegistry(
