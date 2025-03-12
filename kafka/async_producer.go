@@ -3,9 +3,12 @@ package kafka
 import (
 	"context"
 	"github.com/IBM/sarama"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type AsyncProducer struct {
 	addr     []string
@@ -32,8 +35,12 @@ func NewAsyncProducer(addr []string, topic string, logger gface.Logger) *AsyncPr
 	return p
 }
 
-func (p *AsyncProducer) Push(data string) error {
-	msg := &sarama.ProducerMessage{Topic: p.topic, Key: nil, Value: sarama.StringEncoder(data)}
+func (p *AsyncProducer) Push(data interface{}) error {
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	msg := &sarama.ProducerMessage{Topic: p.topic, Key: nil, Value: sarama.StringEncoder(gcommon.Bytes2Str(marshal))}
 	p.producer.Input() <- msg
 	return nil
 }

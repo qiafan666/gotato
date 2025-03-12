@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 type Producer struct {
 	conn              *amqp.Connection
 	channel           *amqp.Channel
@@ -74,7 +76,7 @@ func (p *Producer) Close() {
 }
 
 func (p *Producer) Publish(ctx context.Context, msgChannel *MsgChannel, msg interface{}) error {
-	marshal, _ := jsoniter.Marshal(msg)
+	marshal, _ := json.Marshal(msg)
 	now := time.Now()
 
 	if err := p.ini(); err != nil {
