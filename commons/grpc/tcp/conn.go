@@ -146,7 +146,7 @@ func (c *Conn) setOptions(opt *ConnOptions) {
 
 	c.opt = opt
 	// 设置各类超时截止时间
-	c.pingDeadline = now.Add(opt.PingTimeout).Add(1 * time.Second)
+	c.pingDeadline = now.Add(opt.PingTimeout).Add(1 * time.Second) // 加1s是为了避免误判
 	c.idleDeadline = now.Add(opt.IdleTimeout)
 	c.liveDeadline = now.Add(opt.LiveTimeout)
 }
@@ -220,13 +220,15 @@ func (c *Conn) IsClosed() bool {
 func (c *Conn) Send(v *grpc.Message, ch *RecvChan) error {
 	// 检查连接状态
 	if c.ctx.Err() != nil || c.closed {
-		return gerr.NewLang(gerr.UnKnowError)
+		c.logger.DebugF(nil, "Conn.Send: conn closed, connId=%+v", c.connId)
+		return gerr.New("send on closed conn")
 	}
 
 	// 编码消息
 	encode, e := c.protocol.Encode(c.ctx, v)
 	if e != nil {
-		return gerr.NewLang(gerr.UnKnowError).WrapMsg(e.Error())
+		c.logger.ErrorF(nil, "Conn.Send: encode fail, connId=%+v, err=%+v", c.connId, e)
+		return gerr.WrapMsg(e, "encode message fail")
 	}
 
 	// 如果提供了接收通道,存储它
@@ -240,7 +242,7 @@ func (c *Conn) Send(v *grpc.Message, ch *RecvChan) error {
 	if err != nil {
 		c.logger.ErrorF(nil, "Conn.Send: write fail, connId=%+v, err=%+v", c.connId, err)
 		c.Close()
-		return gerr.NewLang(gerr.UnKnowError).WrapMsg(err.Error())
+		return gerr.WrapMsg(err, "send message fail")
 	}
 
 	return nil
@@ -296,9 +298,7 @@ func (c *Conn) read(ctx context.Context) {
 
 // ping 心跳检查循环
 func (c *Conn) ping(ctx context.Context) {
-	//interval := time.Duration(c.pingTimeout) * time.Millisecond
-	interval := 1500 * time.Millisecond
-	pingTicker := gticker.NewTicker(interval, func() {
+	gticker.NewTicker(1500*time.Millisecond, func() {
 		// 检查心跳超时
 		if c.pingDeadline.Before(time.Now()) {
 			c.logger.DebugF(nil, "Conn.ping: ping deadline, connId=%+v", c.connId)
@@ -309,15 +309,12 @@ func (c *Conn) ping(ctx context.Context) {
 		// 发送心跳请求
 		req := c.pingRequest()
 		c.Send(req, nil)
-	})
-
-	pingTicker.Run(ctx)
+	}).Run(ctx)
 }
 
 // idleCheck 检查连接空闲时间,关闭超时未使用的连接
 func (c *Conn) idleCheck(ctx context.Context) {
-	interval := 5 * time.Second
-	idleCheckTicker := gticker.NewTicker(interval, func() {
+	gticker.NewTicker(5*time.Second, func() {
 		// 如果有未完成的请求,不检查空闲
 		if c.recvChans.Count() != 0 {
 			return
@@ -328,15 +325,12 @@ func (c *Conn) idleCheck(ctx context.Context) {
 			c.Close()
 			return
 		}
-	})
-
-	idleCheckTicker.Run(ctx)
+	}).Run(ctx)
 }
 
 // liveTimeoutCheck 检查连接存活时长,关闭超时且无堆积任务的连接
 func (c *Conn) liveTimeoutCheck(ctx context.Context) {
-	interval := 1 * time.Minute
-	liveTimeoutCheckTicker := gticker.NewTicker(interval, func() {
+	gticker.NewTicker(time.Minute, func() {
 		// 如果有未完成的请求,不检查存活时间
 		if c.recvChans.Count() != 0 {
 			return
@@ -347,9 +341,7 @@ func (c *Conn) liveTimeoutCheck(ctx context.Context) {
 			c.Close()
 			return
 		}
-	})
-
-	liveTimeoutCheckTicker.Run(ctx)
+	}).Run(ctx)
 }
 
 // pingRequest 创建心跳请求消息

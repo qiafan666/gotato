@@ -71,7 +71,7 @@ func (t *TextRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, err
 		}
 		headerData = append(headerData, buf...)
 		if len(headerData) < headerSize {
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("header data not enough")
+			return nil, gerr.New("header data too short", "headerSize", headerSize, "headerData", len(headerData))
 		}
 
 		pos := bytes.Index(headerData, endian.AppendUint32([]byte{}, tag))
@@ -95,7 +95,7 @@ func (t *TextRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, err
 	bufReader := bytes.NewReader(headerData)
 	e := binary.Read(bufReader, endian, &newHeader)
 	if e != nil {
-		return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("read header error", "error", e)
+		return nil, gerr.WrapMsg(e, "protocol unpack header error")
 	}
 
 	m := &msg{
@@ -108,7 +108,7 @@ func (t *TextRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, err
 	if m.ExtSize > 0 {
 		buf, err := t.read(ctx, reader, uint32(m.ExtSize))
 		if err != nil {
-			return nil, err
+			return nil, gerr.WrapMsg(e, "protocol extSize read error")
 		}
 		m.Ext = buf
 	}
@@ -117,7 +117,7 @@ func (t *TextRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, err
 	if m.BodySize > 0 {
 		buf, err := t.read(ctx, reader, m.BodySize)
 		if err != nil {
-			return nil, err
+			return nil, gerr.WrapMsg(e, "protocol bodySize read error")
 		}
 		m.Body = buf
 	}
@@ -133,7 +133,7 @@ func (t *TextRpcProtocol) read(ctx context.Context, reader io.Reader, length uin
 	// 循环读取,直到读够length
 	for {
 		if ctx.Err() != nil {
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("context canceled", "error", ctx.Err())
+			return nil, gerr.WrapMsg(ctx.Err(), "protocol read context error")
 		}
 
 		size := 1024                    // 默认每次读取长度
@@ -151,7 +151,7 @@ func (t *TextRpcProtocol) read(ctx context.Context, reader io.Reader, length uin
 		buf := make([]byte, size)
 		l, err := reader.Read(buf)
 		if err != nil {
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("read error", "error", err)
+			return nil, gerr.WrapMsg(err, "protocol read buffer error")
 		}
 		if l == 0 {
 			continue
@@ -168,7 +168,7 @@ func (t *TextRpcProtocol) read(ctx context.Context, reader io.Reader, length uin
 
 func (t *TextRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result, sequence uint32, reqId uint64, data []byte) ([]byte, error) {
 	if len(data) > maxBodySize {
-		return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("body size too large")
+		return nil, gerr.New("data too long", "maxBodySize", maxBodySize, "dataSize", len(data))
 	}
 
 	newMsg := msg{
@@ -192,7 +192,7 @@ func (t *TextRpcProtocol) unpackHeartbeatRequest(body []byte) (*grpc.Heartbeat, 
 	r := bytes.NewReader(body)
 	err := binary.Read(r, endian, &m)
 	if err != nil {
-		return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("unpack heartbeat request error", "error", err)
+		return nil, gerr.WrapMsg(err, "protocol unpack heartbeat request error")
 	}
 
 	h := &grpc.Heartbeat{

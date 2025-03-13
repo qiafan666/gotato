@@ -140,13 +140,13 @@ func (c *Client) Do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 		res, err = c.do(ctx, request)
 		if err != nil {
 			c.logger.ErrorF(nil, "Client.Do: rpc call fail, reqId=%+v, err=%+v", request.ReqId, err)
-			return gerr.NewLang(gerr.UnKnowError).WrapMsg("rpc call fail, hystrix do")
+			return gerr.WrapMsg(err, "rpc call fail")
 		}
 		return nil
 	}, func(e error) error {
 		c.logger.ErrorF(nil, "Client.Do: hystrix.Do fail, name=%+v, err=%+v", c.hystrixCommandName, e)
 		res = nil
-		err = gerr.NewLang(gerr.UnKnowError).WrapMsg("rpc call fail, hystrix callback")
+		err = gerr.WrapMsg(e, "hystrix do fail,this is a fallback error")
 		return e
 	})
 	return res, err
@@ -160,7 +160,7 @@ func (c *Client) do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 
 	// 检查上下文是否已取消,避免无效调用
 	if ctx.Err() != nil {
-		return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("context canceled")
+		return nil, gerr.WrapMsg(ctx.Err(), "context canceled")
 	}
 
 	// 从上下文获取重试次数,用于控制重试逻辑
@@ -179,7 +179,7 @@ func (c *Client) do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 			if conn != nil {
 				conn.Close()
 			}
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("retry limit reached")
+			return nil, gerr.WrapMsg(err, "retry limit reached")
 		}
 		// 未达重试上限,递增重试计数并重试
 		ctx = context.WithValue(ctx, "retry", retry+1)
@@ -209,7 +209,7 @@ func (c *Client) do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 		conn.Close()
 		// 如果达到重试上限则返回错误
 		if retry >= c.opt.RetryLimit {
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("retry limit reached")
+			return nil, gerr.WrapMsg(e, "retry limit reached")
 		}
 		// 未达重试上限,递增重试计数并重试
 		ctx = context.WithValue(ctx, "retry", retry+1)
@@ -222,14 +222,14 @@ func (c *Client) do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 		case <-ctx.Done():
 			// 上下文取消,可能是父协程超时或取消
 			c.logger.DebugF(nil, "Client.Do: context done, reqId=%+v", request.ReqId)
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("context done")
+			return nil, gerr.New("context canceled")
 
 		case resp := <-ch.Ch:
 			// 收到响应
 			if resp == nil {
 				// 通道关闭,说明连接可能已断开
 				c.logger.DebugF(nil, "Client.Do: receive chan closed, reqId=%+v", request.ReqId)
-				return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("receive chan closed")
+				return nil, gerr.New("receive chan closed")
 			}
 			return resp, nil
 
@@ -237,7 +237,7 @@ func (c *Client) do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 			// 请求超时
 			defer conn.RemoveChan(ch) // 清理超时的接收通道
 			c.logger.DebugF(ctx, "Client.Do: receive timeout, reqId=%+v", request.ReqId)
-			return nil, gerr.NewLang(gerr.UnKnowError).WrapMsg("receive timeout")
+			return nil, gerr.New("receive timeout")
 		}
 	}
 	return nil, nil
