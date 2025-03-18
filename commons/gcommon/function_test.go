@@ -2,7 +2,6 @@ package gcommon
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gid"
@@ -287,6 +286,8 @@ func TestEncode(t *testing.T) {
 func TestSnowflake(t *testing.T) {
 	t.Log(gid.RandSnowflakeID())
 	t.Log(gid.ID())
+	id := gid.ID()
+	t.Log(gid.ParseID(id))
 	t.Log(gid.ID())
 	t.Log(gid.ID())
 	t.Log(gid.ID())
