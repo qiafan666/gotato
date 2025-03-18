@@ -3,15 +3,13 @@ package gredis
 import (
 	"context"
 	"errors"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
 
 const defaultMaxRetry = 3
 const defaultPoolSize = 100
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Config 连接配置参数，包括单机模式和集群模式的连接配置参数。
 type Config struct {
@@ -75,7 +73,7 @@ func (c *Client) GetRedis() redis.UniversalClient {
 // Set 将一个键值对存储到 Redis，值会被序列化为 JSON 格式。
 // 返回一个布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) Set(key string, val interface{}) (bool, error) {
-	marshal, err := json.Marshal(val)
+	marshal, err := gcommon.Marshal(val)
 	if err != nil {
 		return false, err
 	}
@@ -99,7 +97,7 @@ func (c *Client) Del(key string) (bool, error) {
 // SetEx 将一个键值对存储到 Redis，并设置过期时间，值会被序列化为 JSON 格式。
 // 返回一个布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) SetEx(key string, val interface{}, expire time.Duration) (bool, error) {
-	marshal, err := json.Marshal(val)
+	marshal, err := gcommon.Marshal(val)
 	if err != nil {
 		return false, err
 	}
@@ -118,7 +116,7 @@ func (c *Client) Get(key string, val interface{}) error {
 		return cmd.Err()
 	}
 	bytes, _ := cmd.Bytes()
-	err := json.Unmarshal(bytes, val)
+	err := gcommon.Unmarshal(bytes, val)
 	return err
 }
 
@@ -258,7 +256,7 @@ func (c *Client) ZRangeByScoreAndLimitWithScores(key string, min, max string, li
 // RPush 将一个值推送到 Redis 列表的右端，值会被序列化为 JSON 格式。
 // 返回布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) RPush(key string, val interface{}) (bool, error) {
-	marshal, err := json.Marshal(val)
+	marshal, err := gcommon.Marshal(val)
 	if err != nil {
 		return false, err
 	}

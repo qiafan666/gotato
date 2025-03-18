@@ -2,7 +2,6 @@ package rabbitmq
 
 import (
 	"context"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -10,8 +9,6 @@ import (
 	"sync"
 	"time"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Producer struct {
 	conn              *amqp.Connection
@@ -76,7 +73,7 @@ func (p *Producer) Close() {
 }
 
 func (p *Producer) Publish(ctx context.Context, msgChannel *MsgChannel, msg interface{}) error {
-	marshal, _ := json.Marshal(msg)
+	marshal, _ := gcommon.Marshal(msg)
 	now := time.Now()
 
 	if err := p.ini(); err != nil {
