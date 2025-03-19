@@ -138,8 +138,8 @@ func runShardedJanitor(sc *shardedCache, ci time.Duration) {
 }
 
 func newShardedCache(n int, de time.Duration) *shardedCache {
-	max := big.NewInt(0).SetUint64(uint64(math.MaxUint32))
-	rnd, err := rand.Int(rand.Reader, max)
+	maxUint32 := big.NewInt(0).SetUint64(uint64(math.MaxUint32))
+	rnd, err := rand.Int(rand.Reader, maxUint32)
 	var seed uint32
 	if err != nil {
 		os.Stderr.Write([]byte("WARNING: go-cache's newShardedCache failed to read from the system CSPRNG (/dev/urandom or equivalent.) Your system's security may be compromised. Continuing with an insecure seed.\n"))

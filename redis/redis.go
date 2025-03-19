@@ -49,7 +49,7 @@ func (slf *Redis) StartRedis(config gconfig.RedisConfig) error {
 	if err != nil {
 		return err
 	}
-	slf.redisSource = client
+	slf.redisSource = client.GetRedis()
 	return nil
 }
 

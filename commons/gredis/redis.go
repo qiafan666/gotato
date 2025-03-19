@@ -65,9 +65,19 @@ type Client struct {
 	redis redis.UniversalClient
 }
 
+// SetRedis 设置 Redis 客户端。
+func (c *Client) SetRedis(redis redis.UniversalClient) {
+	c.redis = redis
+}
+
 // GetRedis 获取 Redis 客户端。
 func (c *Client) GetRedis() redis.UniversalClient {
 	return c.redis
+}
+
+// Close 关闭 Redis 连接。
+func (c *Client) Close() error {
+	return c.redis.Close()
 }
 
 // Set 将一个键值对存储到 Redis，值会被序列化为 JSON 格式。
@@ -277,6 +287,61 @@ func (c *Client) RPushStr(key string, val ...string) (bool, error) {
 	return true, nil
 }
 
+// GetListElementsRange 返回 Redis 列表中指定范围内的元素
+func (c *Client) GetListElementsRange(key string, start, stop int64) ([]string, error) {
+	result, err := c.redis.LRange(context.Background(), key, start, stop).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// RemoveFromList 从 Redis 列表中删除指定的多个元素（事务方式）
+func (c *Client) RemoveFromList(key string, values ...string) (int64, error) {
+	// Lua 脚本
+	script := `
+        local key = KEYS[1]
+        local count = 0
+        for i = 1, #ARGV do
+            count = count + redis.call('LREM', key, 0, ARGV[i])
+        end
+        return count
+    `
+
+	// 将 values 转换为 []interface{}
+	args := make([]interface{}, len(values))
+	for i, v := range values {
+		args[i] = v
+	}
+
+	// 执行 Lua 脚本
+	result, err := c.redis.Eval(context.Background(), script, []string{key}, args...).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	// 返回删除的元素数量
+	return result.(int64), nil
+}
+
+// IsContain 判断元素是否在 Redis 列表中
+func (c *Client) IsContain(key string, target string) (bool, error) {
+	// 获取列表中的所有元素
+	elements, err := c.redis.LRange(context.Background(), key, 0, -1).Result()
+	if err != nil {
+		return false, err
+	}
+
+	// 遍历列表，检查是否存在目标元素
+	for _, element := range elements {
+		if element == target {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // ZRevRank 返回成员在有序集合中的排名，从 0 开始，若成员不存在，则返回 -1。
 // 返回成员的排名，以及可能发生的错误。
 func (c *Client) ZRevRank(key string, member string) (int64, error) {
@@ -315,4 +380,65 @@ func (c *Client) GetBit(key string, offset int64) (int, error) {
 		return 0, err
 	}
 	return int(result), nil
+}
+
+// BitCount 统计位图中值为 1 的位的数量。
+func (c *Client) BitCount(key string, bitCount *redis.BitCount) (int64, error) {
+	result, err := c.redis.BitCount(context.Background(), key, bitCount).Result()
+	if err != nil {
+		// 如果有错误，输出日志
+		return 0, err
+	}
+	return result, nil
+}
+
+// GetBits 批量获取位图的值
+func (c *Client) GetBits(key string, start, size int64) ([]int64, error) {
+	// 使用 BITFIELD 命令批量获取位的值
+	result, err := c.redis.BitField(context.Background(), key, "GET", "u1", start, "GET", "u1", start+1, "GET", "u1", start+size-1).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// SetNextBit 根据规则设置位图的值,返回设置的偏移量。
+func (c *Client) SetNextBit(key string, batchSize int64) (int64, error) {
+	var offset int64 = 0
+	for {
+		// 批量获取位的值
+		bits, err := c.GetBits(key, offset, batchSize)
+		if err != nil {
+			return 0, err
+		}
+
+		// 查找第一个值为 0 的位
+		for i, bit := range bits {
+			if bit == 0 {
+				targetOffset := offset + int64(i)
+				// 使用 Lua 脚本确保原子性
+				script := `
+                    local key = KEYS[1]
+                    local offset = tonumber(ARGV[1])
+                    local bit = redis.call('GETBIT', key, offset)
+                    if bit == 0 then
+                        redis.call('SETBIT', key, offset, 1)
+                        return offset
+                    else
+                        return -1
+                    end
+                `
+				result, err := c.redis.Eval(context.Background(), script, []string{key}, targetOffset).Result()
+				if err != nil {
+					return 0, err
+				}
+				if result.(int64) != -1 {
+					return result.(int64), nil
+				}
+			}
+		}
+
+		// 如果没有找到，继续查询下一个范围
+		offset += batchSize
+	}
 }
