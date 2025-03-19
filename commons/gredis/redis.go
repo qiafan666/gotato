@@ -287,8 +287,8 @@ func (c *Client) RPushStr(key string, val ...string) (bool, error) {
 	return true, nil
 }
 
-// GetListElementsRange 返回 Redis 列表中指定范围内的元素
-func (c *Client) GetListElementsRange(key string, start, stop int64) ([]string, error) {
+// RListRange 返回 Redis 列表中指定范围内的元素
+func (c *Client) RListRange(key string, start, stop int64) ([]string, error) {
 	result, err := c.redis.LRange(context.Background(), key, start, stop).Result()
 	if err != nil {
 		return nil, err
@@ -296,8 +296,8 @@ func (c *Client) GetListElementsRange(key string, start, stop int64) ([]string, 
 	return result, nil
 }
 
-// RemoveFromList 从 Redis 列表中删除指定的多个元素（事务方式）
-func (c *Client) RemoveFromList(key string, values ...string) (int64, error) {
+// RListRemove 从 Redis 列表中删除指定的多个元素（事务方式）
+func (c *Client) RListRemove(key string, values ...string) (int64, error) {
 	// Lua 脚本
 	script := `
         local key = KEYS[1]
@@ -324,8 +324,8 @@ func (c *Client) RemoveFromList(key string, values ...string) (int64, error) {
 	return result.(int64), nil
 }
 
-// IsContain 判断元素是否在 Redis 列表中
-func (c *Client) IsContain(key string, target string) (bool, error) {
+// RListIsContain 判断元素是否在 Redis 列表中
+func (c *Client) RListIsContain(key string, target string) (bool, error) {
 	// 获取列表中的所有元素
 	elements, err := c.redis.LRange(context.Background(), key, 0, -1).Result()
 	if err != nil {
@@ -360,6 +360,36 @@ func (c *Client) IncrBy(key string, incr int64) (int64, error) {
 		return 0, err
 	}
 	return result, nil
+}
+
+// DecrBy 自减指定键的值，返回自减后的值。
+// 返回自减后的结果，以及可能发生的错误。
+func (c *Client) DecrBy(key string, decr int64) (int64, error) {
+	result, err := c.redis.DecrBy(context.Background(), key, decr).Result()
+	if err != nil && !errors.Is(redis.Nil, err) {
+		return 0, err
+	}
+	return result, nil
+}
+
+// SAdd 将一个或多个元素添加到集合中。
+// 返回布尔值表示是否成功，以及可能发生的错误。
+func (c *Client) SAdd(key string, members ...interface{}) (bool, error) {
+	status := c.redis.SAdd(context.Background(), key, members...)
+	if status.Err() != nil {
+		return false, status.Err()
+	}
+	return true, nil
+}
+
+// SRem 从集合中删除一个或多个元素。
+// 返回布尔值表示是否成功，以及可能发生的错误。
+func (c *Client) SRem(key string, members ...interface{}) (bool, error) {
+	status := c.redis.SRem(context.Background(), key, members...)
+	if status.Err() != nil {
+		return false, status.Err()
+	}
+	return true, nil
 }
 
 // SetBit 设置指定偏移量的位值。
