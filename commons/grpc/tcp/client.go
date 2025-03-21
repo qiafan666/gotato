@@ -196,7 +196,7 @@ func (c *Client) do(ctx context.Context, request *grpc.Message) (*grpc.Message, 
 		e = conn.Send(request, nil)
 	} else {
 		// 非心跳包:创建接收通道并发送请求
-		chanId := fmt.Sprintf("%d", request.Sequence)
+		chanId := fmt.Sprintf("%d", request.Seq)
 		ch = NewRecvChan(chanId)
 		defer ch.Close() // 确保通道会被关闭
 		e = conn.Send(request, ch)

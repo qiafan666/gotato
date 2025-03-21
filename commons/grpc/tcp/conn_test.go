@@ -26,23 +26,23 @@ func TestConn(t *testing.T) {
 					cmd := grpc.CmdTestLogic
 					data := []any{"BTCUSDT", 2, 0}
 					marshal, _ := json.Marshal(data)
-					sequence := grpc.NewSequence()
+					Seq := grpc.NewSeq()
 					v := &grpc.Message{
 						Command:   cmd,
 						PkgType:   grpc.PkgTypeRequest,
-						ReqId:     uint64(time.Now().UnixNano()),
-						Sequence:  sequence,
+						ReqId:     time.Now().UnixNano(),
+						Seq:       Seq,
 						Result:    0,
 						Body:      marshal,
 						Heartbeat: nil,
 					}
-					ch := NewRecvChan(fmt.Sprintf("%d", sequence))
+					ch := NewRecvChan(fmt.Sprintf("%d", Seq))
 					e := c.Send(v, ch)
 					assert.Equal(t, nil, e)
 
 					resp := <-ch.Ch
 					ch.Close()
-					t.Logf("conn:%d, sequence:%d, body:%s", c.connId, resp.Sequence, resp.Body)
+					t.Logf("conn:%d, Seq:%d, body:%s", c.connId, resp.Seq, resp.Body)
 					<-time.After(500 * time.Millisecond)
 				}
 			}()
@@ -72,17 +72,17 @@ func TestNetPollConn(t *testing.T) {
 			cmd := grpc.CmdTestLogic
 			data := []any{"BTCUSDT", 2, 0}
 			marshal, _ := json.Marshal(data)
-			sequence := grpc.NewSequence()
+			Seq := grpc.NewSeq()
 			v := &grpc.Message{
 				Command:   cmd,
 				PkgType:   grpc.PkgTypeRequest,
-				ReqId:     uint64(time.Now().UnixNano()),
-				Sequence:  sequence,
+				ReqId:     time.Now().UnixNano(),
+				Seq:       Seq,
 				Result:    0,
 				Body:      marshal,
 				Heartbeat: nil,
 			}
-			ch := NewRecvChan(fmt.Sprintf("%d", sequence))
+			ch := NewRecvChan(fmt.Sprintf("%d", Seq))
 			e := c.Send(v, ch)
 			assert.Equal(t, nil, e)
 
@@ -92,7 +92,7 @@ func TestNetPollConn(t *testing.T) {
 				t.Logf("channel closed")
 				continue
 			}
-			t.Logf("conn:%d, sequence:%d, body:%s", c.connId, resp.Sequence, resp.Body)
+			t.Logf("conn:%d, Seq:%d, body:%s", c.connId, resp.Seq, resp.Body)
 			<-time.After(500 * time.Millisecond)
 		}
 	}()

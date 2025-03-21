@@ -280,14 +280,14 @@ func (c *Conn) read(ctx context.Context) {
 		}
 
 		// 查找并写入对应的接收通道
-		chanId := fmt.Sprintf("%d", v.Sequence)
+		chanId := fmt.Sprintf("%d", v.Seq)
 		c.recvChans.RemoveCb(chanId, func(key string, ch *RecvChan, exists bool) bool {
 			if !exists {
-				c.logger.DebugF(nil, "Conn.read: recvChan not exist, sequence=%+v", chanId)
+				c.logger.DebugF(nil, "Conn.read: recvChan not exist, Seq=%+v", chanId)
 				return true
 			}
 			if ch.closed {
-				c.logger.DebugF(nil, "Conn.read: recvChan closed, sequence=%+v", chanId)
+				c.logger.DebugF(nil, "Conn.read: recvChan closed, Seq=%+v", chanId)
 				return true
 			}
 			ch.Write(v)
@@ -307,8 +307,7 @@ func (c *Conn) ping(ctx context.Context) {
 		}
 
 		// 发送心跳请求
-		req := c.pingRequest()
-		c.Send(req, nil)
+		c.Send(c.pingRequest(), nil)
 	}).Run(ctx)
 }
 
@@ -347,11 +346,11 @@ func (c *Conn) liveTimeoutCheck(ctx context.Context) {
 // pingRequest 创建心跳请求消息
 func (c *Conn) pingRequest() *grpc.Message {
 	req := &grpc.Message{
-		Command:  grpc.CmdHeartbeat,
-		PkgType:  grpc.PkgTypeRequest,
-		ReqId:    0,
-		Sequence: 0,
-		Body:     nil,
+		Command: grpc.CmdHeartbeat,
+		PkgType: grpc.PkgTypeRequest,
+		ReqId:   0,
+		Seq:     0,
+		Body:    nil,
 		Heartbeat: &grpc.Heartbeat{
 			Timeout: uint32(c.opt.PingTimeout.Milliseconds()),
 		},
@@ -365,12 +364,12 @@ func (c *Conn) handleHeartbeat(v *grpc.Message) {
 	case grpc.PkgTypeRequest:
 		// 收到心跳请求,更新心跳截止时间并发送响应
 		c.pingDeadline = time.Now().Add(time.Duration(v.Heartbeat.Timeout) * time.Millisecond).Add(1 * time.Second)
-		sequence := grpc.NewSequence()
+		Seq := grpc.NewSeq()
 		reply := &grpc.Message{
 			Command:   grpc.CmdHeartbeat,
 			PkgType:   grpc.PkgTypeReply,
-			ReqId:     uint64(sequence),
-			Sequence:  sequence,
+			ReqId:     int64(Seq),
+			Seq:       Seq,
 			Body:      nil,
 			Heartbeat: nil,
 		}

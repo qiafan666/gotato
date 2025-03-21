@@ -75,8 +75,6 @@ func (cm *ConnManager) NewRequest(ctx context.Context, reqKey string) {
 		return
 	}
 
-	cm.logger.DebugF(nil, "ConnManage.NewRequest, connId=%+v, reqKey=%+v", connId, reqKey)
-
 	req, ok := cm.connRequests.Get(connId)
 	if !ok || req == nil {
 		return

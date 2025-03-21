@@ -20,11 +20,11 @@ func TestRequest(t *testing.T) {
 	marshal, _ := json.Marshal(data)
 
 	request := &grpc.Message{
-		Command:  grpc.CmdTestLogic,
-		PkgType:  grpc.PkgTypeRequest,
-		ReqId:    uint64(time.Now().UnixNano()),
-		Sequence: uint32(time.Now().Unix()),
-		Body:     marshal,
+		Command: grpc.CmdTestLogic,
+		PkgType: grpc.PkgTypeRequest,
+		ReqId:   time.Now().UnixNano(),
+		Seq:     uint32(time.Now().Unix()),
+		Body:    marshal,
 	}
 
 	ctx := context.Background()
@@ -52,12 +52,12 @@ func TestResponse(t *testing.T) {
 	marshal, _ := json.Marshal(data)
 
 	response := &grpc.Message{
-		Command:  grpc.CmdTestLogic,
-		PkgType:  grpc.PkgTypeReply,
-		ReqId:    uint64(time.Now().UnixNano()),
-		Sequence: 2,
-		Result:   3,
-		Body:     marshal,
+		Command: grpc.CmdTestLogic,
+		PkgType: grpc.PkgTypeReply,
+		ReqId:   time.Now().UnixNano(),
+		Seq:     2,
+		Result:  3,
+		Body:    marshal,
 	}
 
 	ctx := context.Background()
@@ -181,10 +181,10 @@ func TestDecode(t *testing.T) {
 		Command: grpc.CmdTestLogic,
 		PkgType: grpc.PkgTypeReply,
 		//ReqId:    uint64(time.Now().UnixNano()),
-		ReqId:    uint64(3741116688295679431),
-		Sequence: 2,
-		Result:   0,
-		Body:     []byte(responseBody),
+		ReqId:  3741116688295679431,
+		Seq:    2,
+		Result: 0,
+		Body:   []byte(responseBody),
 	}
 
 	ctx := context.Background()
@@ -221,7 +221,6 @@ func TestHeartbeatPack(t *testing.T) {
 	protocol := new(TextRpcProtocol)
 
 	request := &grpc.Message{
-		Command:   grpc.CmdTestLogic,
 		PkgType:   grpc.PkgTypeRequest,
 		Heartbeat: &grpc.Heartbeat{Timeout: 4000},
 	}

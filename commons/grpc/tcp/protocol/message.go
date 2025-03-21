@@ -23,8 +23,8 @@ type header struct {
 	Command   uint32
 	PkgType   uint16
 	Result    uint32
-	Sequence  uint32
-	ReqId     uint64
+	Seq       uint32
+	ReqId     int64
 	BodySize  uint32
 	ExtSize   uint16
 }

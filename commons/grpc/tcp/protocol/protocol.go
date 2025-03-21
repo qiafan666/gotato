@@ -25,7 +25,7 @@ func (t *TextRpcProtocol) Encode(ctx context.Context, v *grpc.Message) ([]byte, 
 		v.Command,
 		v.PkgType,
 		v.Result,
-		v.Sequence,
+		v.Seq,
 		v.ReqId,
 		v.Body,
 	)
@@ -40,8 +40,8 @@ func (t *TextRpcProtocol) Decode(ctx context.Context, reader io.Reader) (*grpc.M
 		Command:   grpc.Command(m.Command),
 		PkgType:   grpc.PkgType(m.PkgType),
 		ReqId:     m.ReqId,
-		Sequence:  m.Sequence,
-		Result:    m.Sequence,
+		Seq:       m.Seq,
+		Result:    m.Seq,
 		Body:      m.Body,
 		Heartbeat: nil,
 	}
@@ -166,7 +166,7 @@ func (t *TextRpcProtocol) read(ctx context.Context, reader io.Reader, length uin
 	return bytesBuffer.Bytes(), nil
 }
 
-func (t *TextRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result, sequence uint32, reqId uint64, data []byte) ([]byte, error) {
+func (t *TextRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result, Seq uint32, reqId int64, data []byte) ([]byte, error) {
 	if len(data) > maxBodySize {
 		return nil, gerr.New("data too long", "maxBodySize", maxBodySize, "dataSize", len(data))
 	}
@@ -176,7 +176,7 @@ func (t *TextRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result,
 			MagicWord: tag,
 			Command:   uint32(cmd),
 			PkgType:   uint16(pkgType),
-			Sequence:  sequence,
+			Seq:       Seq,
 			ReqId:     reqId,
 			BodySize:  uint32(len(data)),
 			ExtSize:   uint16(0),

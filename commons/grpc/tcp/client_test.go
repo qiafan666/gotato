@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/qiafan666/gotato/commons/gface"
 	"github.com/qiafan666/gotato/commons/gid"
 	"github.com/qiafan666/gotato/commons/grpc"
 	"github.com/qiafan666/gotato/commons/grpc/tcp/protocol"
@@ -34,7 +35,7 @@ func TestClient(t *testing.T) {
 	})
 	_ = client
 
-	sequence := gid.NewSerialId[uint32]()
+	Seq := gid.NewSerialId[uint32]()
 	wg := new(sync.WaitGroup)
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
@@ -44,11 +45,11 @@ func TestClient(t *testing.T) {
 			marshal, _ := json.Marshal(data)
 
 			resp, err := client.Do(context.Background(), &grpc.Message{
-				Command:  cmd,
-				PkgType:  grpc.PkgTypeRequest,
-				ReqId:    uint64(i + 1),
-				Sequence: sequence.Id(),
-				Body:     marshal,
+				Command: cmd,
+				PkgType: grpc.PkgTypeRequest,
+				ReqId:   int64(i + 1),
+				Seq:     Seq.Id(),
+				Body:    marshal,
 			})
 
 			assert.Equal(t, nil, err)
@@ -82,7 +83,7 @@ func TestWrite(t *testing.T) {
 
 func TestHeartbeat(t *testing.T) {
 	//addr := "192.168.1.156:27416"
-	addr := "127.0.0.1:22999"
+	addr := "127.0.0.1:10081"
 	cmd := grpc.CmdHeartbeat
 	timeout := uint32(5000)
 
@@ -91,6 +92,7 @@ func TestHeartbeat(t *testing.T) {
 		IdleConn:   0,
 		Timeout:    10 * time.Second,
 		RetryLimit: 2,
+		Logger:     gface.NewLogger("testHeartbeat", zapLog()),
 	})
 	_ = client
 
@@ -106,7 +108,6 @@ func TestHeartbeat(t *testing.T) {
 					Timeout: timeout,
 				},
 			})
-
 			assert.Equal(t, nil, err)
 			assert.Nil(t, resp) // 心跳包不需要等待响应 resp==nil
 			//t.Logf("%s", resp.Body)

@@ -16,7 +16,7 @@ import (
 
 type ServerOptions struct {
 	Timeout time.Duration
-	logger  gface.Logger
+	Logger  gface.Logger
 }
 
 type Server struct {
@@ -46,9 +46,9 @@ func NewServer(addr string, handler grpc.Handler, opt *ServerOptions) *Server {
 	s.serialId = gid.NewSerialId[uint64]()
 
 	s.ch = make(chan *grpc.Message, 4096)
-	s.connManager = server.NewConnManager(opt.logger)
+	s.connManager = server.NewConnManager(opt.Logger)
 
-	s.logger = opt.logger
+	s.logger = opt.Logger
 	return s
 }
 
@@ -57,7 +57,7 @@ func (s *Server) Run(ctx context.Context) {
 		var opErr error
 		err := c.Control(func(fd uintptr) {
 			// syscall.SO_REUSEPORT ,在Linux下还可以指定端口重用
-			opErr = syscall.SetsockoptInt(syscall.Handle(int(fd)), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
+			opErr = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
 		})
 		if err != nil {
 			return err
@@ -80,6 +80,8 @@ func (s *Server) Run(ctx context.Context) {
 	if err != nil {
 		s.logger.ErrorF(nil, "Server.Run: NewEventLoop fail, err=%+v", err)
 	}
+
+	s.logger.InfoF(nil, "Server.Run: server start, addr=%s", s.addr)
 
 	go func() {
 		err = eventLoop.Serve(ln)
@@ -129,13 +131,13 @@ func (s *Server) handle(ctx context.Context, conn netpoll.Connection) error {
 	if msg.Command == grpc.CmdHeartbeat {
 		switch msg.PkgType {
 		case grpc.PkgTypeRequest:
-			// 响应ping请求
+			//响应ping请求
 			resp := &grpc.Message{
-				Command:  grpc.CmdHeartbeat,
-				PkgType:  grpc.PkgTypeReply,
-				ReqId:    msg.ReqId,
-				Sequence: msg.Sequence,
-				Result:   0,
+				Command: grpc.CmdHeartbeat,
+				PkgType: grpc.PkgTypeReply,
+				ReqId:   msg.ReqId,
+				Seq:     msg.Seq,
+				Result:  0,
 			}
 			return s.send(ctx, conn, resp)
 		case grpc.PkgTypeReply:
@@ -144,11 +146,11 @@ func (s *Server) handle(ctx context.Context, conn netpoll.Connection) error {
 		default:
 			return nil
 		}
+	} else {
+		reqKey := s.msgKey(msg)
+		s.connManager.NewRequest(ctx, reqKey)
+		go s.handler.Handle(msg, s.ch)
 	}
-
-	reqKey := s.msgKey(msg)
-	s.connManager.NewRequest(ctx, reqKey)
-	go s.handler.Handle(msg, s.ch)
 	return nil
 }
 
@@ -184,5 +186,5 @@ func (s *Server) send(ctx context.Context, conn netpoll.Connection, resp *grpc.M
 }
 
 func (s *Server) msgKey(msg *grpc.Message) string {
-	return fmt.Sprintf("%d_%d_%d", msg.Command, msg.ReqId, msg.Sequence)
+	return fmt.Sprintf("%d_%d_%d", msg.Command, msg.ReqId, msg.Seq)
 }
