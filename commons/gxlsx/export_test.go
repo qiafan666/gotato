@@ -19,7 +19,7 @@ func TestExport(t *testing.T) {
 
 	srcPath := "./xlsx/output.xlsx"
 	//dstPath := "output.xlsx"
-	err := ExportToExcel(data, srcPath)
+	err := Export(data, srcPath)
 	if err != nil {
 		return
 	}

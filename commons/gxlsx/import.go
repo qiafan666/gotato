@@ -8,7 +8,7 @@ import (
 	"reflect"
 )
 
-func ParseSheet(file *excelize.File, v interface{}) error {
+func parseSheet(file *excelize.File, v interface{}) error {
 	val := reflect.ValueOf(v)
 	if val.Kind() != reflect.Ptr {
 		return gerr.New("not ptr", "parameter", v)
@@ -102,8 +102,8 @@ func ParseSheet(file *excelize.File, v interface{}) error {
 	return nil
 }
 
-// ParseAll 可以传多个model，每个model对应一个sheet，sheet名称和结构体中的SheetName方法对应
-func ParseAll(r io.Reader, models ...interface{}) error {
+// Import 可以传多个model，每个model对应一个sheet，sheet名称和结构体中的SheetName方法对应
+func Import(r io.Reader, models ...interface{}) error {
 	if len(models) == 0 {
 		return errors.New("empty models")
 	}
@@ -113,7 +113,7 @@ func ParseAll(r io.Reader, models ...interface{}) error {
 	}
 	defer file.Close()
 	for i := 0; i < len(models); i++ {
-		if err := ParseSheet(file, models[i]); err != nil {
+		if err = parseSheet(file, models[i]); err != nil {
 			return err
 		}
 	}

@@ -6,8 +6,10 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-// ExportToExcel Export multiple sheets to Excel
-func ExportToExcel(data map[string][]interface{}, srcPath string) (err error) {
+// Export multiple sheets to Excel
+// data: map[sheetName][]interface{} sheetName为sheet名称，[]interface{}为每行的数据，第一行作为列名
+// srcPath: 保存路径
+func Export(data map[string][]interface{}, srcPath string) (err error) {
 	// 创建Excel文件
 	file := excelize.NewFile()
 	err = file.DeleteSheet("Sheet1")

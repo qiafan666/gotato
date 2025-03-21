@@ -54,7 +54,7 @@ func TestReadXlsx(t *testing.T) {
 	//var file multipart.File
 	var users []User
 	var users1 []User1
-	if err := ParseAll(file, &users, &users1); err != nil {
+	if err = Import(file, &users, &users1); err != nil {
 		t.Error(err)
 	}
 	t.Log(users)
