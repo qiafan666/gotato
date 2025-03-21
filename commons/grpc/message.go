@@ -5,7 +5,7 @@ type Message struct {
 	PkgType   PkgType    `json:"pkg_type"` //包类型
 	ReqId     int64      `json:"req_id"`   //请求ID
 	Seq       uint32     `json:"seq"`      //序列号
-	Result    uint32     `json:"result"`   //错误码
+	Result    uint32     `json:"result"`   //错误码   0表示成功,body为业务数据，其他表示错误，body为错误描述
 	Body      []byte     `json:"body"`     //消息体
 	Heartbeat *Heartbeat `json:"heartbeat,omitempty"`
 }
