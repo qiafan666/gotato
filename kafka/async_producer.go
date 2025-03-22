@@ -5,6 +5,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
+	"github.com/qiafan666/gotato/commons/gjson"
 )
 
 type AsyncProducer struct {
@@ -33,7 +34,7 @@ func NewAsyncProducer(addr []string, topic string, logger gface.Logger) *AsyncPr
 }
 
 func (p *AsyncProducer) Push(data interface{}) error {
-	marshal, err := gcommon.Marshal(data)
+	marshal, err := gjson.Marshal(data)
 	if err != nil {
 		return err
 	}

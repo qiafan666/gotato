@@ -1,4 +1,4 @@
-package gcommon
+package gjson
 
 import jsoniter "github.com/json-iterator/go"
 
