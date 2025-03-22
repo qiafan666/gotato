@@ -21,7 +21,7 @@ func TestCaptcha(t *testing.T) {
 		return
 	}
 	store := &RedisStore{
-		Rdb: client,
+		Rdb: client.GetRedis(),
 	}
 
 	// audioCaptcha := base64Captcha.NewCaptcha(captcha.AudioDrive, store)

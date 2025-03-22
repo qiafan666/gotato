@@ -35,7 +35,7 @@ func VerifySignature(sk, msg, signMsg string) bool {
 	return hmac.Equal([]byte(expectedSignature), []byte(signMsg))
 }
 
-// MapSort 根据字符顺序排序map
+// MapSort 根据字符顺序排序map并拼接成字符串
 func MapSort(m map[string]any) string {
 	if len(m) == 0 {
 		return ""

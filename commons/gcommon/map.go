@@ -1,7 +1,11 @@
 package gcommon
 
 import (
+	"fmt"
+	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gerr"
+	"sort"
+	"strings"
 	"sync"
 )
 
@@ -137,4 +141,27 @@ func MapSortValue[K comparable, V any](m map[K]V, cmp func(a, b V) bool) []V {
 	values := MapValues(m)
 	SliceSort(values, cmp)
 	return values // 返回排序后的值切片
+}
+
+// MapSort 根据字符顺序排序map并拼接成字符串
+func MapSort(m map[string]any) string {
+	if len(m) == 0 {
+		return ""
+	}
+
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var queryString strings.Builder
+	for i, key := range keys {
+		queryString.WriteString(fmt.Sprintf("%s=%s", key, gcast.ToString(m[key])))
+		if i < len(keys)-1 {
+			queryString.WriteString("&")
+		}
+	}
+	return queryString.String()
 }
