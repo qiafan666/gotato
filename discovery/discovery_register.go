@@ -29,7 +29,7 @@ type DiscoveryRegister struct {
 	Etcd      Etcd
 }
 type Zookeeper struct {
-	Schema   string   `json:"schema" yaml:"schema"`
+	Schema   string   `json:"schema" yaml:"schema"` // zookeeper集群中项目区分
 	Address  []string `json:"address" yaml:"address"`
 	Username string   `json:"username" yaml:"username"`
 	Password string   `json:"password" yaml:"password"`
