@@ -49,7 +49,8 @@ func NewConsumer(consumerName string, topics []string, addr []string, msgHandler
 func StartConsumerGroup(ctx context.Context, groupId string, handler *ConsumerGroupHandler) {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
-	config.Version = sarama.V0_11_0_2
+	config.Version = sarama.V2_0_0_0
+	config.Consumer.Offsets.AutoCommit.Enable = true
 	// consumer
 	group, err := sarama.NewConsumerGroup(handler.addr, groupId, config)
 	if err != nil {
