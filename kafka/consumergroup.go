@@ -26,7 +26,7 @@ func (ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 func (h ConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	// 获取消息
 	for message := range claim.Messages() {
-		h.logger.InfoF(context.Background(), "ConsumeClaim: Message claimed: value = %s,topic = %s,partition=%d, offset=%+v", gcommon.Bytes2Str(message.Value), message.Topic, message.Partition, message.Offset)
+		h.logger.DebugF(context.Background(), "ConsumeClaim: Message claimed: value = %s,topic = %s,partition=%d, offset=%+v", gcommon.Bytes2Str(message.Value), message.Topic, message.Partition, message.Offset)
 		h.msgHandler.Handle(message.Topic, gcommon.Bytes2Str(message.Value))
 		// 将消息标记为已使用
 		sess.MarkMessage(message, "")
@@ -34,6 +34,7 @@ func (h ConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
 	return nil
 }
 
+// NewConsumer 创建消费者
 func NewConsumer(consumerName string, topics []string, addr []string, msgHandler MsgHandler, logger gface.Logger) *ConsumerGroupHandler {
 	handler := &ConsumerGroupHandler{
 		msgHandler:   msgHandler,

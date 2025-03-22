@@ -1,11 +1,11 @@
 package gcommon
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
 	uuid "github.com/satori/go.uuid"
+	"hash/crc32"
 	"hash/fnv"
 	"regexp"
 	"strings"
@@ -97,21 +97,9 @@ func CamelName(name string, firstUpper bool) string {
 	return buffer.String()
 }
 
-// Byte2Uint32 字节数组转uint32
-func Byte2Uint32(b []byte) uint32 {
-	seed := uint32(131)
-	hash := uint32(0)
-
-	for _, v := range b {
-		hash = hash*seed + uint32(v)
-	}
-	return hash
-}
-
 // Str2Uint32 string 转 uint32
 func Str2Uint32(s string) uint32 {
-	b := bytes.NewBufferString(s).Bytes()
-	return Byte2Uint32(b)
+	return crc32.ChecksumIEEE([]byte(s))
 }
 
 // CountRune 计算包含中文的字符串长度，但是一个中文算3个长度
