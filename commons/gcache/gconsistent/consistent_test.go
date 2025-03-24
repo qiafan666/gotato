@@ -8,17 +8,7 @@ import (
 func TestConsistentHash(t *testing.T) {
 
 	// 创建一个一致性哈希实例，每个节点有3个虚拟节点
-	consistent := New(3)
-
-	get, err := consistent.Get("User1")
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println(get)
-	// 添加三个节点到哈希环上
-	consistent.Add("NodeA")
-	consistent.Add("NodeB")
-	consistent.Add("NodeC")
+	consistent := New("NodeA", "NodeB", "NodeC", "NodeD", "NodeE", "NodeF", "NodeG", "NodeH", "NodeI", "NodeJ")
 
 	// 模拟请求，根据请求 key 分配到合适的节点
 	requests := []string{"User1", "User2", "User3", "User4"}
