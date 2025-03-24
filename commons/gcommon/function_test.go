@@ -34,9 +34,9 @@ func TestStructToMap(t *testing.T) {
 
 func TestSliceContains(t *testing.T) {
 	arr := []string{"apple", "banana", "orange"}
-	t.Log(SliceContain(arr, "banana"))
+	t.Log(SliceContain(arr, "banana", "orange"))
 	t.Log(SliceContains(arr, []string{"apple1", "orange2"}))
-	t.Log(SliceContains(arr, []string{"apple", "orange"}))
+	t.Log(SliceContains(arr, []string{"apple1", "orange"}))
 }
 
 func TestFunc(t *testing.T) {

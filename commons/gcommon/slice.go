@@ -34,7 +34,7 @@ func contain[T ~[]E, E comparable](list T, elem E) bool {
 	return false
 }
 
-// SliceContains 返回A集合是否包含B集合里的任意元素
+// SliceContains 返回A集合是否包含B集合里的任意元素,list2大量数据时效率较高
 func SliceContains[T ~[]E, E comparable](list1 T, list2 T) bool {
 	if len(list1) == 0 || len(list2) == 0 {
 		return false

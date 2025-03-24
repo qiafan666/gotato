@@ -2,8 +2,8 @@ package gtask
 
 import (
 	"errors"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
-	"hash/fnv"
 	"runtime"
 	"strconv"
 	"strings"
@@ -17,6 +17,10 @@ func InitDefaultPool(taskNum, chanNum int, logger gface.Logger) {
 	}
 }
 
+// AddTask 向默认的 task pool 添加任务
+// f 任务函数
+// cb 任务完成回调函数
+// poolDecide 决定固定到指定的 pool 上，为空则随机分配
 func AddTask(f func(), cb func(), poolDecide string) error {
 	if defaultPool == nil {
 		return errors.New("task pool is nil")
@@ -65,7 +69,7 @@ func NewTaskPool(taskNum, chanNum int, logger gface.Logger) *Pool {
 	for i := 0; i < taskNum; i++ {
 		task := &UpdateTask{t: make(chan *taskFuncPair, chanNum)}
 		pool.Tasks = append(pool.Tasks, task)
-		go ProcessTask(task, logger)
+		go processTask(task, logger)
 	}
 
 	return pool
@@ -113,7 +117,7 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 		p.curIndex = (index + 1) % uint32(len(p.Tasks))
 	} else {
 		// 玩家 ID 固定到对应的 task 上，保证先后
-		index = HashString(poolDecide) % uint32(len(p.Tasks))
+		index = gcommon.Str2Uint32(poolDecide) % uint32(len(p.Tasks))
 	}
 
 	t := p.Tasks[int(index)].t
@@ -159,7 +163,7 @@ func (t *UpdateTask) executeFun(pair *taskFuncPair, logger gface.Logger) {
 	}
 }
 
-func ProcessTask(task *UpdateTask, logger gface.Logger) {
+func processTask(task *UpdateTask, logger gface.Logger) {
 	if task == nil {
 		panic("task is nil")
 	}
@@ -172,12 +176,6 @@ func ProcessTask(task *UpdateTask, logger gface.Logger) {
 
 		task.executeFun(pair, logger)
 	}
-}
-
-func HashString(s string) uint32 {
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(s))
-	return h.Sum32()
 }
 
 func (p *Pool) Len() int {

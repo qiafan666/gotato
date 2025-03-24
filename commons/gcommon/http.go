@@ -12,7 +12,7 @@ type ProxyRequestHeader struct {
 	ContentType string
 }
 
-var TimeOut = time.Second * 3
+var ProxyTimeOut = time.Second * 3
 
 func ProxyRequest(method string, header http.Header, url string, body []byte) (response []byte, respHeader ProxyRequestHeader, err error) {
 	req := fasthttp.AcquireRequest()
@@ -27,7 +27,7 @@ func ProxyRequest(method string, header http.Header, url string, body []byte) (r
 	req.SetRequestURI(url)
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
-	if err = fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
+	if err = fasthttp.DoTimeout(req, resp, ProxyTimeOut); err != nil {
 		return nil, ProxyRequestHeader{}, err
 	}
 
