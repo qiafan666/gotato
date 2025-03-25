@@ -1,6 +1,8 @@
 package gcommon
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -31,6 +33,9 @@ func ProxyRequest(method string, header http.Header, url string, body []byte) (r
 		return nil, ProxyRequestHeader{}, err
 	}
 
+	if resp.StatusCode() != http.StatusOK {
+		return nil, ProxyRequestHeader{}, errors.New(fmt.Sprintf("resp status code is not 200,status:%d", resp.StatusCode()))
+	}
 	return resp.Body(), ProxyRequestHeader{ContentType: string(resp.Header.ContentType())}, nil
 }
 
