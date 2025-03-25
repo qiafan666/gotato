@@ -7,8 +7,8 @@ import (
 	"runtime/debug"
 )
 
-// F - 协程函数，用于处理panic，recoverNum为-1表示一直恢复，recoverNum为0表示不恢复
-func F(callback interface{}, recoverNum int, args ...interface{}) {
+// f - 协程函数，用于处理panic，recoverNum为-1表示一直恢复，recoverNum为0表示不恢复
+func f(callback interface{}, recoverNum int, args ...interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
 			var coreInfo string
@@ -17,7 +17,7 @@ func F(callback interface{}, recoverNum int, args ...interface{}) {
 			log.Println(coreInfo)
 			if recoverNum == -1 || recoverNum-1 >= 0 {
 				recoverNum -= 1
-				go F(callback, recoverNum, args...)
+				go f(callback, recoverNum, args...)
 			}
 		}
 	}()
@@ -36,10 +36,10 @@ func F(callback interface{}, recoverNum int, args ...interface{}) {
 
 // Go - 启动一个协程
 func Go(callback interface{}, args ...interface{}) {
-	go F(callback, 0, args...)
+	go f(callback, 0, args...)
 }
 
 // GoRecover -1表示一直恢复
 func GoRecover(callback interface{}, recoverNum int, args ...interface{}) {
-	go F(callback, recoverNum, args...)
+	go f(callback, recoverNum, args...)
 }
