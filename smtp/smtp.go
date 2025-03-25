@@ -18,23 +18,16 @@ import (
 // subject 主题
 // body 内容支持变量替换，格式：$replace+i，i为数字，从0开始，表示第几个变量
 // content 为可变参数，可以传入多个内容，会依次替换body中的$replace变量
-func Sendmail(smtpConfigName string, receive, subject string, body string, content ...string) error {
+func Sendmail(config gconfig.SmtpConfig, receive, subject string, body string, content ...string) error {
 
-	var configContent gconfig.SmtpConfig
-	for _, smtpConfig := range gconfig.Configs.Smtp {
-		if smtpConfig.Name == smtpConfigName {
-			configContent = smtpConfig
-		}
-	}
-
-	if i := gcommon.StrCheck(configContent.Host, configContent.Port, configContent.Sender, configContent.Password); len(i) > 0 {
+	if i := gcommon.StrCheck(config.Host, config.Port, config.Sender, config.Password); len(i) > 0 {
 		return errors.New("smtp config error")
 	}
 
-	host := configContent.Host
-	port := configContent.Port
-	sender := configContent.Sender // 发送邮箱
-	pwd := configContent.Password  // 邮箱密码
+	host := config.Host
+	port := config.Port
+	sender := config.Sender // 发送邮箱
+	pwd := config.Password  // 邮箱密码
 
 	header := make(map[string]string)
 	header["From"] = "<" + sender + ">"
