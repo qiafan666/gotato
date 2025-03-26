@@ -37,7 +37,7 @@ func (slf *Redis) StartRedis(config gconfig.RedisConfig) error {
 	}
 
 	slf.name = config.Name
-	client, err := gredis.NewRedisClient(context.Background(), &gredis.Config{
+	client, err := gredis.NewClient(context.Background(), &gredis.Config{
 		ClusterMode: config.ClusterMode,
 		Address:     config.Address,
 		Username:    config.Username,
