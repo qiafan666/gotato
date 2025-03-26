@@ -127,6 +127,7 @@ func (slf *Server) WaitClose(stopFunc ...func()) {
 
 		//关闭主context
 		slf.cancel()
+		time.Sleep(time.Second)
 		err := server.Shutdown(ctx)
 		if err != nil {
 			glog.Slog.ErrorF(nil, "server shutdown error: %s", err.Error())
