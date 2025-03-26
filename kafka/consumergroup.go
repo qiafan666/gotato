@@ -8,11 +8,10 @@ import (
 )
 
 type ConsumerGroupHandler struct {
-	msgHandler   IHandler
-	consumerName string
-	topics       []string
-	addr         []string
-	logger       gface.ILogger
+	msgHandler IHandler
+	topics     []string
+	addr       []string
+	logger     gface.ILogger
 }
 
 func (ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
@@ -35,13 +34,12 @@ func (h ConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
 }
 
 // NewConsumer 创建消费者
-func NewConsumer(consumerName string, topics []string, addr []string, msgHandler IHandler, logger gface.ILogger) *ConsumerGroupHandler {
+func NewConsumer(topics []string, addr []string, msgHandler IHandler, logger gface.ILogger) *ConsumerGroupHandler {
 	handler := &ConsumerGroupHandler{
-		msgHandler:   msgHandler,
-		consumerName: consumerName,
-		topics:       topics,
-		addr:         addr,
-		logger:       logger,
+		msgHandler: msgHandler,
+		topics:     topics,
+		addr:       addr,
+		logger:     logger,
 	}
 	return handler
 }

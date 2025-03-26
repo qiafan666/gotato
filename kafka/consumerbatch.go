@@ -9,12 +9,11 @@ import (
 )
 
 type ConsumerBatchHandler struct {
-	msgHandler   IHandler
-	consumerName string
-	topics       []string
-	addr         []string
-	logger       gface.ILogger
-	batcher      *gbatcher.Batcher[sarama.ConsumerMessage]
+	msgHandler IHandler
+	topics     []string
+	addr       []string
+	logger     gface.ILogger
+	batcher    *gbatcher.Batcher[sarama.ConsumerMessage]
 }
 
 func (ConsumerBatchHandler) Setup(_ sarama.ConsumerGroupSession) error {
@@ -51,15 +50,14 @@ func (h ConsumerBatchHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
 
 // NewConsumerBatch 创建一个批量处理的消费者，结合gbatcher使用
 func NewConsumerBatch(
-	consumerName string, topics []string, addr []string, msgHandler IHandler,
+	topics []string, addr []string, msgHandler IHandler,
 	logger gface.ILogger, batcher *gbatcher.Batcher[sarama.ConsumerMessage]) *ConsumerBatchHandler {
 	handler := &ConsumerBatchHandler{
-		msgHandler:   msgHandler,
-		consumerName: consumerName,
-		topics:       topics,
-		addr:         addr,
-		logger:       logger,
-		batcher:      batcher,
+		msgHandler: msgHandler,
+		topics:     topics,
+		addr:       addr,
+		logger:     logger,
+		batcher:    batcher,
 	}
 	// 设置key分组方法，这里使用消息的key作为分组的依据，同类消息顺序消费
 	handler.batcher.Key = func(consumerMessage *sarama.ConsumerMessage) string {
