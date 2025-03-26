@@ -28,7 +28,7 @@ func parseSheet(file *excelize.File, v interface{}) error {
 		val.Set(reflect.Append(val, v))
 	}
 	var sheetName string
-	if s, ok := newItemValue().Interface().(SheetName); ok {
+	if s, ok := newItemValue().Interface().(ISheetName); ok {
 		sheetName = s.SheetName()
 	} else {
 		sheetName = itemType.Name()

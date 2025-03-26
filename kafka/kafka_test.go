@@ -23,7 +23,7 @@ func TestProduce(t *testing.T) {
 	producer := NewAsyncProducer([]string{"localhost:9092"}, "topic", gface.NewLogger("kafka.producer", def.ZapLog))
 	go producer.Run(context.Background())
 
-	err := producer.Push("test")
+	err := producer.Push("", "test")
 	if err != nil {
 		return
 	}

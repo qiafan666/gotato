@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func New(cache S3Cache, impl s3.Interface) *Controller {
+func New(cache ICache, impl s3.IS) *Controller {
 	return &Controller{
 		cache: cache,
 		impl:  impl,
@@ -22,8 +22,8 @@ func New(cache S3Cache, impl s3.Interface) *Controller {
 }
 
 type Controller struct {
-	cache S3Cache
-	impl  s3.Interface
+	cache ICache
+	impl  s3.IS
 }
 
 func (c *Controller) Engine() string {

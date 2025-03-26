@@ -18,7 +18,7 @@ const (
 	KeepTTL = time.Duration(-1)
 )
 
-type Dao interface {
+type IDao interface {
 	Client() redis.UniversalClient
 	Get(ctx context.Context, k string) (out string, err error)
 	Set(ctx context.Context, k string, x interface{}, d time.Duration) (err error)
@@ -27,19 +27,19 @@ type Dao interface {
 	Subscribe(ctx context.Context, channel string) (out <-chan *redis.Message, err error)
 }
 
-type Imp struct {
+type imp struct {
 	redis redis.UniversalClient
 }
 
-func Instance() Dao {
-	return &Imp{redis: gotato.GetGotatoInstance().Redis("test")}
+func New() IDao {
+	return &imp{redis: gotato.GetGotatoInstance().Redis("test")}
 }
 
-func (i Imp) Client() redis.UniversalClient {
+func (i imp) Client() redis.UniversalClient {
 	return i.redis
 }
 
-func (i Imp) Get(ctx context.Context, k string) (out string, err error) {
+func (i imp) Get(ctx context.Context, k string) (out string, err error) {
 	result := i.redis.Get(ctx, k)
 	if result.Err() != nil {
 		return out, result.Err()
@@ -47,7 +47,7 @@ func (i Imp) Get(ctx context.Context, k string) (out string, err error) {
 	return result.Val(), nil
 }
 
-func (i Imp) Set(ctx context.Context, k string, x interface{}, d time.Duration) (err error) {
+func (i imp) Set(ctx context.Context, k string, x interface{}, d time.Duration) (err error) {
 	marshal, err := json.Marshal(x)
 	if err != nil {
 		return err
@@ -55,11 +55,11 @@ func (i Imp) Set(ctx context.Context, k string, x interface{}, d time.Duration) 
 	return i.redis.Set(ctx, k, marshal, d).Err()
 }
 
-func (i Imp) Delete(ctx context.Context, k string) (err error) {
+func (i imp) Delete(ctx context.Context, k string) (err error) {
 	return i.redis.Del(ctx, k).Err()
 }
 
-func (i Imp) Publish(ctx context.Context, channel string, message interface{}) (err error) {
+func (i imp) Publish(ctx context.Context, channel string, message interface{}) (err error) {
 	err = i.redis.Publish(ctx, channel, message).Err()
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (i Imp) Publish(ctx context.Context, channel string, message interface{}) (
 	return nil
 }
 
-func (i Imp) Subscribe(ctx context.Context, channel string) (<-chan *redis.Message, error) {
+func (i imp) Subscribe(ctx context.Context, channel string) (<-chan *redis.Message, error) {
 	// 创建一个通道，用于发送接收到的消息
 	out := make(chan *redis.Message)
 

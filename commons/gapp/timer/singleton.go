@@ -21,7 +21,7 @@ var (
 // logicNowMs: 外部注入的获取时间接口，用于启动LogicDispatcher
 //
 //	并使LogicDispatcher支持时间调整的能力，如果传入nil，则使用真实系统时间
-func Run(logicMowMs func() int64, logger gface.Logger) {
+func Run(logicMowMs func() int64, logger gface.ILogger) {
 	success := atomic.CompareAndSwapInt32(&_running, 0, 1)
 	if !success {
 		logger.WarnF(nil, "timer dispatcher Run twice")

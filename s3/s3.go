@@ -126,7 +126,7 @@ type AccessURLOption struct {
 	Image       *Image `json:"image"`
 }
 
-type Interface interface {
+type IS interface {
 	Engine() string
 	PartLimit() *PartLimit
 

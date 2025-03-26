@@ -17,10 +17,10 @@ type Producer struct {
 	msgChannelDeclare sync.Map
 
 	url    string
-	logger gface.Logger
+	logger gface.ILogger
 }
 
-func NewProducer(ctx context.Context, url string, logger gface.Logger) (*Producer, error) {
+func NewProducer(ctx context.Context, url string, logger gface.ILogger) (*Producer, error) {
 	producer := &Producer{
 		url:    url,
 		logger: logger,

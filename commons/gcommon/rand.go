@@ -58,11 +58,11 @@ func randomStr(str string, length int) string {
 	return string(b)
 }
 
-type NumberType interface {
+type INumberType interface {
 	int | int32 | int64 | float32 | float64
 }
 
-func RangeNum[T NumberType](min, max T) T {
+func RangeNum[T INumberType](min, max T) T {
 	if min > max {
 		panic("min must be less than or equal to max")
 	}

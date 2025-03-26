@@ -28,7 +28,7 @@ var defaultApp = NewApp()
 
 // mod 模块
 type mod struct {
-	mi       module.Module
+	mi       module.IModule
 	closeSig chan bool
 	wg       sync.WaitGroup
 }
@@ -69,7 +69,7 @@ func (app *App) GetState() int32 {
 }
 
 // Start 非阻塞启动app，需要在当前goroutine调用Stop来停止app
-func (app *App) Start(l gface.Logger, mods ...module.Module) {
+func (app *App) Start(l gface.ILogger, mods ...module.IModule) {
 
 	if l == nil {
 		panic("logger not initialized")
@@ -188,7 +188,7 @@ func (app *App) destroy(m *mod) {
 
 // Run 阻塞启动app，在监测到SIGINT SIGTERM信号时自动终止App
 // 也可在任意goroutine调用Terminate来终止
-func (app *App) Run(l gface.Logger, mods ...module.Module) {
+func (app *App) Run(l gface.ILogger, mods ...module.IModule) {
 	app.Start(l, mods...)
 	// 信号监听 优雅退出
 	for {

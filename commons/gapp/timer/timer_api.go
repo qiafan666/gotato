@@ -13,7 +13,7 @@ type ITimerAPI interface {
 	// CancelTimer 取消定时器
 	CancelTimer(timerID int64)
 	// Logger 日志接口
-	Logger() gface.Logger
+	Logger() gface.ILogger
 }
 
 // ITimerDelegate .

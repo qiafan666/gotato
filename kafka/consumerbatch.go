@@ -9,11 +9,11 @@ import (
 )
 
 type ConsumerBatchHandler struct {
-	msgHandler   MsgHandler
+	msgHandler   IHandler
 	consumerName string
 	topics       []string
 	addr         []string
-	logger       gface.Logger
+	logger       gface.ILogger
 	batcher      *gbatcher.Batcher[sarama.ConsumerMessage]
 }
 
@@ -51,8 +51,8 @@ func (h ConsumerBatchHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
 
 // NewConsumerBatch 创建一个批量处理的消费者，结合gbatcher使用
 func NewConsumerBatch(
-	consumerName string, topics []string, addr []string, msgHandler MsgHandler,
-	logger gface.Logger, batcher *gbatcher.Batcher[sarama.ConsumerMessage]) *ConsumerBatchHandler {
+	consumerName string, topics []string, addr []string, msgHandler IHandler,
+	logger gface.ILogger, batcher *gbatcher.Batcher[sarama.ConsumerMessage]) *ConsumerBatchHandler {
 	handler := &ConsumerBatchHandler{
 		msgHandler:   msgHandler,
 		consumerName: consumerName,

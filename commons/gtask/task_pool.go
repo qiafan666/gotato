@@ -11,7 +11,7 @@ import (
 
 var defaultPool *Pool
 
-func InitDefaultPool(taskNum, chanNum int, logger gface.Logger) {
+func InitDefaultPool(taskNum, chanNum int, logger gface.ILogger) {
 	if defaultPool == nil {
 		defaultPool = NewTaskPool(taskNum, chanNum, logger)
 	}
@@ -46,10 +46,10 @@ type Pool struct {
 	curIndex uint32
 	chanNum  int
 	stopped  bool
-	logger   gface.Logger
+	logger   gface.ILogger
 }
 
-func NewTaskPool(taskNum, chanNum int, logger gface.Logger) *Pool {
+func NewTaskPool(taskNum, chanNum int, logger gface.ILogger) *Pool {
 	if logger == nil {
 		panic("logger cannot be nil")
 	}
@@ -145,7 +145,7 @@ func (p *Pool) AddTask(f func(), cb func(), poolDecide string) {
 	}
 }
 
-func (t *UpdateTask) executeFun(pair *taskFuncPair, logger gface.Logger) {
+func (t *UpdateTask) executeFun(pair *taskFuncPair, logger gface.ILogger) {
 	defer func() {
 		if r := recover(); r != nil {
 			buf := make([]byte, 4096)
@@ -163,7 +163,7 @@ func (t *UpdateTask) executeFun(pair *taskFuncPair, logger gface.Logger) {
 	}
 }
 
-func processTask(task *UpdateTask, logger gface.Logger) {
+func processTask(task *UpdateTask, logger gface.ILogger) {
 	if task == nil {
 		panic("task is nil")
 	}

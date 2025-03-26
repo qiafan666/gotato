@@ -19,11 +19,11 @@ type Dispatcher struct {
 	timerSlots [timerLevel]map[int64]*Timer // 时间轮 每个level对应的slots中的timer剩余到期时间大于等于 timerTick<<level
 	chanOp     chan any                     // 用于向Dispather发送Timer相关操作命令
 	nowMs      func() int64
-	logger     gface.Logger
+	logger     gface.ILogger
 }
 
 // newDispatcher nowMs: 外部注入的时间获取接口
-func newDispatcher(nowMs func() int64, logger gface.Logger) *Dispatcher {
+func newDispatcher(nowMs func() int64, logger gface.ILogger) *Dispatcher {
 	disp := new(Dispatcher)
 	for k := range disp.timerSlots {
 		disp.timerSlots[k] = make(map[int64]*Timer)

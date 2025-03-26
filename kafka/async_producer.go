@@ -12,10 +12,10 @@ type AsyncProducer struct {
 	addr     []string
 	topic    string
 	producer sarama.AsyncProducer
-	logger   gface.Logger
+	logger   gface.ILogger
 }
 
-func NewAsyncProducer(addr []string, topic string, logger gface.Logger) *AsyncProducer {
+func NewAsyncProducer(addr []string, topic string, logger gface.ILogger) *AsyncProducer {
 	p := &AsyncProducer{
 		addr:   addr,
 		topic:  topic,
@@ -40,12 +40,12 @@ func NewAsyncProducer(addr []string, topic string, logger gface.Logger) *AsyncPr
 // data: 待发送的消息内容，可以是任意类型，将会被序列化为json格式
 // 如果设置了key，建议用consumerbatch，因为key可以保证同类消息的顺序消费，他就可以只提交最后一次的消息的offset
 // 如果不设置key，建议用consumergroup，需要每次提交
-func (p *AsyncProducer) Push(key sarama.StringEncoder, data interface{}) error {
+func (p *AsyncProducer) Push(key string, data interface{}) error {
 	marshal, err := gson.Marshal(data)
 	if err != nil {
 		return err
 	}
-	msg := &sarama.ProducerMessage{Topic: p.topic, Key: key, Value: sarama.StringEncoder(gcommon.Bytes2Str(marshal))}
+	msg := &sarama.ProducerMessage{Topic: p.topic, Key: sarama.StringEncoder(key), Value: sarama.StringEncoder(gcommon.Bytes2Str(marshal))}
 	p.producer.Input() <- msg
 	return nil
 }

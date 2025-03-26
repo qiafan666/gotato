@@ -1,6 +1,6 @@
 package simplelru
 
-type LRUCache[K comparable, V any] interface {
+type ILRUCache[K comparable, V any] interface {
 	// Add 添加一个值到缓存中，如果发生了逐出操作则返回 true，并更新键的“最近使用”状态。
 	Add(key K, value V) bool
 

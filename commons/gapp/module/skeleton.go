@@ -28,7 +28,7 @@ type ISkeleton interface {
 	MsgStat() map[string]string
 
 	// Logger 日志
-	Logger() gface.Logger
+	Logger() gface.ILogger
 }
 
 // skeleton 模块基础框架
@@ -42,11 +42,11 @@ type skeleton struct {
 	// cb运行时间统计
 	stat *stat.MsgStat[string]
 
-	logger gface.Logger
+	logger gface.ILogger
 }
 
 // NewSkeleton .
-func NewSkeleton(goLen, chanrpcLen, asyncCallLen int, logger gface.Logger) ISkeleton {
+func NewSkeleton(goLen, chanrpcLen, asyncCallLen int, logger gface.ILogger) ISkeleton {
 	if goLen <= 0 || chanrpcLen < 0 || asyncCallLen < 0 || logger == nil {
 		panic("invalid skeleton args")
 	}
@@ -133,6 +133,6 @@ func (s *skeleton) TimerAPI() timer.ITimerAPI {
 }
 
 // Logger .
-func (s *skeleton) Logger() gface.Logger {
+func (s *skeleton) Logger() gface.ILogger {
 	return s.logger
 }

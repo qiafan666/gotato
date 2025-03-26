@@ -1,5 +1,5 @@
 package kafka
 
-type MsgHandler interface {
+type IHandler interface {
 	Handle(topic, msg string)
 }

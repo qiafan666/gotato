@@ -24,7 +24,7 @@ type Timer struct {
 	// timer 触发后会写入该channel，由该channel的持有者执行回调
 	// 如果ownerChan为nil，则直接在Dispatcher中执行回调
 	ownerChan chan *Timer
-	logger    gface.Logger
+	logger    gface.ILogger
 }
 
 // Cb 执行timer回调，在发起Timer的上下文中执行

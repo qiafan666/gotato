@@ -4,16 +4,16 @@ import (
 	"context"
 )
 
-type Server interface {
+type IServer interface {
 	Run(context.Context)
 }
 
-type Handler interface {
+type IHandler interface {
 	Handle(request *Message, ch chan<- *Message)
 }
 
 // SyncHandler 同步处理
 type SyncHandler interface {
-	Handler
+	IHandler
 	Run(context.Context)
 }

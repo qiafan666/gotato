@@ -10,7 +10,7 @@ type ImageInfo struct {
 	Etag   string `json:"etag"`
 }
 
-type Cache interface {
+type ICache interface {
 	GetImageObjectKeyInfo(ctx context.Context, key string, fn func(ctx context.Context) (*ImageInfo, error)) (*ImageInfo, error)
 	GetThumbnailKey(ctx context.Context, key string, format string, width int, height int, minioCache func(ctx context.Context) (string, error)) (string, error)
 	DelObjectImageInfoKey(ctx context.Context, keys ...string) error

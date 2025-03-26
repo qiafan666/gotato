@@ -9,11 +9,11 @@ import (
 type StateMachineManager struct {
 	machines map[string]*StateMachine
 	mu       sync.Mutex
-	logger   gface.Logger
+	logger   gface.ILogger
 }
 
 // NewStateMachineManager 创建一个新的状态机管理器
-func NewStateMachineManager(logger gface.Logger) *StateMachineManager {
+func NewStateMachineManager(logger gface.ILogger) *StateMachineManager {
 	return &StateMachineManager{
 		machines: make(map[string]*StateMachine),
 		logger:   logger,

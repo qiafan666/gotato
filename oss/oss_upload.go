@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Client interface {
+type IOss interface {
 	HealthCheck(ctx context.Context) (health bool, err error)
 	UploadAndSignUrl(ctx context.Context, fileReader io.Reader, objectName string, expiredInSec int64) (string, error)
 	DeleteByObjectName(ctx context.Context, objectName string) error
@@ -21,14 +21,14 @@ type Client interface {
 	GetBucket(ctx context.Context) (bucket *oss.Bucket, err error)
 }
 
-type ClientImp struct {
+type clientImp struct {
 	ossBucket       string
 	accessKeyID     string
 	accessKeySecret string
 	ossEndPoint     string
 }
 
-func (slf *ClientImp) HealthCheck(ctx context.Context) (health bool, err error) {
+func (slf *clientImp) HealthCheck(ctx context.Context) (health bool, err error) {
 	_, err = oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		return false, err
@@ -36,7 +36,7 @@ func (slf *ClientImp) HealthCheck(ctx context.Context) (health bool, err error) 
 	health = true
 	return
 }
-func (slf *ClientImp) GetFileURL(ctx context.Context, fileName string, expireTime time.Duration) (url string, err error) {
+func (slf *clientImp) GetFileURL(ctx context.Context, fileName string, expireTime time.Duration) (url string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		return "", err
@@ -53,8 +53,8 @@ func (slf *ClientImp) GetFileURL(ctx context.Context, fileName string, expireTim
 
 }
 
-func ClientInstance(ossBucket, accessKeyID, accessKeySecret, ossEndPoint string) Client {
-	return &ClientImp{
+func New(ossBucket, accessKeyID, accessKeySecret, ossEndPoint string) IOss {
+	return &clientImp{
 		ossBucket:       ossBucket,
 		accessKeyID:     accessKeyID,
 		accessKeySecret: accessKeySecret,
@@ -62,7 +62,7 @@ func ClientInstance(ossBucket, accessKeyID, accessKeySecret, ossEndPoint string)
 	}
 }
 
-func (slf *ClientImp) IsFileExist(ctx context.Context, fileName string) (isExist bool, err error) {
+func (slf *clientImp) IsFileExist(ctx context.Context, fileName string) (isExist bool, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		return false, err
@@ -74,7 +74,7 @@ func (slf *ClientImp) IsFileExist(ctx context.Context, fileName string) (isExist
 	return bucket.IsObjectExist(fileName)
 }
 
-func (slf *ClientImp) UploadAndSignUrl(ctx context.Context, fileReader io.Reader, objectName string, expiredInSec int64) (string, error) {
+func (slf *clientImp) UploadAndSignUrl(ctx context.Context, fileReader io.Reader, objectName string, expiredInSec int64) (string, error) {
 	// 创建OSSClient实例。
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -100,7 +100,7 @@ func (slf *ClientImp) UploadAndSignUrl(ctx context.Context, fileReader io.Reader
 	return signedURL, nil
 }
 
-func (slf *ClientImp) DeleteByObjectName(ctx context.Context, objectName string) error {
+func (slf *clientImp) DeleteByObjectName(ctx context.Context, objectName string) error {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (slf *ClientImp) DeleteByObjectName(ctx context.Context, objectName string)
 	return nil
 }
 
-func (slf *ClientImp) UploadByReader(ctx context.Context, fileReader io.Reader, fileName string) (err error) {
+func (slf *clientImp) UploadByReader(ctx context.Context, fileReader io.Reader, fileName string) (err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -135,7 +135,7 @@ func (slf *ClientImp) UploadByReader(ctx context.Context, fileReader io.Reader, 
 	return nil
 }
 
-func (slf *ClientImp) DownloadFile(ctx context.Context, fileName string) (data []byte, err error) {
+func (slf *clientImp) DownloadFile(ctx context.Context, fileName string) (data []byte, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -160,7 +160,7 @@ func (slf *ClientImp) DownloadFile(ctx context.Context, fileName string) (data [
 	}
 	return data, nil
 }
-func (slf *ClientImp) MemoryParameter(ctx context.Context) (memoryParameters MemoryParameter, err error) {
+func (slf *clientImp) MemoryParameter(ctx context.Context) (memoryParameters MemoryParameter, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -190,7 +190,7 @@ func (slf *ClientImp) MemoryParameter(ctx context.Context) (memoryParameters Mem
 	return
 }
 
-func (slf *ClientImp) GetClient(ctx context.Context) (client *oss.Client, err error) {
+func (slf *clientImp) GetClient(ctx context.Context) (client *oss.Client, err error) {
 
 	client, err = oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -200,7 +200,7 @@ func (slf *ClientImp) GetClient(ctx context.Context) (client *oss.Client, err er
 	return client, nil
 }
 
-func (slf *ClientImp) GetBucket(ctx context.Context) (bucket *oss.Bucket, err error) {
+func (slf *clientImp) GetBucket(ctx context.Context) (bucket *oss.Bucket, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {

@@ -191,7 +191,7 @@ func getSheetName(t reflect.Type) string {
 	if t.Kind() != reflect.Struct {
 		return ""
 	}
-	if s, ok := reflect.New(t).Interface().(SheetName); ok {
+	if s, ok := reflect.New(t).Interface().(ISheetName); ok {
 		return s.SheetName()
 	} else {
 		return t.Name()

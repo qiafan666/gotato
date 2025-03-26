@@ -37,7 +37,7 @@ const (
 
 const successCode = http.StatusOK
 
-var _ s3.Interface = (*OSS)(nil)
+var _ s3.IS = (*OSS)(nil)
 
 type Config struct {
 	Endpoint        string

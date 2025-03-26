@@ -36,7 +36,7 @@ const (
 
 const successCode = http.StatusOK
 
-var _ s3.Interface = (*Cos)(nil)
+var _ s3.IS = (*Cos)(nil)
 
 type Config struct {
 	BucketURL    string

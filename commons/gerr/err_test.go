@@ -52,7 +52,7 @@ func TestErrorCode(t *testing.T) {
 	}
 
 	unwrap := Unwrap(err)
-	if codeErr, ok := unwrap.(CodeError); ok {
+	if codeErr, ok := unwrap.(ICodeError); ok {
 		t.Log(codeErr.Code())   // output: 10000
 		t.Log(codeErr.Msg())    // output: wrap msg, key=value: test error
 		t.Log(codeErr.Detail()) // output:
@@ -91,7 +91,7 @@ func ParseError(err error) *ApiResponse {
 		return ApiSuccessWithMsg(nil, "", "")
 	}
 	unwrap := Unwrap(err)
-	var codeErr CodeError
+	var codeErr ICodeError
 	if errors.As(unwrap, &codeErr) {
 		resp := ApiResponse{Code: codeErr.Code(), Msg: codeErr.Msg(), Dlt: codeErr.Detail()}
 		if resp.Dlt == "" {

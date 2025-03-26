@@ -9,13 +9,13 @@ import (
 	"io"
 )
 
-type TextRpcProtocol struct{}
+type textRpcProtocol struct{}
 
-func New() *TextRpcProtocol {
-	return &TextRpcProtocol{}
+func New() grpc.IProtocol {
+	return &textRpcProtocol{}
 }
 
-func (t *TextRpcProtocol) Encode(ctx context.Context, v *grpc.Message) ([]byte, error) {
+func (t *textRpcProtocol) Encode(ctx context.Context, v *grpc.Message) ([]byte, error) {
 	// 发送心跳包时,requestBody为心跳包内容
 	if v.Command == grpc.CmdHeartbeat && v.PkgType == grpc.PkgTypeRequest && v.Heartbeat != nil {
 		v.Body = t.packHeartbeatRequest(v.Heartbeat)
@@ -30,7 +30,7 @@ func (t *TextRpcProtocol) Encode(ctx context.Context, v *grpc.Message) ([]byte, 
 		v.Body,
 	)
 }
-func (t *TextRpcProtocol) Decode(ctx context.Context, reader io.Reader) (*grpc.Message, error) {
+func (t *textRpcProtocol) Decode(ctx context.Context, reader io.Reader) (*grpc.Message, error) {
 	m, err := t.recv(ctx, reader)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (t *TextRpcProtocol) Decode(ctx context.Context, reader io.Reader) (*grpc.M
 	return v, nil
 }
 
-func (t *TextRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, error) {
+func (t *textRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, error) {
 	headerData := make([]byte, 0)
 	nextReadSize := headerSize
 
@@ -125,7 +125,7 @@ func (t *TextRpcProtocol) recv(ctx context.Context, reader io.Reader) (*msg, err
 	return m, nil
 }
 
-func (t *TextRpcProtocol) read(ctx context.Context, reader io.Reader, length uint32) ([]byte, error) {
+func (t *textRpcProtocol) read(ctx context.Context, reader io.Reader, length uint32) ([]byte, error) {
 	bytesBuffer := bytes.NewBuffer([]byte{})
 
 	totalLen := uint32(0) // 已读取的总长度
@@ -166,7 +166,7 @@ func (t *TextRpcProtocol) read(ctx context.Context, reader io.Reader, length uin
 	return bytesBuffer.Bytes(), nil
 }
 
-func (t *TextRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result, Seq uint32, reqId int64, data []byte) ([]byte, error) {
+func (t *textRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result, Seq uint32, reqId int64, data []byte) ([]byte, error) {
 	if len(data) > maxBodySize {
 		return nil, gerr.New("data too long", "maxBodySize", maxBodySize, "dataSize", len(data))
 	}
@@ -187,7 +187,7 @@ func (t *TextRpcProtocol) encode(cmd grpc.Command, pkgType grpc.PkgType, result,
 	return newMsg.Bytes(), nil
 }
 
-func (t *TextRpcProtocol) unpackHeartbeatRequest(body []byte) (*grpc.Heartbeat, error) {
+func (t *textRpcProtocol) unpackHeartbeatRequest(body []byte) (*grpc.Heartbeat, error) {
 	var m heartbeat
 	r := bytes.NewReader(body)
 	err := binary.Read(r, endian, &m)
@@ -201,7 +201,7 @@ func (t *TextRpcProtocol) unpackHeartbeatRequest(body []byte) (*grpc.Heartbeat, 
 	return h, nil
 }
 
-func (t *TextRpcProtocol) packHeartbeatRequest(h *grpc.Heartbeat) []byte {
+func (t *textRpcProtocol) packHeartbeatRequest(h *grpc.Heartbeat) []byte {
 	m := &heartbeat{
 		Type:        1,         // 心跳包type,发送方固定1
 		TimeoutSize: 4,         // 心跳包timeoutSize,发送方固定4

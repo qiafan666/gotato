@@ -40,7 +40,7 @@ const (
 
 const successCode = http.StatusOK
 
-var _ s3.Interface = (*Minio)(nil)
+var _ s3.IS = (*Minio)(nil)
 
 type Config struct {
 	Bucket          string
@@ -52,7 +52,7 @@ type Config struct {
 	PublicRead      bool
 }
 
-func NewMinio(ctx context.Context, cache Cache, conf Config) (*Minio, error) {
+func NewMinio(ctx context.Context, cache ICache, conf Config) (*Minio, error) {
 	u, err := url.Parse(conf.Endpoint)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ type Minio struct {
 	lock         sync.Locker
 	init         bool
 	prefix       string
-	cache        Cache
+	cache        ICache
 }
 
 func (m *Minio) initMinio(ctx context.Context) error {

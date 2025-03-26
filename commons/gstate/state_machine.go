@@ -22,7 +22,7 @@ type StateMachine struct {
 	state       State
 	transitions map[State]map[Event]*Transition
 	handlers    map[Event]func(data []interface{}) // 事件处理函数
-	logger      gface.Logger                       // 日志记录器
+	logger      gface.ILogger                      // 日志记录器
 	ctx         context.Context                    // 上下文
 }
 

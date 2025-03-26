@@ -11,10 +11,10 @@ import (
 type ConnManager struct {
 	connRequests *gcache.ShardLockMap[string, *Request] // connId -> requests
 	reqKeys      *gcache.ShardLockMap[string, string]   // reqKey -> connId
-	logger       gface.Logger
+	logger       gface.ILogger
 }
 
-func NewConnManager(logger gface.Logger) *ConnManager {
+func NewConnManager(logger gface.ILogger) *ConnManager {
 	m := &ConnManager{
 		connRequests: gcache.NewShardLockMap[*Request](),
 		reqKeys:      gcache.NewShardLockMap[string](),

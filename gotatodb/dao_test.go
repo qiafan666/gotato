@@ -8,12 +8,12 @@ import (
 	"sync"
 )
 
-type Dao interface {
-	Tx() Dao
+type IDao interface {
+	Tx() IDao
 	Rollback()
 	Commit() error
 	Db() *gorm.DB
-	WithContext(ctx context.Context) Dao
+	WithContext(ctx context.Context) IDao
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
@@ -25,63 +25,77 @@ type Dao interface {
 	Raw(string, interface{}) error
 }
 
-type Imp struct {
+type imp struct {
 	db           *gorm.DB
 	defaultWhere map[string]interface{}
 }
 
-func (s Imp) Db() *gorm.DB {
-	return s.db
-}
-func (s Imp) Create(input interface{}) error {
-	return s.db.Create(input).Error
-}
-func (s Imp) Save(input interface{}) error {
-	return s.db.Save(input).Error
-}
-func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
+var db *gorm.DB
+var once sync.Once
 
-	if len(s.defaultWhere) > 0 {
-		where = gcommon.MapMergeUnique(where, s.defaultWhere)
+func New() IDao {
+	once.Do(func() {
+		db = gotato.GetGotatoInstance().FeatureDB("test").GormDB()
+	})
+
+	//默认is_deleted=0条件
+	defaultWhere := map[string]interface{}{}
+
+	return &imp{db: db, defaultWhere: defaultWhere}
+}
+
+func (i imp) Db() *gorm.DB {
+	return i.db
+}
+func (i imp) Create(input interface{}) error {
+	return i.db.Create(input).Error
+}
+func (i imp) Save(input interface{}) error {
+	return i.db.Save(input).Error
+}
+func (i imp) First(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
+
+	if len(i.defaultWhere) > 0 {
+		where = gcommon.MapMergeUnique(where, i.defaultWhere)
 	}
 	if scope != nil {
-		s.db = s.db.Scopes(scope)
+		i.db = i.db.Scopes(scope)
 	}
 	if len(selectStr) > 0 {
-		s.db = s.db.Select(selectStr)
+		i.db = i.db.Select(selectStr)
 	} else {
-		s.db = s.db.Select("*")
+		i.db = i.db.Select("*")
 	}
 
-	return s.db.Model(output).Where(where).First(output).Error
+	return i.db.Model(output).Where(where).First(output).Error
 }
-func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
+func (i imp) Find(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
 
-	if len(s.defaultWhere) > 0 {
-		where = gcommon.MapMergeUnique(where, s.defaultWhere)
+	if len(i.defaultWhere) > 0 {
+		where = gcommon.MapMergeUnique(where, i.defaultWhere)
 	}
 	if scope != nil {
-		s.db = s.db.Scopes(scope)
+		i.db = i.db.Scopes(scope)
 	}
 	if len(selectStr) > 0 {
-		s.db = s.db.Select(selectStr)
+		i.db = i.db.Select(selectStr)
 	} else {
-		s.db = s.db.Select("*")
+		i.db = i.db.Select("*")
 	}
 
-	return s.db.Model(output).Where(where).Find(output).Error
+	return i.db.Model(output).Where(where).Find(output).Error
 }
-func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
+func (i imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 
-	if len(s.defaultWhere) > 0 {
-		where = gcommon.MapMergeUnique(where, s.defaultWhere)
+	if len(i.defaultWhere) > 0 {
+		where = gcommon.MapMergeUnique(where, i.defaultWhere)
 	}
 	if scope != nil {
-		s.db = s.db.Scopes(scope)
+		i.db = i.db.Scopes(scope)
 	}
-	updates := s.db.Model(info).Where(where).Updates(info)
-	err = updates.Error
-	rows = updates.RowsAffected
+	updateTx := i.db.Model(info).Where(where).Updates(info)
+	err = updateTx.Error
+	rows = updateTx.RowsAffected
 	return
 }
 
@@ -91,73 +105,59 @@ func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*
 // where 更新条件
 // scope 事务作用域
 // jumpStrings 跳过结构体中的字段名
-func (s Imp) UpdateMap(info map[string]interface{}, table string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
+func (i imp) UpdateMap(info map[string]interface{}, table string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 
-	if len(s.defaultWhere) > 0 {
-		where = gcommon.MapMergeUnique(where, s.defaultWhere)
+	if len(i.defaultWhere) > 0 {
+		where = gcommon.MapMergeUnique(where, i.defaultWhere)
 	}
 	if scope != nil {
-		s.db = s.db.Scopes(scope)
+		i.db = i.db.Scopes(scope)
 	}
 
-	updates := s.db.Table(table).Where(where).Updates(info)
+	updateTx := i.db.Table(table).Where(where).Updates(info)
 
-	err = updates.Error
-	rows = updates.RowsAffected
+	err = updateTx.Error
+	rows = updateTx.RowsAffected
 	return
 }
-func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
+func (i imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
 
-	if len(s.defaultWhere) > 0 {
-		where = gcommon.MapMergeUnique(where, s.defaultWhere)
+	if len(i.defaultWhere) > 0 {
+		where = gcommon.MapMergeUnique(where, i.defaultWhere)
 	}
 	if scope != nil {
-		s.db = s.db.Scopes(scope)
+		i.db = i.db.Scopes(scope)
 	}
-	err = s.db.Model(entity).Where(where).Count(&total).Error
+	err = i.db.Model(entity).Where(where).Count(&total).Error
 	return
 }
-func (s Imp) Delete(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
+func (i imp) Delete(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 
 	if scope != nil {
-		s.db = s.db.Scopes(scope)
+		i.db = i.db.Scopes(scope)
 	}
-	deletes := s.db.Model(entity).Where(where).Delete(&entity)
-	rows = deletes.RowsAffected
-	err = deletes.Error
+	deleteTx := i.db.Model(entity).Where(where).Delete(&entity)
+	rows = deleteTx.RowsAffected
+	err = deleteTx.Error
 	return
 }
-func (s Imp) Tx() Dao {
-	s.db = s.db.Begin()
-	return Dao(&s)
+func (i imp) Tx() IDao {
+	i.db = i.db.Begin()
+	return IDao(&i)
 }
-func (s Imp) WithContext(ctx context.Context) Dao {
-	s.db = s.db.WithContext(ctx)
-	return Dao(&s)
+func (i imp) WithContext(ctx context.Context) IDao {
+	i.db = i.db.WithContext(ctx)
+	return IDao(&i)
 }
-func (s Imp) Rollback() {
-	s.db.Rollback()
+func (i imp) Rollback() {
+	i.db.Rollback()
 }
-func (s Imp) Commit() error {
-	return s.db.Commit().Error
+func (i imp) Commit() error {
+	return i.db.Commit().Error
 }
-func (s Imp) Raw(sql string, output interface{}) error {
-	return s.db.Raw(sql).Scan(output).Error
+func (i imp) Raw(sql string, output interface{}) error {
+	return i.db.Raw(sql).Scan(output).Error
 }
-func (s Imp) DB() *gorm.DB {
-	return s.db
-}
-
-var db *gorm.DB
-var once sync.Once
-
-func Instance() Dao {
-	once.Do(func() {
-		db = gotato.GetGotatoInstance().FeatureDB("test").GormDB()
-	})
-
-	//默认is_deleted=0条件
-	defaultWhere := map[string]interface{}{}
-
-	return &Imp{db: db, defaultWhere: defaultWhere}
+func (i imp) DB() *gorm.DB {
+	return i.db
 }

@@ -16,7 +16,7 @@ import (
 
 type ServerOptions struct {
 	Timeout time.Duration
-	Logger  gface.Logger
+	Logger  gface.ILogger
 }
 
 type Server struct {
@@ -24,19 +24,19 @@ type Server struct {
 
 	opt *ServerOptions
 
-	protocol grpc.Protocol
+	protocol grpc.IProtocol
 	serialId *gid.SerialId[uint64]
 
 	connManager *server.ConnManager
 
-	handler grpc.Handler
+	handler grpc.IHandler
 
-	logger gface.Logger
+	logger gface.ILogger
 
 	ch chan *grpc.Message
 }
 
-func NewServer(addr string, handler grpc.Handler, opt *ServerOptions) *Server {
+func NewServer(addr string, handler grpc.IHandler, opt *ServerOptions) *Server {
 	s := &Server{
 		addr:    addr,
 		handler: handler,

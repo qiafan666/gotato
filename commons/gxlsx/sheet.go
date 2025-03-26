@@ -1,5 +1,5 @@
 package xlsx
 
-type SheetName interface {
+type ISheetName interface {
 	SheetName() string
 }

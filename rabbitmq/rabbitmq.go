@@ -1,5 +1,5 @@
 package rabbitmq
 
-type MsgHandler interface {
+type IHandler interface {
 	Handle(msg string) error
 }

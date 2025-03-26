@@ -17,10 +17,10 @@ type Consumer struct {
 
 	url string
 
-	logger gface.Logger
+	logger gface.ILogger
 }
 
-func NewConsumer(ctx context.Context, url string, logger gface.Logger) (*Consumer, error) {
+func NewConsumer(ctx context.Context, url string, logger gface.ILogger) (*Consumer, error) {
 	c := &Consumer{
 		url:     url,
 		options: map[string]any{},
@@ -59,7 +59,7 @@ func (c *Consumer) Close() {
 	c.conn.Close()
 }
 
-func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler MsgHandler) {
+func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler IHandler) {
 	if ctx.Err() != nil {
 		return
 	}

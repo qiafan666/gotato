@@ -76,7 +76,7 @@ type Promise struct {
 	cbFunc        func(context *Context)
 	context       *Context
 	futureIdIndex uint32
-	logger        gface.Logger
+	logger        gface.ILogger
 }
 
 type Callback struct {
@@ -97,10 +97,10 @@ type Manager struct {
 
 	onAllPromiseOver func()
 
-	logger gface.Logger
+	logger gface.ILogger
 }
 
-func NewManager(owner int64, f func() int, logger gface.Logger) *Manager {
+func NewManager(owner int64, f func() int, logger gface.ILogger) *Manager {
 	pm := &Manager{
 		owner:                owner,
 		promises:             make(map[uint32]*Promise),

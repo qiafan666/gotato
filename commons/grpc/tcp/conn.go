@@ -64,7 +64,7 @@ type ConnOptions struct {
 	PingTimeout time.Duration // 心跳超时时间
 	IdleTimeout time.Duration // 空闲超时时间
 	LiveTimeout time.Duration // 最大存活时间
-	Logger      gface.Logger  // 日志接口
+	Logger      gface.ILogger // 日志接口
 }
 
 // Conn TCP连接封装
@@ -81,13 +81,13 @@ type Conn struct {
 
 	recvChans *gcache.ShardLockMap[string, *RecvChan] // 响应接收通道映射表
 
-	protocol grpc.Protocol // RPC协议实现
+	protocol grpc.IProtocol // RPC协议实现
 
 	pingDeadline time.Time // 心跳超时截止时间
 	idleDeadline time.Time // 空闲超时截止时间
 	liveDeadline time.Time // 存活超时截止时间
 
-	logger gface.Logger // 日志接口
+	logger gface.ILogger // 日志接口
 
 	opt *ConnOptions // 连接配置选项
 }

@@ -17,7 +17,7 @@ type taskFuncPair struct {
 type Task struct {
 	functions chan *taskFuncPair
 	exitCh    chan int
-	logger    gface.Logger
+	logger    gface.ILogger
 }
 
 func New() *Task {

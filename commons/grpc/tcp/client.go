@@ -26,7 +26,7 @@ type ClientOptions struct {
 	RetryLimit  int           // 重试次数
 
 	Hystrix HystrixOptions // hystrix配置
-	Logger  gface.Logger   // 日志接口
+	Logger  gface.ILogger  // 日志接口
 }
 
 // HystrixOptions hystrix配置
@@ -73,13 +73,13 @@ type Client struct {
 
 	opt *ClientOptions // 客户端配置选项
 
-	protocol grpc.Protocol
+	protocol grpc.IProtocol
 
 	pool *gpool.Pool[*Conn] // 连接池
 
 	hystrixCommandName string // hystrix命令名称
 
-	logger gface.Logger
+	logger gface.ILogger
 }
 
 // NewClient 创建新的TCP客户端

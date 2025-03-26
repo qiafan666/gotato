@@ -224,34 +224,12 @@ func (bi *ModInt) String() string {
 
 type Field interface{}
 
-/*
-type PointField interface {
-	MakeElement(x *ModInt, y *ModInt) PointElement
-}
-*/
-
-type PowElement interface {
+type IPowElement interface {
 	String() string
-	CopyPow() PowElement
-	MakeOnePow() PowElement
-	MulPow(PowElement) PowElement
+	CopyPow() IPowElement
+	MakeOnePow() IPowElement
+	MulPow(IPowElement) IPowElement
 }
-
-/*
-type PointElement interface {
-	String() string
-	X() *ModInt
-	Y() *ModInt
-	NegateY() PointElement
-	Invert() PointElement
-	MulPoint(PointElement) PointElement
-	Add(PointElement) PointElement
-	Sub(PointElement) PointElement
-	Square() PointElement
-	Pow(*ModInt) PointElement
-	IsValEqual(PointElement) bool
-}
-*/
 
 type BaseField struct {
 	LengthInBytes int
@@ -316,7 +294,7 @@ func MakePointFromBytes(pointBytes []byte, targetField *BaseField) *PointLike {
 	return &PointLike{DataX, DataY}
 }
 
-func powWindow(base PowElement, exp *big.Int) PowElement {
+func powWindow(base IPowElement, exp *big.Int) IPowElement {
 
 	// note: does not mutate base
 	result := base.MakeOnePow()
@@ -381,14 +359,14 @@ func optimalPowWindowSize(exp *big.Int) uint {
 	}
 }
 
-func buildPowWindow(k uint, base PowElement) *[]PowElement {
+func buildPowWindow(k uint, base IPowElement) *[]IPowElement {
 
 	if k < 1 {
 		return nil
 	}
 
 	lookupSize := 1 << k
-	lookups := make([]PowElement, lookupSize)
+	lookups := make([]IPowElement, lookupSize)
 
 	// MakeOnePow copies ...
 	lookups[0] = base.MakeOnePow()

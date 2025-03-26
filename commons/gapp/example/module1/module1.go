@@ -52,6 +52,6 @@ func (m *Module1) ChanSrv() chanrpc.IServer {
 }
 
 // Logger 日志
-func (m *Module1) Logger() gface.Logger {
+func (m *Module1) Logger() gface.ILogger {
 	return m.skeleton.Logger()
 }

@@ -55,7 +55,7 @@ func (d *Delegate) CancelTimer(timerID int64) {
 }
 
 // Logger 获取日志接口
-func (d *Delegate) Logger() gface.Logger {
+func (d *Delegate) Logger() gface.ILogger {
 	return d.dispatcher.logger
 }
 

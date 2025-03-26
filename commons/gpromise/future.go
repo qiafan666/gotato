@@ -31,11 +31,11 @@ type Future struct {
 	promise      *Promise
 	fatherFuture IFuture
 	name         string
-	logger       gface.Logger
+	logger       gface.ILogger
 	ctx          context.Context
 }
 
-func NewFuture(name string, logger gface.Logger) *Future {
+func NewFuture(name string, logger gface.ILogger) *Future {
 	return &Future{
 		name:   name,
 		logger: logger,

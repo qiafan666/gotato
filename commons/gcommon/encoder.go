@@ -6,18 +6,18 @@ import (
 	"github.com/qiafan666/gotato/commons/gerr"
 )
 
-type Encoder interface {
+type IEncoder interface {
 	Encode(data any) ([]byte, error)
 	Decode(encodeData []byte, decodeData any) error
 }
 
-type GobEncoder struct{}
+type gobEncoder struct{}
 
-func NewGobEncoder() *GobEncoder {
-	return &GobEncoder{}
+func NewGobEncoder() IEncoder {
+	return &gobEncoder{}
 }
 
-func (g *GobEncoder) Encode(data any) ([]byte, error) {
+func (g *gobEncoder) Encode(data any) ([]byte, error) {
 	buff := bytes.Buffer{}
 	enc := gob.NewEncoder(&buff)
 	if err := enc.Encode(data); err != nil {
@@ -26,7 +26,7 @@ func (g *GobEncoder) Encode(data any) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func (g *GobEncoder) Decode(encodeData []byte, decodeData any) error {
+func (g *gobEncoder) Decode(encodeData []byte, decodeData any) error {
 	buff := bytes.NewBuffer(encodeData)
 	dec := gob.NewDecoder(buff)
 	if err := dec.Decode(decodeData); err != nil {

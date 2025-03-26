@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-type Conn interface {
+type IConn interface {
 	GetConns(ctx context.Context, serviceName string, opts ...grpc.DialOption) ([]*grpc.ClientConn, error) //1
 	GetConn(ctx context.Context, serviceName string, opts ...grpc.DialOption) (*grpc.ClientConn, error)    //2
 	GetSelfConnTarget() string                                                                             //3
 	AddOption(opts ...grpc.DialOption)                                                                     //4
 	CloseConn(conn *grpc.ClientConn)                                                                       //5
 }
-type SvcDiscoveryRegistry interface {
-	Conn
+type IDiscoveryRegistry interface {
+	IConn
 	Register(serviceName, host string, port int, opts ...grpc.DialOption) error //6
 	UnRegister() error                                                          //7
 	Close()
@@ -43,7 +43,7 @@ type Etcd struct {
 
 // NewDiscoveryRegister 创建一个服务发现注册器
 // mode: zookeeper or etcd
-func NewDiscoveryRegister(mode string, discovery DiscoveryRegister) (SvcDiscoveryRegistry, error) {
+func NewDiscoveryRegister(mode string, discovery DiscoveryRegister) (IDiscoveryRegistry, error) {
 	switch mode {
 	case "zookeeper":
 		return gzookeeper.NewZkClient(

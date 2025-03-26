@@ -7,17 +7,17 @@ import (
 
 var DefaultCodeRelation = newCodeRelation()
 
-type CodeError interface {
+type ICodeError interface {
 	Code() int
 	Msg() string
 	Detail() string
-	WithDetail(detail string) CodeError
+	WithDetail(detail string) ICodeError
 	RequestID() string
-	Error
+	IError
 }
 
 // NewLang 返回多语言的错误信息 strings[0] 为language，strings[1] 为request_id
-func NewLang(code int, strings ...string) CodeError {
+func NewLang(code int, strings ...string) ICodeError {
 	if len(strings) == 0 {
 		return &codeError{
 			code: code,
@@ -38,7 +38,7 @@ func NewLang(code int, strings ...string) CodeError {
 }
 
 // NewCode 自定义返回错误信息，不带request_id，可通过withRequestID方法添加request_id
-func NewCode(code int, msg string) CodeError {
+func NewCode(code int, msg string) ICodeError {
 	return &codeError{
 		code: code,
 		msg:  msg,
@@ -68,7 +68,7 @@ func (e *codeError) RequestID() string {
 	return e.requestID
 }
 
-func (e *codeError) WithDetail(detail string) CodeError {
+func (e *codeError) WithDetail(detail string) ICodeError {
 	var d string
 	if e.detail == "" {
 		d = detail
@@ -82,7 +82,7 @@ func (e *codeError) WithDetail(detail string) CodeError {
 	}
 }
 
-func (e *codeError) WithRequestID(requestID string) CodeError {
+func (e *codeError) WithRequestID(requestID string) ICodeError {
 	return &codeError{
 		code:      e.code,
 		msg:       e.msg,
@@ -100,7 +100,7 @@ func (e *codeError) WrapMsg(msg string, kv ...any) error {
 }
 
 func (e *codeError) Is(err error) bool {
-	var codeErr CodeError
+	var codeErr ICodeError
 	ok := errors.As(Unwrap(err), &codeErr)
 	if !ok {
 		if err == nil && e == nil {
@@ -156,12 +156,12 @@ func WrapMsg(err error, msg string, kv ...any) error {
 	return errors.WithStack(withMessage)
 }
 
-type CodeRelation interface {
+type ICodeRelation interface {
 	Add(codes ...int) error
 	Is(parent, child int) bool
 }
 
-func newCodeRelation() CodeRelation {
+func newCodeRelation() ICodeRelation {
 	return &codeRelation{m: make(map[int]map[int]struct{})}
 }
 

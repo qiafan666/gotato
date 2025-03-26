@@ -4,7 +4,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gcommon/sval"
 )
 
-type API interface {
+type ITimerMgr interface {
 	RegisterTimer(timerType int32, handler TimerHandler, needDB bool)
 	NewTimerByTs(endTs int64, timerType int32, timerData sval.M) int64
 	NewTicker(duraMs int64, timerType int32, timerData sval.M) int64

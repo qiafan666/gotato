@@ -12,7 +12,7 @@ func IsZero[T any](v T) bool {
 	return reflect.ValueOf(v).IsZero()
 }
 
-type Item interface {
+type IPoolItem interface {
 	io.Closer
 	IsClosed() bool
 	CloseNotify() <-chan any
@@ -24,13 +24,13 @@ var (
 	ErrCancel         = errors.New("operation canceled")
 )
 
-type Options[T Item] struct {
+type Options[T IPoolItem] struct {
 	MaxSize  uint
 	InitSize uint
 	New      func() (T, error)
 }
 
-type Pool[T Item] struct {
+type Pool[T IPoolItem] struct {
 	ctx context.Context
 
 	items chan T
@@ -43,7 +43,7 @@ type Pool[T Item] struct {
 	opt *Options[T]
 }
 
-func NewPool[T Item](ctx context.Context, opt *Options[T]) (*Pool[T], error) {
+func NewPool[T IPoolItem](ctx context.Context, opt *Options[T]) (*Pool[T], error) {
 	p := &Pool[T]{
 		ctx:   ctx,
 		items: nil,

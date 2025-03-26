@@ -183,7 +183,7 @@ func makeTestCurveField(a *big.Int, b *big.Int, r *big.Int, q *big.Int) *CurveFi
 // TODO: Make function?
 
 // var _ PointElement = (*CurveElement)(nil)
-var _ PowElement = (*CurveElement)(nil)
+var _ IPowElement = (*CurveElement)(nil)
 
 func (elem *CurveElement) getTargetOrder() *big.Int {
 	return elem.ElemParams.GetTargetField().FieldOrder
@@ -292,7 +292,7 @@ func (elem *CurveElement) isEqual(cmpElem *CurveElement) bool {
 	return elem.DataY.IsValEqual(cmpElem.DataY)
 }
 
-func (elem *CurveElement) CopyPow() PowElement {
+func (elem *CurveElement) CopyPow() IPowElement {
 	theCopy := elem.dup()
 	theCopy.freeze()
 	return theCopy
@@ -306,7 +306,7 @@ func (elem *CurveElement) dup() *CurveElement {
 	return newElem
 }
 
-func (elem *CurveElement) MakeOnePow() PowElement {
+func (elem *CurveElement) MakeOnePow() IPowElement {
 	return &CurveElement{elem.ElemParams, PointLike{nil, nil}}
 }
 
@@ -315,7 +315,7 @@ func (elem *CurveElement) MulPoint(elemIn *CurveElement) *CurveElement {
 	return res
 }
 
-func (elem *CurveElement) MulPow(elemIn PowElement) PowElement {
+func (elem *CurveElement) MulPow(elemIn IPowElement) IPowElement {
 	res := elem.mul(elemIn.(*CurveElement))
 	return res
 }

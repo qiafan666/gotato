@@ -5,16 +5,16 @@ import (
 	"sync"
 )
 
-type t interface {
+type ISerialId interface {
 	comparable
 	uint | uint8 | uint16 | uint32 | uint64
 }
-type SerialId[T t] struct {
+type SerialId[T ISerialId] struct {
 	mu sync.Mutex
 	id T
 }
 
-func NewSerialId[T t]() *SerialId[T] {
+func NewSerialId[T ISerialId]() *SerialId[T] {
 	return new(SerialId[T])
 }
 
