@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"strconv"
 	"sync"
@@ -74,7 +74,7 @@ func (p *Producer) Close() {
 }
 
 func (p *Producer) Publish(ctx context.Context, msgChannel *MsgChannel, msg interface{}) error {
-	marshal, _ := gjson.Marshal(msg)
+	marshal, _ := gson.Marshal(msg)
 	now := time.Now()
 
 	if err := p.ini(); err != nil {

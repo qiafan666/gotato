@@ -2,7 +2,7 @@ package sval
 
 import (
 	"fmt"
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 	"reflect"
 	"strconv"
 )
@@ -90,7 +90,7 @@ func (s SValue) Bool() bool {
 // Obj Decode bool
 func (s SValue) Obj(v any) {
 	s.checkTag(objectTag)
-	err := gjson.Unmarshal([]byte(s.value()), v)
+	err := gson.Unmarshal([]byte(s.value()), v)
 	if err != nil {
 		panic(fmt.Sprintf("svalue %v unmarshal %v failed %v", string(s), reflect.TypeOf(v), err))
 	}
@@ -126,7 +126,7 @@ func Bool(b bool) SValue {
 
 // Obj Encode
 func Obj(v any) SValue {
-	jsnbin, _ := gjson.Marshal(v) //nolint:errchkjson
+	jsnbin, _ := gson.Marshal(v) //nolint:errchkjson
 	return SValue(objectTag + string(jsnbin))
 }
 

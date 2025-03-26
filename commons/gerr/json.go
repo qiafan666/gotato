@@ -1,14 +1,14 @@
 package gerr
 
 import (
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 )
 
 func Marshal(v any) ([]byte, error) {
-	m, err := gjson.Marshal(v)
+	m, err := gson.Marshal(v)
 	return m, Wrap(err)
 }
 
 func Unmarshal(b []byte, v any) error {
-	return Wrap(gjson.Unmarshal(b, v))
+	return Wrap(gson.Unmarshal(b, v))
 }

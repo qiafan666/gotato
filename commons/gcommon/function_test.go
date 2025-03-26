@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gid"
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 	"math"
 	"slices"
 	"strings"
@@ -25,7 +25,7 @@ func TestStructToMap(t *testing.T) {
 	}
 
 	toMap := StructToMap(test)
-	marshal, err := gjson.Marshal(toMap)
+	marshal, err := gson.Marshal(toMap)
 	if err != nil {
 		return
 	}

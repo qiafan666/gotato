@@ -3,7 +3,7 @@ package glog
 import (
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 	"go.uber.org/zap/zapcore"
 	"net/http"
 	"strings"
@@ -108,7 +108,7 @@ func (hook *FeiShuHook) DefaultRegisterHook() {
 			"group_id": hook.groupID,
 			"words":    sb.String(),
 		}
-		b, _ := gjson.Marshal(payload)
+		b, _ := gson.Marshal(payload)
 
 		select {
 		case hook.msgChan <- b:

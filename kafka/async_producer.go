@@ -5,7 +5,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 )
 
 type AsyncProducer struct {
@@ -41,7 +41,7 @@ func NewAsyncProducer(addr []string, topic string, logger gface.Logger) *AsyncPr
 // 如果设置了key，建议用consumerbatch，因为key可以保证同类消息的顺序消费，他就可以只提交最后一次的消息的offset
 // 如果不设置key，建议用consumergroup，需要每次提交
 func (p *AsyncProducer) Push(key sarama.StringEncoder, data interface{}) error {
-	marshal, err := gjson.Marshal(data)
+	marshal, err := gson.Marshal(data)
 	if err != nil {
 		return err
 	}

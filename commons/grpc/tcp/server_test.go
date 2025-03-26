@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"github.com/qiafan666/gotato/commons/gface"
 	"github.com/qiafan666/gotato/commons/gid"
-	"github.com/qiafan666/gotato/commons/gjson"
 	"github.com/qiafan666/gotato/commons/grpc"
+	"github.com/qiafan666/gotato/commons/gson"
 	"testing"
 	"time"
 )
@@ -37,7 +37,7 @@ func TestClient1(t *testing.T) {
 		RetryLimit: 2,
 		Logger:     gface.NewLogger("client", zapLog()),
 	})
-	marshal, _ := gjson.Marshal(data)
+	marshal, _ := gson.Marshal(data)
 	for i := 0; i < 10; i++ {
 		time.Sleep(2 * time.Second)
 		client.Do(context.Background(), &grpc.Message{
@@ -59,7 +59,7 @@ func (h *testServerHandler) Handle(request *grpc.Message, ch chan<- *grpc.Messag
 	var side uint32
 	var off uint32
 	params = append(params, &market, &side, &off)
-	gjson.Unmarshal(request.Body, &params)
+	gson.Unmarshal(request.Body, &params)
 	result := [2]any{
 		map[string]any{
 			"reqId": request.ReqId,

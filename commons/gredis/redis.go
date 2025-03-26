@@ -3,7 +3,7 @@ package gredis
 import (
 	"context"
 	"errors"
-	"github.com/qiafan666/gotato/commons/gjson"
+	"github.com/qiafan666/gotato/commons/gson"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
@@ -83,7 +83,7 @@ func (c *Client) Close() error {
 // Set 将一个键值对存储到 Redis，值会被序列化为 JSON 格式。
 // 返回一个布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) Set(key string, val interface{}) (bool, error) {
-	marshal, err := gjson.Marshal(val)
+	marshal, err := gson.Marshal(val)
 	if err != nil {
 		return false, err
 	}
@@ -107,7 +107,7 @@ func (c *Client) Del(key string) (bool, error) {
 // SetEx 将一个键值对存储到 Redis，并设置过期时间，值会被序列化为 JSON 格式。
 // 返回一个布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) SetEx(key string, val interface{}, expire time.Duration) (bool, error) {
-	marshal, err := gjson.Marshal(val)
+	marshal, err := gson.Marshal(val)
 	if err != nil {
 		return false, err
 	}
@@ -126,7 +126,7 @@ func (c *Client) Get(key string, val interface{}) error {
 		return cmd.Err()
 	}
 	bytes, _ := cmd.Bytes()
-	err := gjson.Unmarshal(bytes, val)
+	err := gson.Unmarshal(bytes, val)
 	return err
 }
 
@@ -266,7 +266,7 @@ func (c *Client) ZRangeByScoreAndLimitWithScores(key string, min, max string, li
 // RPush 将一个值推送到 Redis 列表的右端，值会被序列化为 JSON 格式。
 // 返回布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) RPush(key string, val interface{}) (bool, error) {
-	marshal, err := gjson.Marshal(val)
+	marshal, err := gson.Marshal(val)
 	if err != nil {
 		return false, err
 	}
