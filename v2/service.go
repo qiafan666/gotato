@@ -29,7 +29,7 @@ import (
 )
 
 // Instance we need create the single object but thread safe
-var Instance *Server
+var instance *Server
 
 type Server struct {
 	app        *gin.Engine
@@ -37,6 +37,8 @@ type Server struct {
 	db         []gotatodb.GotatoDB
 	httpServer *http.Server
 	oss        []oss.Oss
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 type ServerOption int
 
@@ -49,7 +51,15 @@ const (
 )
 
 func init() {
-	Instance = &Server{}
+	instance = &Server{}
+}
+
+func (slf *Server) GetCtx() context.Context {
+	return slf.ctx
+}
+
+func (slf *Server) GetCancel() context.CancelFunc {
+	return slf.cancel
 }
 
 func (slf *Server) SetMysqlLogCallerSkip(skip int) {
@@ -59,7 +69,7 @@ func (slf *Server) SetMysqlLogCallerSkip(skip int) {
 
 // GetGotatoInstance create the single object
 func GetGotatoInstance() *Server {
-	return Instance
+	return instance
 }
 func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) {
 	gerr.RegisterCodeAndMsg(language, arr)
@@ -115,6 +125,8 @@ func (slf *Server) WaitClose(stopFunc ...func()) {
 			}
 		}
 
+		//关闭主context
+		slf.cancel()
 		err := server.Shutdown(ctx)
 		if err != nil {
 			glog.Slog.ErrorF(nil, "server shutdown error: %s", err.Error())
@@ -253,6 +265,7 @@ func (slf *Server) ginInit() {
 
 // StartServer need call this function after Option, if Dependent service is not started return panic.
 func (slf *Server) StartServer(opt ...ServerOption) {
+	slf.ctx, slf.cancel = context.WithCancel(context.Background())
 	var err error
 	for _, v := range opt {
 		switch v {
