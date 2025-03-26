@@ -22,7 +22,7 @@ type Config struct {
 	PoolSize    int      // 连接池大小。
 }
 
-func NewRedisClient(ctx context.Context, config *Config) (*Client, error) {
+func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	if len(config.Address) == 0 {
 		return nil, errors.New("redis address is empty")
 	}
