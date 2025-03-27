@@ -2,11 +2,11 @@ package gcommon
 
 import (
 	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gconc"
 	mathRand "math/rand"
 	"reflect"
 	"sort"
 	"strings"
-	"sync"
 )
 
 // SliceContain 返回切片是否包含指定元素
@@ -382,23 +382,24 @@ func SliceBatch[T any, V any](ts []T, fn func(T) V, numWorkers ...int) []V {
 		return nil
 	}
 
-	if len(numWorkers) <= 1 {
+	if len(numWorkers) == 0 || numWorkers[0] <= 0 {
+		// 默认不并发执行
 		res := make([]V, 0, len(ts))
 		for i := range ts {
 			res = append(res, fn(ts[i]))
 		}
 		return res
 	} else {
-		var wg sync.WaitGroup
+		wg := gconc.NewWaitGroup()
 		chunkSize := (len(ts) + numWorkers[0] - 1) / numWorkers[0]
 
 		// 通道用于收集结果
 		resultChan := make(chan V, len(ts))
 
+		// 分配任务到多个 goroutine
 		for i := 0; i < numWorkers[0]; i++ {
-			wg.Add(1)
-			go func(start int) {
-				defer wg.Done()
+			wg.Go(func() {
+				start := i * chunkSize
 				end := start + chunkSize
 				if end > len(ts) {
 					end = len(ts)
@@ -406,7 +407,7 @@ func SliceBatch[T any, V any](ts []T, fn func(T) V, numWorkers ...int) []V {
 				for j := start; j < end; j++ {
 					resultChan <- fn(ts[j])
 				}
-			}(i * chunkSize)
+			})
 		}
 
 		// 等待所有协程完成并关闭通道

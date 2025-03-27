@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/qiafan666/gotato/commons/gconc"
 	"github.com/qiafan666/gotato/commons/gface"
 	"github.com/qiafan666/gotato/commons/gid"
 	"github.com/qiafan666/gotato/commons/grpc"
 	"github.com/qiafan666/gotato/commons/grpc/tcp/protocol"
 	"net"
-	"sync"
 	"testing"
 	"time"
 
@@ -36,12 +36,10 @@ func TestClient(t *testing.T) {
 	_ = client
 
 	Seq := gid.NewSerialId[uint32]()
-	wg := new(sync.WaitGroup)
+	wg := gconc.NewWaitGroup()
 	for i := 0; i < 10; i++ {
-		wg.Add(1)
 		i := i
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			marshal, _ := json.Marshal(data)
 
 			resp, err := client.Do(context.Background(), &grpc.Message{
@@ -56,7 +54,7 @@ func TestClient(t *testing.T) {
 			//t.Logf("%+v", resp)
 			t.Logf("%s", resp.Body)
 			<-time.After(2 * time.Second)
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -72,7 +70,7 @@ func TestWrite(t *testing.T) {
 	conn.Write(data)
 
 	ctx := context.Background()
-	p := new(protocol.TextRpcProtocol)
+	p := protocol.New()
 	resp, e := p.Decode(ctx, conn)
 	assert.Equal(t, nil, e)
 
@@ -96,11 +94,9 @@ func TestHeartbeat(t *testing.T) {
 	})
 	_ = client
 
-	wg := new(sync.WaitGroup)
+	wg := gconc.NewWaitGroup()
 	for i := 0; i < 1; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			resp, err := client.Do(context.Background(), &grpc.Message{
 				Command: cmd,
 				PkgType: grpc.PkgTypeRequest,
@@ -112,7 +108,7 @@ func TestHeartbeat(t *testing.T) {
 			assert.Nil(t, resp) // 心跳包不需要等待响应 resp==nil
 			//t.Logf("%s", resp.Body)
 			<-time.After(2 * time.Second)
-		}()
+		})
 	}
 	wg.Wait()
 }

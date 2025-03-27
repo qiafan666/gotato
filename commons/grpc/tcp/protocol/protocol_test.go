@@ -14,7 +14,7 @@ import (
 )
 
 func TestRequest(t *testing.T) {
-	protocol := new(TextRpcProtocol)
+	protocol := New()
 
 	data := []any{10630, []any{"USDT"}}
 	marshal, _ := json.Marshal(data)
@@ -43,7 +43,7 @@ func TestRequest(t *testing.T) {
 }
 
 func TestResponse(t *testing.T) {
-	protocol := new(TextRpcProtocol)
+	protocol := New()
 
 	data := map[string]any{
 		"a": 1,
@@ -163,7 +163,7 @@ func TestUnpack(t *testing.T) {
 
 	data = append(data, data...)
 
-	p := new(TextRpcProtocol)
+	p := New()
 
 	ctx := context.Background()
 	reader := bytes.NewReader(data)
@@ -188,7 +188,7 @@ func TestDecode(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	p := new(TextRpcProtocol)
+	p := New()
 	respEncode, err := p.Encode(ctx, response)
 	assert.Equal(t, nil, err)
 
@@ -205,7 +205,7 @@ func TestDecode(t *testing.T) {
 }
 
 func TestRequestDecode(t *testing.T) {
-	p := new(TextRpcProtocol)
+	p := New()
 
 	str := "62656570950100000000000000008aabee2a02000000e626e5ef81572c6d0f00000000005b2242544355534454222c322c305d"
 	data, _ := hex.DecodeString(str)
@@ -218,7 +218,7 @@ func TestRequestDecode(t *testing.T) {
 }
 
 func TestHeartbeatPack(t *testing.T) {
-	protocol := new(TextRpcProtocol)
+	protocol := New()
 
 	request := &grpc.Message{
 		PkgType:   grpc.PkgTypeRequest,

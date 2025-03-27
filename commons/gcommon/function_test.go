@@ -157,7 +157,7 @@ func TestSliceBatch(t *testing.T) {
 	batch := SliceBatch(sliceStruct, func(t TestStruct) TestStruct {
 		t.Name = strings.ToUpper(t.Name)
 		return t
-	})
+	}, 3)
 	t.Log(batch)
 }
 

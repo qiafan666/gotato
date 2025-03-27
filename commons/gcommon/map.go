@@ -3,6 +3,7 @@ package gcommon
 import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gconc"
 	"github.com/qiafan666/gotato/commons/gerr"
 	"sort"
 	"strings"
@@ -80,21 +81,19 @@ func MapMergeConcurrent[K comparable, V any](maps ...map[K]V) map[K]V {
 
 	mergedMap := make(map[K]V)
 	var mu sync.Mutex
-	var wg sync.WaitGroup
+	wg := gconc.NewWaitGroup()
 
 	for _, m := range maps {
 		if m == nil {
 			continue // 跳过 nil map
 		}
-		wg.Add(1)
-		go func(m map[K]V) {
-			defer wg.Done()
+		wg.Go(func() {
 			for k, v := range m {
 				mu.Lock()
 				mergedMap[k] = v
 				mu.Unlock()
 			}
-		}(m)
+		})
 	}
 
 	wg.Wait()

@@ -93,7 +93,7 @@ func NewClient(ctx context.Context, addr string, opt *ClientOptions) *Client {
 		opt:     opt,
 		logger:  opt.Logger,
 	}
-	c.protocol = &protocol.TextRpcProtocol{}
+	c.protocol = protocol.New()
 
 	connPool, err := gpool.NewPool[*Conn](ctx, &gpool.Options[*Conn]{
 		MaxSize:  uint(opt.MaxConn),
