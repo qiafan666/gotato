@@ -10,7 +10,7 @@ import (
 func TestExampleWaitGroup(t *testing.T) {
 	var count atomic.Int64
 
-	var wg gconc.WaitGroup
+	wg := gconc.NewWaitGroup()
 	for i := 0; i < 10; i++ {
 		wg.Go(func() {
 			count.Add(1)
@@ -24,7 +24,7 @@ func TestExampleWaitGroup(t *testing.T) {
 }
 
 func TestExampleWaitGroup_WaitAndRecover(t *testing.T) {
-	var wg gconc.WaitGroup
+	wg := gconc.NewWaitGroup()
 
 	wg.Go(func() {
 		panic("super bad thing")
