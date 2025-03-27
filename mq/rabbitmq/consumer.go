@@ -45,7 +45,7 @@ func (c *Consumer) ini() error {
 	if c.conn == nil || c.conn.IsClosed() {
 		conn, err := amqp.Dial(c.url)
 		if err != nil {
-			c.logger.ErrorF(nil, "RabbitMQ. NewConsumer dial fail. url=%+v, err=%+v", c.url, err)
+			c.logger.ErrorF(nil, "Init dial fail. url=%+v, err=%+v", c.url, err)
 			return err
 		}
 

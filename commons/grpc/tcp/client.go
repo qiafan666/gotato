@@ -114,7 +114,7 @@ func NewClient(ctx context.Context, addr string, opt *ClientOptions) *Client {
 		},
 	})
 	if connPool == nil {
-		c.logger.WarnF(nil, "Client.NewClient: init conn pool fail, err=%+v", err)
+		c.logger.WarnF(nil, "Client.NewClient: init conn pool fail")
 	}
 	if err != nil {
 		c.logger.WarnF(nil, "Client.NewClient: init conn pool fail, err=%+v", err)

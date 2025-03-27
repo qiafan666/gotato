@@ -19,7 +19,7 @@ func (t *TestOrder) Handle(topic, message string) {
 }
 
 func TestProduce(t *testing.T) {
-	producer := NewAsyncProducer([]string{"localhost:9092"}, "topic", gface.NewLogger("kafka.producer", nil))
+	producer := NewAsyncProducer([]string{"10.0.0.222:9092"}, "topic", gface.NewLogger("kafka.producer", nil))
 	go producer.Run(context.Background())
 
 	err := producer.Push("", "test")
@@ -31,6 +31,7 @@ func TestProduce(t *testing.T) {
 func TestConsumer(t *testing.T) {
 
 	order := NewTestOrder()
-	consumer := NewConsumer([]string{"topic"}, []string{"localhost:9092"}, order, gface.NewLogger("kafka.consumer", nil))
+	consumer := NewConsumer([]string{"topic"}, []string{"10.0.0.222:9092"}, order, gface.NewLogger("kafka.consumer", nil))
 	go StartConsumerGroup(context.Background(), "group", consumer)
+	select {}
 }

@@ -21,7 +21,7 @@ func (t *TestOrder) Handle(msg string) error {
 
 func TestConsumer(t *testing.T) {
 
-	consumer, err := NewConsumer(context.Background(), "", gface.NewLogger("rabbitmq.consumer", nil))
+	consumer, err := NewConsumer(context.Background(), "amqp://rabbitmq:D3oyMv9A6Vxc@10.0.0.222:5672/", gface.NewLogger("rabbitmq.consumer", nil))
 	if err != nil {
 		return
 	}
@@ -30,11 +30,12 @@ func TestConsumer(t *testing.T) {
 	testOrder := NewTestOrder()
 	msgChannel := &MsgChannel{
 		Queue:        "test_queue",
-		Exchange:     "",
+		Exchange:     "test_exchange",
 		RoutingKey:   "test_routing_key",
 		ExchangeType: "direct",
 	}
 	go consumer.Consume(context.Background(), msgChannel, testOrder)
+	select {}
 }
 
 func TestProducer(t *testing.T) {
