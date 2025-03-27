@@ -80,24 +80,27 @@ func StartConsumerBatch(ctx context.Context, groupId string, handler *ConsumerBa
 	// consumer
 	group, err := sarama.NewConsumerGroup(handler.addr, groupId, config)
 	if err != nil {
-		handler.logger.ErrorF(ctx, "StartConsumerBatch: create consumer group error. err=%+v", err)
+		handler.logger.ErrorF(nil, "StartConsumerBatch: create consumer group error. err=%+v", err)
 		return
 	}
+	defer group.Close()
 
 	// 检查错误
 	go func() {
 		for err = range group.Errors() {
-			handler.logger.ErrorF(ctx, "StartConsumerBatch: consumer group error. err=%+v", err)
+			handler.logger.ErrorF(nil, "StartConsumerBatch: consumer group error. err=%+v", err)
 		}
 	}()
 
 	for {
-		err = group.Consume(ctx, handler.topics, handler)
-		if err != nil {
-			handler.logger.ErrorF(ctx, "StartConsumerBatch: consume error. err=%+v", err)
-		}
-		if ctx.Err() != nil {
+		select {
+		case <-ctx.Done():
 			return
+		default:
+			err = group.Consume(ctx, handler.topics, handler)
+			if err != nil {
+				handler.logger.ErrorF(nil, "StartConsumerBatch: consume error. err=%+v", err)
+			}
 		}
 	}
 }

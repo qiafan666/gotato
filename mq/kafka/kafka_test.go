@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"github.com/qiafan666/gotato/commons/gapp/example/def"
 	"github.com/qiafan666/gotato/commons/gface"
 	"testing"
 )
@@ -20,7 +19,7 @@ func (t *TestOrder) Handle(topic, message string) {
 }
 
 func TestProduce(t *testing.T) {
-	producer := NewAsyncProducer([]string{"localhost:9092"}, "topic", gface.NewLogger("kafka.producer", def.ZapLog))
+	producer := NewAsyncProducer([]string{"localhost:9092"}, "topic", gface.NewLogger("kafka.producer", nil))
 	go producer.Run(context.Background())
 
 	err := producer.Push("", "test")
@@ -32,6 +31,6 @@ func TestProduce(t *testing.T) {
 func TestConsumer(t *testing.T) {
 
 	order := NewTestOrder()
-	consumer := NewConsumer([]string{"topic"}, []string{"localhost:9092"}, order, gface.NewLogger("kafka.consumer", def.ZapLog))
+	consumer := NewConsumer([]string{"topic"}, []string{"localhost:9092"}, order, gface.NewLogger("kafka.consumer", nil))
 	go StartConsumerGroup(context.Background(), "group", consumer)
 }

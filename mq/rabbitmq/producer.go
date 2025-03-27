@@ -45,7 +45,7 @@ func (p *Producer) ini() error {
 	if p.conn == nil || p.conn.IsClosed() {
 		conn, err := amqp.Dial(p.url)
 		if err != nil {
-			p.logger.ErrorF(nil, "RabbitMQ. NewProducer dial fail. url=%+v, err=%+v", p.url, err)
+			p.logger.ErrorF(nil, "dial fail. url=%+v, err=%+v", p.url, err)
 			return err
 		}
 
@@ -55,7 +55,7 @@ func (p *Producer) ini() error {
 	if p.channel == nil || p.channel.IsClosed() {
 		channel, err := p.conn.Channel()
 		if err != nil {
-			p.logger.ErrorF(nil, "RabbitMQ. NewProducer open channel fail. url=%+v, err=%+v", p.url, err)
+			p.logger.ErrorF(nil, "open channel fail. url=%+v, err=%+v", p.url, err)
 			return err
 		}
 		p.channel = channel
@@ -78,7 +78,7 @@ func (p *Producer) Publish(ctx context.Context, msgChannel *MsgChannel, msg inte
 	now := time.Now()
 
 	if err := p.ini(); err != nil {
-		p.logger.ErrorF(nil, "RabbitMQ.Producer: Init fail. msgChannel=%+v, msg=%+v, err=%+v", msgChannel, gcommon.Bytes2Str(marshal), err)
+		p.logger.ErrorF(nil, "Init fail. msgChannel=%+v, msg=%+v, err=%+v", msgChannel, gcommon.Bytes2Str(marshal), err)
 		return err
 	}
 	err := p.declare(msgChannel)
@@ -91,10 +91,10 @@ func (p *Producer) Publish(ctx context.Context, msgChannel *MsgChannel, msg inte
 		Body:      marshal,
 	})
 	if err != nil {
-		p.logger.ErrorF(nil, "RabbitMQ.Producer: PublishWithContext fail. msgChannel=%+v, msg=%+v, err=%+v", msgChannel, gcommon.Bytes2Str(marshal), err)
+		p.logger.ErrorF(nil, "PublishWithContext fail. msgChannel=%+v, msg=%+v, err=%+v", msgChannel, gcommon.Bytes2Str(marshal), err)
 		return err
 	}
-	p.logger.DebugF(nil, "RabbitMQ.Producer: PublishWithContext success. msgChannel=%+v, msg=%+v", msgChannel, gcommon.Bytes2Str(marshal))
+	p.logger.DebugF(nil, "PublishWithContext success. msgChannel=%+v, msg=%+v", msgChannel, gcommon.Bytes2Str(marshal))
 	return nil
 }
 
@@ -106,7 +106,7 @@ func (p *Producer) declare(msgChannel *MsgChannel) error {
 	}
 	err := p.channel.ExchangeDeclare(msgChannel.Exchange, msgChannel.ExchangeType, true, false, false, false, nil)
 	if err != nil {
-		p.logger.ErrorF(nil, "RabbitMQ.Producer: Exchange Declare fail. msgChannel=%+v, err=%+v", msgChannel, err)
+		p.logger.ErrorF(nil, "Exchange Declare fail. msgChannel=%+v, err=%+v", msgChannel, err)
 		return err
 	}
 	p.msgChannelDeclare.Store(id, id)
@@ -114,13 +114,13 @@ func (p *Producer) declare(msgChannel *MsgChannel) error {
 	if msgChannel.DeclareQueue && msgChannel.Queue != "" {
 		queue, err := p.channel.QueueDeclare(msgChannel.Queue, true, false, false, false, nil)
 		if err != nil {
-			p.logger.ErrorF(nil, "RabbitMQ.Producer: Queue Declare fail. msgChannel=%+v, err=%+v", msgChannel, err)
+			p.logger.ErrorF(nil, "Queue Declare fail. msgChannel=%+v, err=%+v", msgChannel, err)
 			return err
 		}
 
 		err = p.channel.QueueBind(queue.Name, msgChannel.RoutingKey, msgChannel.Exchange, false, nil)
 		if err != nil {
-			p.logger.ErrorF(nil, "RabbitMQ.Producer: Queue Bind fail. msgChannel=%+v, queue=%+v, err=%+v", msgChannel, queue.Name, err)
+			p.logger.ErrorF(nil, "Queue Bind fail. msgChannel=%+v, queue=%+v, err=%+v", msgChannel, queue.Name, err)
 			return err
 		}
 	}

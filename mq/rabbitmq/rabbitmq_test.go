@@ -3,7 +3,6 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
-	"github.com/qiafan666/gotato/commons/gapp/example/def"
 	"github.com/qiafan666/gotato/commons/gface"
 	"testing"
 )
@@ -22,7 +21,7 @@ func (t *TestOrder) Handle(msg string) error {
 
 func TestConsumer(t *testing.T) {
 
-	consumer, err := NewConsumer(context.Background(), "", gface.NewLogger("rabbitmq.consumer", def.ZapLog))
+	consumer, err := NewConsumer(context.Background(), "", gface.NewLogger("rabbitmq.consumer", nil))
 	if err != nil {
 		return
 	}
@@ -39,7 +38,7 @@ func TestConsumer(t *testing.T) {
 }
 
 func TestProducer(t *testing.T) {
-	producer, err := NewProducer(context.Background(), "", gface.NewLogger("rabbitmq.producer", def.ZapLog))
+	producer, err := NewProducer(context.Background(), "", gface.NewLogger("rabbitmq.producer", nil))
 	if err != nil {
 		return
 	}
