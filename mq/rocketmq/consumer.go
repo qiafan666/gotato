@@ -12,16 +12,19 @@ import (
 )
 
 type Consumer struct {
-	consumer          rocketmq.PushConsumer
+	pushConsumer      rocketmq.PushConsumer
+	pullConsumer      rocketmq.PullConsumer
 	msgChannelDeclare sync.Map
 	logger            gface.ILogger
 	options           []consumer.Option
+	mode              bool //push or pull false:push true:pull
 }
 
-func NewConsumer(ctx context.Context, logger gface.ILogger, options ...consumer.Option) (*Consumer, error) {
+func NewConsumer(ctx context.Context, logger gface.ILogger, mode bool, options ...consumer.Option) (*Consumer, error) {
 	c := &Consumer{
 		logger:  logger,
 		options: options,
+		mode:    mode,
 	}
 
 	err := c.init()
@@ -38,21 +41,35 @@ func NewConsumer(ctx context.Context, logger gface.ILogger, options ...consumer.
 }
 
 func (c *Consumer) init() error {
-	if c.consumer == nil {
+
+	if c.mode && c.pullConsumer == nil {
+		consume, err := rocketmq.NewPullConsumer(c.options...)
+		if err != nil {
+			c.logger.ErrorF(nil, "create fail. err=%+v", err)
+			return err
+		}
+		c.pullConsumer = consume
+	}
+
+	if !c.mode && c.pushConsumer == nil {
 		consume, err := rocketmq.NewPushConsumer(c.options...)
 		if err != nil {
 			c.logger.ErrorF(nil, "create fail. err=%+v", err)
 			return err
 		}
-
-		c.consumer = consume
+		c.pushConsumer = consume
 	}
+
 	return nil
 }
 
 func (c *Consumer) Close() {
-	if c.consumer != nil {
-		_ = c.consumer.Shutdown()
+	if c.mode && c.pullConsumer != nil {
+		_ = c.pullConsumer.Shutdown()
+	}
+
+	if !c.mode && c.pushConsumer != nil {
+		_ = c.pushConsumer.Shutdown()
 	}
 }
 
@@ -77,12 +94,18 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 		return
 	}
 
-	err = c.consumer.Start()
-	if err != nil {
-		c.logger.ErrorF(nil, "start fail. retry after 5 seconds, err=%+v", err)
-		<-time.After(5 * time.Second)
-		go c.Consume(ctx, msgChannel, handler)
-		return
+	// 启动消费者
+	if !c.mode {
+		// Push 模式
+		if err = c.pushConsumer.Start(); err != nil {
+			c.logger.ErrorF(nil, "pushConsumer start fail. err: %+v", err)
+			time.Sleep(5 * time.Second)
+			go c.Consume(ctx, msgChannel, handler)
+			return
+		}
+	} else {
+		// Pull 模式，启动一个 Goroutine 进行轮询
+		go c.pollMessages(ctx, handler)
 	}
 
 	<-ctx.Done()
@@ -99,26 +122,80 @@ func (c *Consumer) subscribe(msgChannel *MsgChannel, handler IHandler) error {
 		Expression: msgChannel.Tag,
 	}
 
-	err := c.consumer.Subscribe(msgChannel.Topic, selector,
-		func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
-			for _, msg := range msgs {
-				c.logger.DebugF(nil, "receive msg. topic=%s,tag=%s, msgId=%s, body=%s",
-					msg.Topic, msg.GetTags(), msg.MsgId, gcommon.Bytes2Str(msg.Body))
+	if c.mode {
+		err := c.pullConsumer.Subscribe(msgChannel.Topic, selector)
+		if err != nil {
+			c.logger.ErrorF(nil, "subscribe fail. topic=%s, tag=%s, err=%+v", msgChannel.Topic, msgChannel.Tag, err)
+			return err
+		}
+	} else {
+		err := c.pushConsumer.Subscribe(msgChannel.Topic, selector,
+			func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+				for _, msg := range msgs {
+					c.logger.DebugF(nil, "receive msg. topic=%s,tag=%s, msgId=%s, body=%s",
+						msg.Topic, msg.GetTags(), msg.MsgId, gcommon.Bytes2Str(msg.Body))
 
-				err := handler.Handle(msg.GetTags(), gcommon.Bytes2Str(msg.Body))
-				if err != nil {
-					c.logger.ErrorF(nil, "handle msg fail. msgId=%s, err=%+v", msg.MsgId, err)
-					return consumer.ConsumeRetryLater, nil
+					err := handler.Handle(msg.GetTags(), gcommon.Bytes2Str(msg.Body))
+					if err != nil {
+						c.logger.ErrorF(nil, "handle msg fail. msgId=%s, err=%+v", msg.MsgId, err)
+						return consumer.ConsumeRetryLater, nil
+					}
 				}
-			}
-			return consumer.ConsumeSuccess, nil
-		})
+				return consumer.ConsumeSuccess, nil
+			})
 
-	if err != nil {
-		c.logger.ErrorF(nil, "subscribe fail. topic=%s, tag=%s, err=%+v", msgChannel.Topic, msgChannel.Tag, err)
-		return err
+		if err != nil {
+			c.logger.ErrorF(nil, "subscribe fail. topic=%s, tag=%s, err=%+v", msgChannel.Topic, msgChannel.Tag, err)
+			return err
+		}
 	}
 
 	c.msgChannelDeclare.Store(id, struct{}{}) // 订阅成功后才存入
 	return nil
+}
+
+// Pull 模式消息轮询
+func (c *Consumer) pollMessages(ctx context.Context, handler IHandler) {
+
+	batchSize := 10 // 初始拉取数量
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			startTime := time.Now()
+
+			msgs, err := c.pullConsumer.Pull(ctx, batchSize)
+			if err != nil {
+				c.logger.ErrorF(nil, "pollMessages pull fail. err: %+v", err)
+				time.Sleep(5 * time.Second) // 避免频繁请求
+				continue
+			}
+
+			if len(msgs.GetMessages()) == 0 {
+				time.Sleep(500 * time.Millisecond) // 没有消息，稍作等待
+				continue
+			}
+
+			c.logger.DebugF(nil, "pollMessages success: msgs=%s",
+				gcommon.Bytes2Str(msgs.GetBody()))
+
+			for _, msg := range msgs.GetMessages() {
+				if err := handler.Handle(msg.GetTags(), gcommon.Bytes2Str(msg.Body)); err != nil {
+					c.logger.ErrorF(nil, "handle msg fail. err=%+v", err)
+				}
+			}
+
+			elapsed := time.Since(startTime)
+			if elapsed < 500*time.Millisecond && batchSize < 100 {
+				batchSize += 5
+			} else if elapsed > time.Second && batchSize > 10 {
+				batchSize -= 5
+				if batchSize < 10 {
+					batchSize = 10
+				}
+			}
+		}
+	}
 }
