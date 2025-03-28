@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/gson"
 	"html/template"
 	"reflect"
 	"strconv"
@@ -986,7 +987,7 @@ func ToStringE(i interface{}) (string, error) {
 
 // ToByteE casts an interface to a JSON byte array.
 func ToByteE(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
+	return gson.Marshal(v)
 }
 
 // ToStringMapStringE casts an interface to a map[string]string type.

@@ -49,6 +49,8 @@ func Str2Bytes(s string) []byte {
 	))
 }
 
+// Bytes2Str 高性能地将 []byte 转换成 string,但是存在风险，
+// 建议只用于临时转换，不建议长期使用，在b不会被修改的地方，比如mq消息转换，堆栈信息等地方
 func Bytes2Str(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }

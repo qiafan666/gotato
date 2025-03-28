@@ -39,7 +39,7 @@ func TestConsumer(t *testing.T) {
 }
 
 func TestProducer(t *testing.T) {
-	producer, err := NewProducer(context.Background(), "", gface.NewLogger("rabbitmq.producer", nil))
+	producer, err := NewProducer(context.Background(), "amqp://rabbitmq:D3oyMv9A6Vxc@10.0.0.222:5672/", gface.NewLogger("rabbitmq.producer", nil))
 	if err != nil {
 		return
 	}
@@ -47,7 +47,7 @@ func TestProducer(t *testing.T) {
 
 	msgChannel := &MsgChannel{
 		Queue:        "test_queue",
-		Exchange:     "",
+		Exchange:     "test_exchange",
 		RoutingKey:   "test_routing_key",
 		ExchangeType: "direct",
 	}

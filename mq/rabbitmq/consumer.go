@@ -67,7 +67,7 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 	}
 	err := c.ini()
 	if err != nil {
-		c.logger.ErrorF(nil, "Consumer init fail. retry after 5 seconds, err=%+v", err)
+		c.logger.ErrorF(nil, "init fail. retry after 5 seconds, err=%+v", err)
 		<-time.After(5 * time.Second)
 		go c.Consume(ctx, msgChannel, handler)
 		return
@@ -75,7 +75,7 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 
 	channel, err := c.conn.Channel()
 	if err != nil {
-		c.logger.ErrorF(nil, "Consumer open channel fail. retry after 5 seconds, err=%+v", err)
+		c.logger.ErrorF(nil, "open channel fail. retry after 5 seconds, err=%+v", err)
 		<-time.After(5 * time.Second)
 		go c.Consume(ctx, msgChannel, handler)
 		return
@@ -84,19 +84,19 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 
 	queue, err := c.declare(channel, msgChannel)
 	if err != nil {
-		c.logger.ErrorF(nil, "Consumer declare queue fail. retry after 5 seconds, err=%+v", err)
+		c.logger.ErrorF(nil, "declare queue fail. retry after 5 seconds, err=%+v", err)
 		<-time.After(5 * time.Second)
 		go c.Consume(ctx, msgChannel, handler)
 		return
 	}
 	m, err := channel.Consume(queue.Name, msgChannel.Id(), false, false, false, false, nil)
 	if err != nil {
-		c.logger.ErrorF(nil, "Consumer consume fail. retry after 5 seconds, err=%+v", err)
+		c.logger.ErrorF(nil, "consume fail. retry after 5 seconds, err=%+v", err)
 		<-time.After(5 * time.Second)
 		go c.Consume(ctx, msgChannel, handler)
 		return
 	}
-	c.logger.InfoF(nil, "Consumer start. msgChannel=%+v, queue=%+v", msgChannel, queue.Name)
+	c.logger.InfoF(nil, "start. msgChannel=%+v, queue=%+v", msgChannel, queue.Name)
 
 	connClose := make(chan *amqp.Error, 1)
 	channelClose := make(chan *amqp.Error, 1)
@@ -111,7 +111,7 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 			if amqpErr == nil {
 				return
 			}
-			c.logger.ErrorF(nil, "Consumer connection close. reconnecting, err=%+v", amqpErr)
+			c.logger.ErrorF(nil, "connection close. reconnecting, err=%+v", amqpErr)
 			c.msgChannelDeclare.Delete(msgChannel.Id())
 			go c.Consume(ctx, msgChannel, handler)
 			return
@@ -119,12 +119,12 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 			if amqpErr == nil {
 				return
 			}
-			c.logger.ErrorF(nil, "Consumer channel close. reconnecting, err=%+v", amqpErr)
+			c.logger.ErrorF(nil, "channel close. reconnecting, err=%+v", amqpErr)
 			c.msgChannelDeclare.Delete(msgChannel.Id())
 			go c.Consume(ctx, msgChannel, handler)
 			return
 		case msg := <-m:
-			c.logger.DebugF(nil, "Consumer receive msg. msgChannel=%+v, queue=%+v, msgId=%+v, msgBody=%+v", msgChannel, queue.Name, msg.MessageId, gcommon.Bytes2Str(msg.Body))
+			c.logger.DebugF(nil, "receive msg. msgChannel=%+v, queue=%+v, msgId=%+v, msgBody=%+v", msgChannel, queue.Name, msg.MessageId, gcommon.Bytes2Str(msg.Body))
 			err = handler.Handle(gcommon.Bytes2Str(msg.Body))
 			if err != nil {
 				msg.Nack(false, true)
