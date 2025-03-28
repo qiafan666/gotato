@@ -68,3 +68,39 @@ func HeapSortFilter[T any](data []T, less func(a, b T) bool, filter func(T) bool
 
 	return sorted
 }
+
+// HeapPaginate 对数据进行排序，并分页返回指定页的内容。
+func HeapPaginate[T any](data []T, less func(a, b T) bool, pageNumber, pageSize int) []T {
+	if pageNumber < 1 {
+		pageNumber = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	// 初始化最小堆或最大堆
+	h := &genericHeap[T]{data: data, less: less}
+	heap.Init(h)
+
+	skip := (pageNumber - 1) * pageSize // 计算跳过的元素数量
+	result := make([]T, 0, pageSize)
+
+	// 遍历堆，按分页逻辑筛选数据
+	for i := 0; h.Len() > 0; i++ {
+		item := heap.Pop(h).(T)
+
+		// 跳过前 skip 个元素
+		if i < skip {
+			continue
+		}
+
+		// 只收集 pageSize 个元素
+		if len(result) < pageSize {
+			result = append(result, item)
+		} else {
+			break
+		}
+	}
+
+	return result
+}
