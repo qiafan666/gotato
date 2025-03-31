@@ -105,10 +105,6 @@ func TestUnderlineCamelCase(t *testing.T) {
 	t.Log(UnderscoreName(underLine))
 }
 
-func TestStringBuff(t *testing.T) {
-	t.Log(NewBuffer().Append("hello", " ", "world").Append("world").String())
-}
-
 func TestSliceConvert(t *testing.T) {
 	var struct1 = TestStruct{Id: 2, Age: 20, Score: 80.5}
 	var struct2 = TestStruct{Id: 1, Age: 18, Score: 90.5}
@@ -301,11 +297,6 @@ func TestSnowflake(t *testing.T) {
 	t.Log(RangeNum[float64](1.4, 11001.1214))
 	t.Log(RangeNum[float32](1.4, 11001.1214))
 	t.Log(RangeNum[int32](1, 100))
-}
-
-func TestAppendString(t *testing.T) {
-	t.Log(AppendStr("hello", "world").Append("test"))
-	t.Log(BuildStrWithSep("-", "hello", "world", "test", 1, 1231.1231))
 }
 
 func TestSlice(t *testing.T) {

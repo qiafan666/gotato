@@ -113,8 +113,8 @@ func CountRune(str string) int {
 	return length
 }
 
-// ParseChinese 提取字符串中的中文
-func ParseChinese(str string) string {
+// StrChinese 提取字符串中的中文
+func StrChinese(str string) string {
 	b := strings.Builder{}
 	for _, v := range str {
 		if unicode.Is(unicode.Han, v) {
@@ -124,8 +124,8 @@ func ParseChinese(str string) string {
 	return b.String()
 }
 
-// BuildStrWithSep 字符串连接
-func BuildStrWithSep(sep string, str ...any) string {
+// StrJoin 字符串连接
+func StrJoin(sep string, str ...any) string {
 	sb := strings.Builder{}
 
 	// 预先分配足够的内存，以减少内存分配和复制的开销
@@ -144,13 +144,8 @@ func BuildStrWithSep(sep string, str ...any) string {
 	return sb.String()
 }
 
-// StrParse 字符串解析
-func StrParse(str string, sep string) []string {
-	return strings.Split(str, sep)
-}
-
-// BuildStr 拼接字符串
-func BuildStr(str ...any) string {
+// StrAppend 拼接字符串
+func StrAppend(str ...any) string {
 	sb := strings.Builder{}
 
 	// 预先分配足够的内存，以减少内存分配和复制的开销
