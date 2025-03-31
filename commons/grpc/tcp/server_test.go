@@ -36,6 +36,13 @@ func TestClient1(t *testing.T) {
 		Timeout:    10 * time.Second,
 		RetryLimit: 2,
 		Logger:     gface.NewLogger("client", zapLog()),
+		Hystrix: HystrixOptions{
+			Timeout:                5000 * time.Millisecond,
+			SleepWindow:            500 * time.Millisecond,
+			MaxConcurrentRequests:  5000,
+			RequestVolumeThreshold: 100,
+			ErrorPercentThreshold:  50,
+		},
 	})
 	marshal, _ := gson.Marshal(data)
 	for i := 0; i < 10; i++ {

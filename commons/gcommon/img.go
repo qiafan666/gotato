@@ -41,8 +41,7 @@ func (pngStruct) Decode(reader io.Reader) (image.Image, error) {
 	return png.Decode(reader)
 }
 
-type jpgStruct struct {
-}
+type jpgStruct struct{}
 
 func (jpgStruct) Decode(reader io.Reader) (image.Image, error) {
 	return jpeg.Decode(reader)

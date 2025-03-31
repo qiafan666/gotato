@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
+	"github.com/qiafan666/gotato/commons/gcompress"
 	"github.com/qiafan666/gotato/commons/gid"
 	"github.com/qiafan666/gotato/commons/gson"
 	"math"
@@ -263,7 +264,7 @@ func TestEncode(t *testing.T) {
 		Data:      []byte("hello world"),
 	}
 
-	encoder := NewGobEncoder()
+	encoder := gcompress.NewGobEncoder()
 	encode, err := encoder.Encode(req)
 	if err != nil {
 		t.Error(err)

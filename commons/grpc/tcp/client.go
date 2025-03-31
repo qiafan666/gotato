@@ -19,10 +19,10 @@ import (
 type ClientOptions struct {
 	MaxConn     int           // 最大连接数
 	IdleConn    int           // 空闲连接数
-	Timeout     time.Duration // 超时时间
-	PingTimeout time.Duration // 心跳超时时间
-	IdleTimeout time.Duration // 空闲超时时间
-	LiveTimeout time.Duration // 读取超时时间
+	Timeout     time.Duration // 超时时间（秒）
+	PingTimeout time.Duration // 心跳超时时间（秒）
+	IdleTimeout time.Duration // 空闲超时时间（秒）
+	LiveTimeout time.Duration // 读取超时时间（秒）
 	RetryLimit  int           // 重试次数
 
 	Hystrix HystrixOptions // hystrix配置
@@ -31,11 +31,11 @@ type ClientOptions struct {
 
 // HystrixOptions hystrix配置
 type HystrixOptions struct {
-	Timeout                time.Duration // 超时时间
-	SleepWindow            time.Duration // 重新尝试间隔
+	Timeout                time.Duration // 超时时间(毫秒)
+	SleepWindow            time.Duration // 重新尝试间隔（毫秒）
 	MaxConcurrentRequests  int           // 最大并发
-	RequestVolumeThreshold int           // 请求数量
-	ErrorPercentThreshold  int           // 失败率
+	RequestVolumeThreshold int           // 请求数量阈值
+	ErrorPercentThreshold  int           // 错误百分比阈值
 }
 
 func (h *HystrixOptions) Parse() hystrix.CommandConfig {
