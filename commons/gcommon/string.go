@@ -99,7 +99,7 @@ func CamelName(name string, firstUpper bool) string {
 	return buffer.String()
 }
 
-// Str2Uint32 string 转 uint32
+// Str2Uint32 string 转 uint32 crc32 算法 用于校验和
 func Str2Uint32(s string) uint32 {
 	return crc32.ChecksumIEEE([]byte(s))
 }
@@ -168,6 +168,7 @@ func ContainsEmoji(s string) bool {
 	return re.MatchString(s)
 }
 
+// HashString 计算字符串的哈希值 常用于分片的哈希值计算
 func HashString(s string) uint32 {
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(s))
