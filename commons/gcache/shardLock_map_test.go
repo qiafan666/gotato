@@ -3,7 +3,6 @@ package gcache
 import (
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"sort"
 	"strconv"
 	"testing"
@@ -420,20 +419,6 @@ func TestMInsert(t *testing.T) {
 	if m.Count() != 2 {
 		t.Error("map should contain exactly two elements.")
 	}
-}
-
-func TestFnv32(t *testing.T) {
-	key := []byte("ABC")
-
-	hasher := fnv.New32()
-	_, err := hasher.Write(key)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	if fnv32(string(key)) != hasher.Sum32() {
-		t.Errorf("Bundled fnv32 produced %d, expected result from hash/fnv32 is %d", fnv32(string(key)), hasher.Sum32())
-	}
-
 }
 
 func TestUpsert(t *testing.T) {
