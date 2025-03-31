@@ -1,6 +1,9 @@
 package gencrypt
 
-import "testing"
+import (
+	"github.com/qiafan666/gotato/commons/gcommon"
+	"testing"
+)
 
 func TestAkSk(t *testing.T) {
 
@@ -19,7 +22,7 @@ func TestAkSk(t *testing.T) {
 		"float": 3.14,
 	}
 
-	testString := MapSort(testMap)
+	testString := gcommon.MapSortUrl(testMap)
 	t.Log("testString:", testString)
 
 	signature := GenerateSignature(sk, testString)

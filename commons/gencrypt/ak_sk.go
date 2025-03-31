@@ -4,11 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
-	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	"sort"
-	"strings"
 )
 
 // GenerateAkSk 生成ak sk
@@ -33,27 +29,4 @@ func GenerateSignature(sk, msg string) string {
 func VerifySignature(sk, msg, signMsg string) bool {
 	expectedSignature := GenerateSignature(sk, msg)
 	return hmac.Equal([]byte(expectedSignature), []byte(signMsg))
-}
-
-// MapSort 根据字符顺序排序map并拼接成字符串
-func MapSort(m map[string]any) string {
-	if len(m) == 0 {
-		return ""
-	}
-
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	var queryString strings.Builder
-	for i, key := range keys {
-		queryString.WriteString(fmt.Sprintf("%s=%s", key, gcast.ToString(m[key])))
-		if i < len(keys)-1 {
-			queryString.WriteString("&")
-		}
-	}
-	return queryString.String()
 }
