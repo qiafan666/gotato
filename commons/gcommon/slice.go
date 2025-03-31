@@ -372,6 +372,15 @@ func If[T any](isa bool, a, b T) T {
 	return b
 }
 
+// IfFunc 如果isa为true，则返回a，否则返回b
+func IfFunc(isa bool, a func(), b func()) {
+	if isa {
+		a()
+	} else {
+		b()
+	}
+}
+
 func ToPtr[T any](t T) *T {
 	return &t
 }

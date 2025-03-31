@@ -94,8 +94,14 @@ func TestSliceSort(t *testing.T) {
 
 func TestIf(t *testing.T) {
 
+	result := 0
 	t.Log(If(true, 1, 2))
-
+	IfFunc(true, func() {
+		result = 1
+	}, func() {
+		result = 2
+	})
+	t.Log(result)
 }
 
 func TestUnderlineCamelCase(t *testing.T) {
