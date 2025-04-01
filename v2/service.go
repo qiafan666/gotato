@@ -75,6 +75,11 @@ func (slf *Server) SetMysqlLogCallerSkip(skip int) {
 func GetGotatoInstance() *Server {
 	return instance
 }
+
+func (slf *Server) ReadConfig() {
+	gconfig.ReadConfig()
+}
+
 func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) {
 	gerr.RegisterCodeAndMsg(language, arr)
 }
