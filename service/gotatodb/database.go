@@ -46,8 +46,8 @@ func (slf *GotatoDB) StartPgsql(dbConfig gconfig.DataBaseConfig) (err error) {
 		glog.Slog.ErrorF(nil, "conn slf.db.DB() error %s", err)
 		return err
 	}
-	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)
-	db.SetConnMaxIdleTime(dbConfig.MaxIdleTime * time.Millisecond)
+	db.SetConnMaxLifetime(time.Duration(dbConfig.MaxLifeTime) * time.Second)
+	db.SetConnMaxIdleTime(time.Duration(dbConfig.MaxIdleTime) * time.Second)
 	db.SetMaxOpenConns(dbConfig.MaxConn)
 	db.SetMaxIdleConns(dbConfig.IdleConn)
 	return nil
@@ -105,8 +105,8 @@ func (slf *GotatoDB) StartMysql(dbConfig gconfig.DataBaseConfig) error {
 		glog.Slog.ErrorF(nil, "conn slf.db.DB() error %s", err)
 		return err
 	}
-	db.SetConnMaxLifetime(dbConfig.MaxLifeTime * time.Millisecond)
-	db.SetConnMaxIdleTime(dbConfig.MaxIdleTime * time.Millisecond)
+	db.SetConnMaxLifetime(time.Duration(dbConfig.MaxLifeTime) * time.Second)
+	db.SetConnMaxIdleTime(time.Duration(dbConfig.MaxIdleTime) * time.Second)
 	db.SetMaxOpenConns(dbConfig.MaxConn)
 	db.SetMaxIdleConns(dbConfig.IdleConn)
 	return nil

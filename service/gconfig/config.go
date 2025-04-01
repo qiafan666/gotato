@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 var SC ServerConfig
@@ -76,25 +75,25 @@ func LoadCfg(config interface{}) error {
 
 type DataBaseConfig struct {
 	//common
-	Name    string        `yaml:"name"`
-	Type    string        `yaml:"type"`
-	SlowSql time.Duration `yaml:"slow_sql"`
+	Name    string `yaml:"name"`
+	Type    string `yaml:"type"`
+	SlowSql int    `yaml:"slow_sql"`
 
 	//sqlite
 	DBFilePath string `yaml:"db_file_path"`
 
 	//mysql
-	Addr        string        `yaml:"addr"`
-	Port        string        `yaml:"port"`
-	Username    string        `yaml:"username"`
-	DbName      string        `yaml:"db_name"`
-	Loc         string        `json:"loc"`
-	Password    string        `yaml:"password"`
-	IdleConn    int           `yaml:"idle_conn"`
-	MaxConn     int           `yaml:"max_conn"`
-	MaxIdleTime time.Duration `yaml:"max_idle_time"`
-	MaxLifeTime time.Duration `yaml:"max_life_time"`
-	Charset     string        `yaml:"charset"`
+	Addr        string `yaml:"addr"`
+	Port        string `yaml:"port"`
+	Username    string `yaml:"username"`
+	DbName      string `yaml:"db_name"`
+	Loc         string `json:"loc"`
+	Password    string `yaml:"password"`
+	IdleConn    int    `yaml:"idle_conn"`
+	MaxConn     int    `yaml:"max_conn"`
+	MaxIdleTime int    `yaml:"max_idle_time"`
+	MaxLifeTime int    `yaml:"max_life_time"`
+	Charset     string `yaml:"charset"`
 }
 
 type RedisConfig struct {
