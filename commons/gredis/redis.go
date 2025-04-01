@@ -61,7 +61,7 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	return &Client{redis: cli}, nil
 }
 
-func SetRedis(ctx context.Context, redis redis.UniversalClient) *Client {
+func SetRedis(redis redis.UniversalClient) *Client {
 	return &Client{redis: redis}
 }
 
