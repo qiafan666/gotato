@@ -123,7 +123,7 @@ func InitAllConfig(fileName string) Config {
 	return dbc
 }
 
-func LoadCustomizeConfig(config interface{}) error {
+func LoadCustomCfg(config interface{}) error {
 	err := yaml.Unmarshal(YamlFile, config)
 	if err != nil {
 		return err

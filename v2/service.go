@@ -71,8 +71,8 @@ func (slf *Server) SetMysqlLogCallerSkip(skip int) {
 	glog.ReInit()
 }
 
-// GetGotatoInstance create the single object
-func GetGotatoInstance() *Server {
+// GetGotato create the single object
+func GetGotato() *Server {
 	return instance
 }
 
@@ -184,8 +184,8 @@ func (slf *Server) OssBucket(name string) *alioss.Bucket {
 	return nil
 }
 
-func (slf *Server) LoadCustomizeConfig(slfConfig interface{}) {
-	err := gconfig.LoadCustomizeConfig(slfConfig)
+func (slf *Server) LoadCustomCfg(slfConfig interface{}) {
+	err := gconfig.LoadCustomCfg(slfConfig)
 	if err != nil {
 		panic(err)
 	}
