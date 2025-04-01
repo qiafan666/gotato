@@ -4,10 +4,8 @@ import (
 	"context"
 	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/stringx"
-	"math/rand"
 	"strconv"
 	"sync/atomic"
-	"time"
 )
 
 const (
@@ -36,10 +34,6 @@ type RedisLock struct {
 	seconds uint32
 	key     string
 	id      string
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 // NewRedisLock returns a RedisLock.

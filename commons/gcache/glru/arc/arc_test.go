@@ -7,9 +7,7 @@ import (
 	"crypto/rand"
 	"math"
 	"math/big"
-	mathrand "math/rand"
 	"testing"
-	"time"
 )
 
 func getRand(tb testing.TB) int64 {
@@ -18,10 +16,6 @@ func getRand(tb testing.TB) int64 {
 		tb.Fatal(err)
 	}
 	return out.Int64()
-}
-
-func init() {
-	mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
 }
 
 func TestARC_Add(t *testing.T) {

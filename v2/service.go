@@ -51,7 +51,11 @@ const (
 )
 
 func init() {
-	instance = &Server{}
+	ctx, cancel := context.WithCancel(context.Background())
+	instance = &Server{
+		ctx:    ctx,
+		cancel: cancel,
+	}
 }
 
 func (slf *Server) GetCtx() context.Context {
@@ -266,7 +270,6 @@ func (slf *Server) ginInit() {
 
 // StartServer need call this function after Option, if Dependent service is not started return panic.
 func (slf *Server) StartServer(opt ...ServerOption) {
-	slf.ctx, slf.cancel = context.WithCancel(context.Background())
 	var err error
 	for _, v := range opt {
 		switch v {
