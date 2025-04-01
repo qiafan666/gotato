@@ -1,7 +1,7 @@
 package smtp
 
 import (
-	"github.com/qiafan666/gotato/gconfig"
+	"github.com/qiafan666/gotato/service/gconfig"
 	"testing"
 )
 

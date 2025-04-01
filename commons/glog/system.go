@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	"github.com/qiafan666/gotato/gconfig"
+	"github.com/qiafan666/gotato/service/gconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

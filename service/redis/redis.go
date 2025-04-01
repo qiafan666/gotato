@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/qiafan666/gotato/commons/gredis"
-	"github.com/qiafan666/gotato/gconfig"
+	"github.com/qiafan666/gotato/service/gconfig"
 	"github.com/redis/go-redis/v9"
 )
 

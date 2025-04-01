@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/glebarez/sqlite"
 	"github.com/qiafan666/gotato/commons/glog"
-	serveries "github.com/qiafan666/gotato/gconfig"
+	serveries "github.com/qiafan666/gotato/service/gconfig"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

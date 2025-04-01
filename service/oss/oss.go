@@ -3,7 +3,7 @@ package oss
 import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/qiafan666/gotato/gconfig"
+	"github.com/qiafan666/gotato/service/gconfig"
 )
 
 type Oss struct {

@@ -32,7 +32,7 @@ type imp struct {
 }
 
 func New() IDao {
-	return &imp{redis: gotato.GetGotatoInstance().Redis("test")}
+	return &imp{redis: gotato.GetGotato().Redis("test")}
 }
 
 func (i imp) Client() redis.UniversalClient {

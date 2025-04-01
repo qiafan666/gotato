@@ -1,29 +1,34 @@
 package gotato
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/qiafan666/gotato/commons"
-	"github.com/qiafan666/gotato/commons/gerr"
-	"github.com/qiafan666/gotato/commons/glog"
-	"github.com/qiafan666/gotato/gconfig"
-	"github.com/qiafan666/gotato/gotatodb"
-	"github.com/qiafan666/gotato/middleware"
-	"github.com/qiafan666/gotato/oss"
-	"github.com/qiafan666/gotato/redis"
-	redisV9 "github.com/redis/go-redis/v9"
-
+	"github.com/qiafan666/gotato/service/gconfig"
+	"github.com/qiafan666/gotato/service/gotatodb"
+	"github.com/qiafan666/gotato/service/oss"
+	"github.com/qiafan666/gotato/service/redis"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
+	"runtime"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
 
+	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gin-gonic/gin"
+	"github.com/qiafan666/gotato/commons"
+	"github.com/qiafan666/gotato/commons/gcommon"
+	"github.com/qiafan666/gotato/commons/gerr"
+	"github.com/qiafan666/gotato/commons/glog"
+	redisV9 "github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -214,7 +219,7 @@ func (slf *Server) gin() {
 	})
 
 	//插入中间件
-	slf.app.Use(middleware.Default)
+	slf.app.Use(slf.Default)
 
 	slf.httpServer = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", gconfig.SC.SConfigure.Addr, gconfig.SC.SConfigure.Port),
@@ -231,7 +236,7 @@ func (slf *Server) gin() {
 	}
 
 	//忽略pprof和swagger的路由日志
-	middleware.RegisterIgnoreRequest("/debug/pprof/*", "/swagger/*")
+	slf.RegisterIgnoreRequest("/debug/pprof/*", "/swagger/*")
 
 	go func() {
 		if err := slf.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -327,5 +332,140 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 				}
 			}
 		}
+	}
+}
+
+// -------------------- middleware --------------------
+
+var ignoreRequestMap sync.Map
+
+// RegisterIgnoreRequest 忽略打印当前路径的接口日志
+func (slf *Server) RegisterIgnoreRequest(paths ...string) {
+	for _, path := range paths {
+		// 如果路径中包含通配符 /*，则将其替换为正则表达式中的通配符 .*
+		currentPath := path
+		if strings.Contains(path, "/*") {
+			currentPath = strings.Replace(path, "/*", "/.*", -1)
+		}
+
+		if _, exist := ignoreRequestMap.Load(currentPath); !exist {
+			ignoreRequestMap.Store(currentPath, true)
+		}
+	}
+}
+
+// IsIgnoredRequest 判断请求路径是否应该被忽略
+func (slf *Server) IsIgnoredRequest(requestPath string) bool {
+	var isIgnored bool
+	ignoreRequestMap.Range(func(key, value interface{}) bool {
+		pathPattern := key.(string)
+		// 使用正则表达式匹配请求路径
+		matched, err := regexp.MatchString(pathPattern, requestPath)
+		if err == nil && matched {
+			isIgnored = true
+			return false // 停止 Range 循环
+		}
+		return true // 继续 Range 循环
+	})
+	return isIgnored
+}
+
+// cstomResponseWriter 自定义响应写入器结构体
+type cstomResponseWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+// Write 实现了 io.Writer 接口中的 Write 方法，用于写入字节切片，并记录到响应体中
+func (w *cstomResponseWriter) Write(b []byte) (int, error) {
+	// 将字节切片写入到响应体中
+	n, err := w.body.Write(b)
+	if err != nil {
+		return n, err
+	}
+	// 写入响应体
+	return w.ResponseWriter.Write(b)
+}
+
+// WriteString 实现了 WriteString 方法，用于写入字符串，并记录到响应体中
+func (w *cstomResponseWriter) WriteString(s string) (int, error) {
+	// 将字符串写入到响应体中
+	n, err := w.body.WriteString(s)
+	if err != nil {
+		return n, err
+	}
+	// 写入响应体
+	return w.ResponseWriter.WriteString(s)
+}
+
+func (slf *Server) Default(ctx *gin.Context) {
+	header := ctx.GetHeader("trace_id")
+	if header != "" {
+		ctx.Set("trace_id", header)
+		ctx.Set("ctx", context.WithValue(ctx, "trace_id", header))
+	} else {
+		uuid := gcommon.GenerateUUID()
+		value := context.WithValue(ctx, "trace_id", uuid)
+		ctx.Set("trace_id", uuid)
+		ctx.Set("ctx", value)
+	}
+
+	atomic.AddInt64(&commons.ActiveRequests, 1)
+	defer atomic.AddInt64(&commons.ActiveRequests, -1)
+	defer func() {
+		if err := recover(); err != nil {
+			var stacktrace string
+			for i := 1; ; i++ {
+				_, f, l, got := runtime.Caller(i)
+				if !got {
+					break
+				}
+				stacktrace += fmt.Sprintf("%s:%d\n", f, l)
+			}
+			// when stack finishes
+			logMessage := fmt.Sprintf("Recovered from a route's Handler('%s')\n", ctx.HandlerName())
+			logMessage += fmt.Sprintf("Trace: %s", err)
+			logMessage += fmt.Sprintf("\n%s", stacktrace)
+			glog.Slog.ErrorF(ctx, logMessage)
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+		}
+	}()
+
+	blw := &cstomResponseWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
+	ctx.Writer = blw
+
+	if !slf.IsIgnoredRequest(ctx.Request.URL.Path) {
+		var bodyBytes []byte
+		var err error
+		var requestBody *bytes.Buffer
+		if ctx.Request.Method == http.MethodPost {
+			bodyBytes, err = io.ReadAll(ctx.Request.Body)
+			if err != nil {
+				glog.Slog.ErrorF(ctx, "ReadAll %s", err)
+			} else if len(bodyBytes) > 0 {
+				requestBody = bytes.NewBuffer(bodyBytes)
+				ctx.Request.Body = io.NopCloser(requestBody)
+			} else {
+				requestBody = bytes.NewBuffer([]byte(""))
+			}
+		}
+		start := time.Now()
+		ctx.Next()
+
+		path := ctx.Request.URL.Path
+		if ctx.Request.URL.RawQuery != "" {
+			path += "?" + ctx.Request.URL.RawQuery
+		}
+
+		if gconfig.SC.SConfigure.SimpleStdout {
+			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d]",
+				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(), ctx.Writer.Status())
+		} else {
+			glog.Slog.InfoF(ctx, "[%s:%s][%s][%dms][response code:%d][request:%s][response:%s]",
+				ctx.Request.Method, path, gcommon.RemoteIP(ctx.Request), time.Now().Sub(start).Milliseconds(),
+				ctx.Writer.Status(), strings.ReplaceAll(strings.Replace(string(bodyBytes), "\n", "", -1), " ", ""), blw.body.String())
+		}
+	} else {
+		ctx.Next()
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcast"
 	"github.com/qiafan666/gotato/commons/gcommon"
-	"github.com/qiafan666/gotato/gconfig"
+	"github.com/qiafan666/gotato/service/gconfig"
 	"net"
 	"net/smtp"
 	"strings"
