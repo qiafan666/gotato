@@ -61,13 +61,12 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	return &Client{redis: cli}, nil
 }
 
-type Client struct {
-	redis redis.UniversalClient
+func SetRedis(ctx context.Context, redis redis.UniversalClient) *Client {
+	return &Client{redis: redis}
 }
 
-// SetRedis 设置 Redis 客户端。
-func (c *Client) SetRedis(redis redis.UniversalClient) {
-	c.redis = redis
+type Client struct {
+	redis redis.UniversalClient
 }
 
 // GetRedis 获取 Redis 客户端。
