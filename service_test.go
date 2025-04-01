@@ -1,18 +1,28 @@
 package gotato
 
 import (
-	"github.com/kataras/iris/v12"
+	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/qiafan666/gotato/commons/glog"
 	"testing"
 )
 
 func TestStart_Default_Server(t *testing.T) {
-	server := GetGotatoInstance()
-	server.app.Default()
-	server.StartServer()
+	glog.Slog.InfoF(context.Background(), "TestStart_Default_Server")
+	server := GetGotato()
 
-	server.app.Get("/ping", func(context iris.Context) {
-		context.WriteString("123")
+	server.StartServer(GinService)
+
+	server.App().GET("/ping", func(c *gin.Context) {
+		ctx := c.MustGet("ctx").(context.Context)
+		glog.Slog.InfoF(ctx, "1")
+		glog.Slog.InfoF(ctx, "2")
+		glog.Slog.InfoF(ctx, "3")
+		glog.Slog.InfoF(ctx, "4")
+		glog.Slog.InfoF(ctx, "5")
+		glog.Slog.InfoF(ctx, "6")
+
+		c.String(200, "123")
 	})
-	server.WaitClose(iris.WithoutBodyConsumptionOnUnmarshal)
-
+	server.WaitClose()
 }
