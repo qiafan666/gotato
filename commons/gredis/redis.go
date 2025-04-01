@@ -391,6 +391,26 @@ func (c *Client) SRem(key string, members ...interface{}) (bool, error) {
 	return true, nil
 }
 
+// SIsMember 判断元素是否在集合中。
+// 返回布尔值表示是否存在，以及可能发生的错误。
+func (c *Client) SIsMember(key string, member interface{}) (bool, error) {
+	status := c.redis.SIsMember(context.Background(), key, member)
+	if status.Err() != nil {
+		return false, status.Err()
+	}
+	return status.Val(), nil
+}
+
+// SMembers 获取集合中的所有元素。
+// 返回元素的列表，以及可能发生的错误。
+func (c *Client) SMembers(key string) ([]string, error) {
+	members, err := c.redis.SMembers(context.Background(), key).Result()
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
+}
+
 // SetBit 设置指定偏移量的位值。
 func (c *Client) SetBit(key string, offset int64, value int) (bool, error) {
 	status := c.redis.SetBit(context.Background(), key, offset, value)
