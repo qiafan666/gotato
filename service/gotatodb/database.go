@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/glebarez/sqlite"
 	"github.com/qiafan666/gotato/commons/glog"
-	serveries "github.com/qiafan666/gotato/service/gconfig"
+	"github.com/qiafan666/gotato/service/gconfig"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,7 +26,7 @@ func (slf *GotatoDB) GormDB() *gorm.DB {
 func (slf *GotatoDB) Name() string {
 	return slf.name
 }
-func (slf *GotatoDB) StartPgsql(dbConfig serveries.DataBaseConfig) (err error) {
+func (slf *GotatoDB) StartPgsql(dbConfig gconfig.DataBaseConfig) (err error) {
 	if slf.db != nil {
 		return errors.New("db already open")
 	}
@@ -52,7 +52,7 @@ func (slf *GotatoDB) StartPgsql(dbConfig serveries.DataBaseConfig) (err error) {
 	db.SetMaxIdleConns(dbConfig.IdleConn)
 	return nil
 }
-func (slf *GotatoDB) StartSqlite(dbConfig serveries.DataBaseConfig) error {
+func (slf *GotatoDB) StartSqlite(dbConfig gconfig.DataBaseConfig) error {
 	if slf.db != nil {
 		return errors.New("db already open")
 	}
@@ -70,7 +70,7 @@ func (slf *GotatoDB) StartSqlite(dbConfig serveries.DataBaseConfig) error {
 
 	return nil
 }
-func (slf *GotatoDB) StartMysql(dbConfig serveries.DataBaseConfig) error {
+func (slf *GotatoDB) StartMysql(dbConfig gconfig.DataBaseConfig) error {
 	if slf.db != nil {
 		return errors.New("db already open")
 	}

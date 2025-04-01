@@ -3,7 +3,7 @@ package gconfig
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,10 +31,47 @@ func ReadConfig() {
 	}
 	if len(SC.SConfigure.Profile) == 0 {
 		// load dev profile application-dev.yaml
-		Configs = InitAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), "dev"))
+		Configs = initAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), "dev"))
 	} else {
-		Configs = InitAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), SC.SConfigure.Profile))
+		Configs = initAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), SC.SConfigure.Profile))
 	}
+}
+
+func initAllConfig(fileName string) Config {
+	dir, err := os.ReadDir(fileName)
+	if err != nil {
+		log.Panicf("load config error %s %s", err, fileName)
+	}
+	var buffer bytes.Buffer
+	for _, v := range dir {
+		if v.IsDir() == false {
+			if strings.Contains(v.Name(), ".yaml") {
+				file, err := os.ReadFile(fileName + "/" + v.Name())
+				if err != nil {
+					panic("load config error")
+				}
+				buffer.Write(file)
+				buffer.Write([]byte("\n"))
+				continue
+			}
+		}
+	}
+	dbc := Config{}
+	YamlFile = buffer.Bytes()
+	err = yaml.Unmarshal(buffer.Bytes(), &dbc)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(0)
+	}
+	return dbc
+}
+
+func LoadCfg(config interface{}) error {
+	err := yaml.Unmarshal(YamlFile, config)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type DataBaseConfig struct {
@@ -92,43 +129,6 @@ type SmtpConfig struct {
 	Sender   string `yaml:"sender"`
 	Password string `yaml:"password"`
 	Name     string `yaml:"name"`
-}
-
-func InitAllConfig(fileName string) Config {
-	dir, err := os.ReadDir(fileName)
-	if err != nil {
-		log.Panicf("load config error %s %s", err, fileName)
-	}
-	var buffer bytes.Buffer
-	for _, v := range dir {
-		if v.IsDir() == false {
-			if strings.Contains(v.Name(), ".yaml") {
-				file, err := os.ReadFile(fileName + "/" + v.Name())
-				if err != nil {
-					panic("load config error")
-				}
-				buffer.Write(file)
-				buffer.Write([]byte("\n"))
-				continue
-			}
-		}
-	}
-	dbc := Config{}
-	YamlFile = buffer.Bytes()
-	err = yaml.Unmarshal(buffer.Bytes(), &dbc)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(0)
-	}
-	return dbc
-}
-
-func LoadCustomCfg(config interface{}) error {
-	err := yaml.Unmarshal(YamlFile, config)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 type ServerBaseConfig struct {

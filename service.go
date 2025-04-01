@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/service/gconfig"
 	"github.com/qiafan666/gotato/service/gotatodb"
 	"github.com/qiafan666/gotato/service/oss"
@@ -27,7 +28,6 @@ import (
 	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gerr"
-	"github.com/qiafan666/gotato/commons/glog"
 	redisV9 "github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -190,7 +190,7 @@ func (slf *Server) OssBucket(name string) *alioss.Bucket {
 }
 
 func (slf *Server) LoadCustomCfg(slfConfig interface{}) {
-	err := gconfig.LoadCustomCfg(slfConfig)
+	err := gconfig.LoadCfg(slfConfig)
 	if err != nil {
 		panic(err)
 	}
