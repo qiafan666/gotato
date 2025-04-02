@@ -1,4 +1,4 @@
-package rabbitmq
+package grabbitmq
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func (t *TestOrder) Handle(msg string) error {
 
 func TestConsumer(t *testing.T) {
 
-	consumer, err := NewConsumer(context.Background(), "amqp://rabbitmq:D3oyMv9A6Vxc@10.0.0.222:5672/", gface.NewLogger("rabbitmq.consumer", nil))
+	consumer, err := NewConsumer(context.Background(), "amqp://grabbitmq:D3oyMv9A6Vxc@10.0.0.222:5672/", gface.NewLogger("grabbitmq.consumer", nil))
 	if err != nil {
 		return
 	}
@@ -39,7 +39,7 @@ func TestConsumer(t *testing.T) {
 }
 
 func TestProducer(t *testing.T) {
-	producer, err := NewProducer(context.Background(), "amqp://rabbitmq:D3oyMv9A6Vxc@10.0.0.222:5672/", gface.NewLogger("rabbitmq.producer", nil))
+	producer, err := NewProducer(context.Background(), "amqp://grabbitmq:D3oyMv9A6Vxc@10.0.0.222:5672/", gface.NewLogger("grabbitmq.producer", nil))
 	if err != nil {
 		return
 	}

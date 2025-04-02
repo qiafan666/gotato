@@ -1,4 +1,4 @@
-package kafka
+package gkafka
 
 import (
 	"context"
@@ -42,7 +42,7 @@ func (h ConsumerBatchHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
 
 		err := h.batcher.Put(context.Background(), message)
 		if err != nil {
-			h.logger.ErrorF(nil, "kafka consume batcher put message error. err=%+v", err)
+			h.logger.ErrorF(nil, "gkafka consume batcher put message error. err=%+v", err)
 		}
 	}
 	return nil

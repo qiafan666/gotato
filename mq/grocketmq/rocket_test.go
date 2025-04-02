@@ -1,4 +1,4 @@
-package rocketmq
+package grocketmq
 
 import (
 	"context"
@@ -37,7 +37,7 @@ func TestConsumer(t *testing.T) {
 		consumer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.0.0.222:9876"})),
 	}
 
-	consume, err := NewConsumer(context.Background(), gface.NewLogger("rocketmq.consumer", nil), options...)
+	consume, err := NewConsumer(context.Background(), gface.NewLogger("grocketmq.consumer", nil), false, options...)
 	if err != nil {
 		return
 	}
@@ -58,7 +58,7 @@ func TestProducer(t *testing.T) {
 		producer.WithGroupName("SPOT_FEE_FLOW_CONSUMER_GROUP"),
 		producer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.0.0.222:9876"})),
 	}
-	produce, err := NewProducer(context.Background(), gface.NewLogger("rocketmq.producer", nil), options...)
+	produce, err := NewProducer(context.Background(), gface.NewLogger("grocketmq.producer", nil), options...)
 	if err != nil {
 		return
 	}
