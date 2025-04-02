@@ -36,6 +36,7 @@ func GetRequestIdFormat(ctx context.Context) string {
 		return ""
 	}
 }
+
 func SetRequestId(requestId string) context.Context {
 	return context.WithValue(context.Background(), "request_id", requestId)
 }
@@ -117,10 +118,10 @@ func Paginate(pageNum int, pageSize int) func(db *gorm.DB) *gorm.DB {
 			pageNum = 1
 		}
 		switch {
-		case pageSize > 100:
+		case pageSize > 1000:
 			pageSize = 100
 		case pageSize <= 0:
-			pageSize = 5
+			pageSize = 1
 		}
 		offset := (pageNum - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
