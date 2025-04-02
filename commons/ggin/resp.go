@@ -1,10 +1,8 @@
 package ggin
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/qiafan666/gotato/commons/gerr"
-	"reflect"
 	"time"
 )
 
@@ -20,39 +18,7 @@ type ApiResponse struct {
 func (r *ApiResponse) MarshalJSON() ([]byte, error) {
 	type apiResponse ApiResponse
 	tmp := (*apiResponse)(r)
-	if tmp.Data != nil {
-		if isAllFieldsPrivate(tmp.Data) {
-			tmp.Data = json.RawMessage(nil)
-		} else {
-			data, err := gerr.Marshal(tmp.Data)
-			if err != nil {
-				return nil, err
-			}
-			tmp.Data = json.RawMessage(data)
-		}
-	}
 	return gerr.Marshal(tmp)
-}
-
-func isAllFieldsPrivate(v any) bool {
-	typeOf := reflect.TypeOf(v)
-	if typeOf == nil {
-		return false
-	}
-	for typeOf.Kind() == reflect.Ptr {
-		typeOf = typeOf.Elem()
-	}
-	if typeOf.Kind() != reflect.Struct {
-		return false
-	}
-	num := typeOf.NumField()
-	for i := 0; i < num; i++ {
-		c := typeOf.Field(i).Name[0]
-		if c >= 'A' && c <= 'Z' {
-			return false
-		}
-	}
-	return true
 }
 
 func Api(code int, msg string, data any, requestId string) *ApiResponse {

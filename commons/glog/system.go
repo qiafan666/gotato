@@ -3,7 +3,6 @@ package glog
 import (
 	"context"
 	"fmt"
-	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/service/gconfig"
 	"go.uber.org/zap"
@@ -29,13 +28,36 @@ var GormSkip = 5
 // GormSlowSqlDuration 慢sql日志打印的阈值
 var GormSlowSqlDuration = time.Second * 3
 
+const (
+	Silent = iota - 2
+	Debug
+	Info
+	Warn
+	Error
+)
+
+var LogLevel = map[string]int{
+	"silent": Silent,
+	"debug":  Debug,
+	"info":   Info,
+	"warn":   Warn,
+	"error":  Error,
+}
+
+var ZapLogLevel = map[string]zapcore.Level{
+	"debug": zapcore.DebugLevel,
+	"info":  zapcore.InfoLevel,
+	"warn":  zapcore.WarnLevel,
+	"error": zapcore.ErrorLevel,
+}
+
 type Logger struct {
 }
 
 func init() {
 	Slog = Logger{}
 	Gorm = GormLogger{
-		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
+		LogLevel:                  LogLevel[gconfig.SC.SConfigure.GormLogLevel],
 		IgnoreRecordNotFoundError: true,
 		SlowSqlTime:               GormSlowSqlDuration,
 	}
@@ -48,7 +70,7 @@ func init() {
 	} else {
 		encoder = SimpleEncoder()
 	}
-	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	core := zapcore.NewCore(encoder, writeSyncer, ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
 	if gconfig.SC.FeiShuConfig.Enable {
 		FeiShu = NewFeiShuHook(gconfig.SC.FeiShuConfig.Url, gconfig.SC.FeiShuConfig.GroupId)
@@ -63,7 +85,7 @@ func init() {
 func ReInit() {
 	Slog = Logger{}
 	Gorm = GormLogger{
-		LogLevel:                  commons.LogLevel[gconfig.SC.SConfigure.GormLogLevel],
+		LogLevel:                  LogLevel[gconfig.SC.SConfigure.GormLogLevel],
 		IgnoreRecordNotFoundError: true,
 		SlowSqlTime:               GormSlowSqlDuration,
 	}
@@ -74,7 +96,7 @@ func ReInit() {
 	} else {
 		encoder = SimpleEncoder()
 	}
-	core := zapcore.NewCore(encoder, writeSyncer, commons.ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
+	core := zapcore.NewCore(encoder, writeSyncer, ZapLogLevel[gconfig.SC.SConfigure.ZapLogLevel])
 
 	if gconfig.SC.FeiShuConfig.Enable {
 		FeiShu = NewFeiShuHook(gconfig.SC.FeiShuConfig.Url, gconfig.SC.FeiShuConfig.GroupId)

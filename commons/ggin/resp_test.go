@@ -24,7 +24,7 @@ func TestName(t *testing.T) {
 			Remark:        wrapperspb.String("1234567"),
 		},
 	}
-	t.Logf(gcast.ToString(resp))
+	t.Log(gcast.ToString(resp))
 	var newResp ApiResponse
 	err := gerr.Unmarshal(gcast.ToByte(resp), &newResp)
 	if err != nil {

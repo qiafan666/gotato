@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/ggin"
 	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/service/gconfig"
 	"github.com/qiafan666/gotato/service/gotatodb"
@@ -25,7 +26,6 @@ import (
 
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gin-gonic/gin"
-	"github.com/qiafan666/gotato/commons"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gerr"
 	redisV9 "github.com/redis/go-redis/v9"
@@ -35,6 +35,8 @@ import (
 
 // Instance we need create the single object but thread safe
 var instance *Server
+
+var ActiveRequests int64
 
 type Server struct {
 	app        *gin.Engine
@@ -122,7 +124,7 @@ func (slf *Server) WaitClose(stopFunc ...func()) {
 			_ = stopRedis.StopRedis()
 		}
 		for {
-			if atomic.LoadInt64(&commons.ActiveRequests) == 0 {
+			if atomic.LoadInt64(&ActiveRequests) == 0 {
 				break
 			}
 			time.Sleep(time.Second)
@@ -208,12 +210,12 @@ func (slf *Server) gin() {
 	slf.app = gin.New()
 
 	slf.app.NoRoute(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
+		ggin.GinError(ctx, gerr.NewLang(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
 	slf.app.NoMethod(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, commons.BuildFailed(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
+		ggin.GinError(ctx, gerr.NewLang(gerr.HttpNotFound, gerr.DefaultLanguage, ""))
 		ctx.Abort()
 		return
 	})
@@ -410,8 +412,8 @@ func (slf *Server) Default(ctx *gin.Context) {
 		ctx.Set("ctx", value)
 	}
 
-	atomic.AddInt64(&commons.ActiveRequests, 1)
-	defer atomic.AddInt64(&commons.ActiveRequests, -1)
+	atomic.AddInt64(&ActiveRequests, 1)
+	defer atomic.AddInt64(&ActiveRequests, -1)
 	defer func() {
 		if err := recover(); err != nil {
 			var stacktrace string
