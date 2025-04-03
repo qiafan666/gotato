@@ -1,7 +1,7 @@
 package xlsx
 
 import (
-	"os"
+	"github.com/qiafan666/gotato/commons/gcommon"
 	"testing"
 )
 
@@ -47,7 +47,7 @@ func TestReadXlsx(t *testing.T) {
 	//}
 	//defer file.Close()
 	filePath := "./template.xlsx"
-	file, err := os.Open(filePath)
+	file, err := gcommon.NewFileReader(filePath)
 	if err != nil {
 		t.Error(err)
 	}

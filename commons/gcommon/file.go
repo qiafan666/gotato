@@ -1,6 +1,3 @@
-// Copyright 2021 dudaodong@gmail.com. All rights reserved.
-// Use of this source code is governed by MIT license.
-
 package gcommon
 
 import (
@@ -64,8 +61,8 @@ func (f *FileReader) Offset() int64 {
 	return f.offset
 }
 
-// SeekOffset 设置偏移量
-func (f *FileReader) SeekOffset(offset int64) error {
+// SetOffset 设置偏移量
+func (f *FileReader) SetOffset(offset int64) error {
 	_, err := f.file.Seek(offset, 0)
 	if err != nil {
 		return err
@@ -80,8 +77,8 @@ func (f *FileReader) Close() error {
 	return f.file.Close()
 }
 
-// IsExist 检查文件夹或文件路径是否存在
-func IsExist(path string) bool {
+// FileIsExist 检查文件夹或文件路径是否存在
+func FileIsExist(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true
@@ -92,8 +89,8 @@ func IsExist(path string) bool {
 	return false
 }
 
-// CreateFile 创建路径文件
-func CreateFile(path string) bool {
+// FileCreate 创建路径文件
+func FileCreate(path string) bool {
 	file, err := os.Create(path)
 	if err != nil {
 		return false
@@ -103,14 +100,14 @@ func CreateFile(path string) bool {
 	return true
 }
 
-// CreateDir 创建路径，不存在的情况下创建目录，已存在的层级跳过
-func CreateDir(absPath string) error {
+// DirCreate 创建路径，不存在的情况下创建目录，已存在的层级跳过
+func DirCreate(absPath string) error {
 	// return os.MkdirAll(path.Dir(absPath), os.ModePerm)
 	return os.MkdirAll(absPath, os.ModePerm)
 }
 
-// CopyDir 复制目录
-func CopyDir(srcPath string, dstPath string) error {
+// DirCopy 复制目录
+func DirCopy(srcPath string, dstPath string) error {
 	srcInfo, err := os.Stat(srcPath)
 	if err != nil {
 		return fmt.Errorf("failed to get source directory info: %w", err)
@@ -135,12 +132,12 @@ func CopyDir(srcPath string, dstPath string) error {
 		dstDir := filepath.Join(dstPath, entry.Name())
 
 		if entry.IsDir() {
-			err := CopyDir(srcDir, dstDir)
+			err = DirCopy(srcDir, dstDir)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := CopyFile(srcDir, dstDir)
+			err = FileCopy(srcDir, dstDir)
 			if err != nil {
 				return err
 			}
@@ -150,8 +147,8 @@ func CopyDir(srcPath string, dstPath string) error {
 	return nil
 }
 
-// IsDir 检查是否为目录
-func IsDir(path string) bool {
+// DirIsExist 检查是否为目录
+func DirIsExist(path string) bool {
 	file, err := os.Stat(path)
 	if err != nil {
 		return false
@@ -159,13 +156,13 @@ func IsDir(path string) bool {
 	return file.IsDir()
 }
 
-// RemoveFile 删除文件
-func RemoveFile(path string) error {
+// FileRemove 删除文件
+func FileRemove(path string) error {
 	return os.Remove(path)
 }
 
-// CopyFile 复制文件
-func CopyFile(srcPath string, dstPath string) error {
+// FileCopy 复制文件
+func FileCopy(srcPath string, dstPath string) error {
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
 		return err
@@ -194,8 +191,8 @@ func CopyFile(srcPath string, dstPath string) error {
 	}
 }
 
-// ClearFile 清空文件内容
-func ClearFile(path string) error {
+// FileClear 清空文件内容
+func FileClear(path string) error {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0777)
 	if err != nil {
 		return err
@@ -206,44 +203,40 @@ func ClearFile(path string) error {
 	return err
 }
 
-// ReadFileToString 读取文件内容到字符串
-func ReadFileToString(path string) (string, error) {
-	bytes, err := os.ReadFile(path)
+// FileReadToString 读取文件内容到字符串
+func FileReadToString(path string) (string, error) {
+	readBytes, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
-	return string(bytes), nil
+	return string(readBytes), nil
 }
 
-// ReadFileByLine 读取文件内容按行读取
-func ReadFileByLine(path string) ([]string, error) {
+// FileReadByLine 读取文件内容按行读取
+func FileReadByLine(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	result := make([]string, 0)
-	buf := bufio.NewReader(file)
+	var result []string
+	scanner := bufio.NewScanner(file)
 
-	for {
-		line, _, err := buf.ReadLine()
-		l := string(line)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			continue
-		}
-		result = append(result, l)
+	for scanner.Scan() {
+		result = append(result, scanner.Text()) // 读取完整的一行
+	}
+
+	if err = scanner.Err(); err != nil {
+		return nil, err // 返回读取过程中发生的错误
 	}
 
 	return result, nil
 }
 
-// ListFileNames 返回目录下的文件名列表
-func ListFileNames(path string) ([]string, error) {
-	if !IsExist(path) {
+// FileListNames 返回目录下的文件名列表
+func FileListNames(path string) ([]string, error) {
+	if !FileIsExist(path) {
 		return []string{}, nil
 	}
 
@@ -267,8 +260,8 @@ func ListFileNames(path string) ([]string, error) {
 	return result, nil
 }
 
-// IsZipFile 检查是否为zip文件
-func IsZipFile(filepath string) bool {
+// FileIsZip 检查是否为zip文件
+func FileIsZip(filepath string) bool {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return false
@@ -283,9 +276,9 @@ func IsZipFile(filepath string) bool {
 	return bytes.Equal(buf, []byte("PK\x03\x04"))
 }
 
-// Zip 创建zip文件
-func Zip(path string, destPath string) error {
-	if IsDir(path) {
+// FileZip 创建zip文件
+func FileZip(path string, destPath string) error {
+	if DirIsExist(path) {
 		return zipFolder(path, destPath)
 	}
 
@@ -395,8 +388,8 @@ func addFileToArchive2(w *zip.Writer, basePath, baseInZip string) error {
 	return nil
 }
 
-// UnZip 解压zip文件
-func UnZip(zipFile string, destPath string) error {
+// FileUnZip 解压zip文件
+func FileUnZip(zipFile string, destPath string) error {
 	zipReader, err := zip.OpenReader(zipFile)
 	if err != nil {
 		return err
@@ -412,7 +405,8 @@ func UnZip(zipFile string, destPath string) error {
 			decodeName = string(content)
 		}
 		// issue#62: fix ZipSlip bug
-		path, err := safeFilepathJoin(destPath, decodeName)
+		var path string
+		path, err = safeFilepathJoin(destPath, decodeName)
 		if err != nil {
 			return err
 		}
@@ -504,7 +498,7 @@ func ZipAppendEntry(fpath string, destPath string) error {
 		return err
 	}
 
-	return CopyFile(tempFile.Name(), destPath)
+	return FileCopy(tempFile.Name(), destPath)
 }
 
 func safeFilepathJoin(path1, path2 string) (string, error) {
@@ -518,8 +512,8 @@ func safeFilepathJoin(path1, path2 string) (string, error) {
 	return filepath.Join(path1, filepath.Join("/", relPath)), nil
 }
 
-// IsLink 检查是否为软链接
-func IsLink(path string) bool {
+// FileIsLink 检查是否为软链接
+func FileIsLink(path string) bool {
 	fi, err := os.Lstat(path)
 	if err != nil {
 		return false
@@ -536,8 +530,8 @@ func FileMode(path string) (fs.FileMode, error) {
 	return fi.Mode(), nil
 }
 
-// MiMeType 返回文件媒体类型
-func MiMeType(file any) string {
+// FileMiMeType 返回文件媒体类型
+func FileMiMeType(file any) string {
 	var mediatype string
 
 	readBuffer := func(f *os.File) ([]byte, error) {
@@ -610,8 +604,8 @@ func DirSize(path string) (int64, error) {
 	return size, err
 }
 
-// MTime 返回文件修改时间
-func MTime(filepath string) (int64, error) {
+// FileUpdateTime 返回文件修改时间
+func FileUpdateTime(filepath string) (int64, error) {
 	f, err := os.Stat(filepath)
 	if err != nil {
 		return 0, err
@@ -619,8 +613,8 @@ func MTime(filepath string) (int64, error) {
 	return f.ModTime().Unix(), nil
 }
 
-// Sha 返回文件sha值，shaType为1,256,512
-func Sha(filepath string, shaType ...int) (string, error) {
+// FileSha 返回文件sha值，shaType为1,256,512
+func FileSha(filepath string, shaType ...int) (string, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return "", err
@@ -652,8 +646,8 @@ func Sha(filepath string, shaType ...int) (string, error) {
 
 }
 
-// ReadCsvFile 读取csv文件内容
-func ReadCsvFile(filepath string, delimiter ...rune) ([][]string, error) {
+// FileReadCsv 读取csv文件内容
+func FileReadCsv(filepath string, delimiter ...rune) ([][]string, error) {
 	f, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
@@ -673,9 +667,9 @@ func ReadCsvFile(filepath string, delimiter ...rune) ([][]string, error) {
 	return records, nil
 }
 
-// WriteCsvFile 写入csv文件内容
+// FileWriteCsv 写入csv文件内容
 // append: 拼接到已有文件中
-func WriteCsvFile(filepath string, records [][]string, append bool, delimiter ...rune) error {
+func FileWriteCsv(filepath string, records [][]string, append bool, delimiter ...rune) error {
 	flag := os.O_RDWR | os.O_CREATE
 
 	if append {
@@ -707,8 +701,8 @@ func WriteCsvFile(filepath string, records [][]string, append bool, delimiter ..
 	return writer.WriteAll(records)
 }
 
-// WriteStringToFile 写入字符串到文件
-func WriteStringToFile(filepath string, content string, append bool) error {
+// FileWriteString 写入字符串到文件
+func FileWriteString(filepath string, content string, append bool) error {
 	var flag int
 	if append {
 		flag = os.O_RDWR | os.O_CREATE | os.O_APPEND
@@ -726,8 +720,8 @@ func WriteStringToFile(filepath string, content string, append bool) error {
 	return err
 }
 
-// WriteBytesToFile 写入字节到文件
-func WriteBytesToFile(filepath string, content []byte) error {
+// FileWriteBytes 写入字节到文件
+func FileWriteBytes(filepath string, content []byte) error {
 	f, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
@@ -739,10 +733,9 @@ func WriteBytesToFile(filepath string, content []byte) error {
 	return err
 }
 
-// ReadFile get file reader by a url or a local file
-// Play: https://go.dev/play/p/uNep3Tr8fqF
-func ReadFile(path string) (reader io.ReadCloser, closeFn func(), err error) {
-	if IsExist(path) {
+// FileRead 读取文件内容，返回io.ReadCloser, 关闭函数
+func FileRead(path string) (reader io.ReadCloser, closeFn func(), err error) {
+	if FileIsExist(path) {
 		reader, err = os.Open(path)
 		if err != nil {
 			return nil, func() {}, err
@@ -766,13 +759,13 @@ func escapeCSVField(field string, delimiter rune) string {
 	return escapedField
 }
 
-// WriteMapsToCsv 写入map到csv文件
+// FileWriteMapsToCsv 写入map到csv文件
 // filepath: csv文件路径
 // records: map切片，每个map表示一行数据
 // appendToExistingFile: 是否追加到已有文件中
 // delimiter: csv文件分隔符，默认逗号
 // headers: csv文件头部，如果为空，则使用map的key作为头部
-func WriteMapsToCsv(filepath string, records []map[string]any, appendToExistingFile bool, delimiter rune,
+func FileWriteMapsToCsv(filepath string, records []map[string]any, appendToExistingFile bool, delimiter rune,
 	headers ...[]string) error {
 	for _, record := range records {
 		for _, value := range record {
@@ -807,7 +800,7 @@ func WriteMapsToCsv(filepath string, records []map[string]any, appendToExistingF
 		datasToWrite = append(datasToWrite, row)
 	}
 
-	return WriteCsvFile(filepath, datasToWrite, appendToExistingFile, delimiter)
+	return FileWriteCsv(filepath, datasToWrite, appendToExistingFile, delimiter)
 }
 
 // isCsvSupportedType 检查是否为csv支持的类型
@@ -820,8 +813,8 @@ func isCsvSupportedType(v interface{}) bool {
 	}
 }
 
-// ChunkRead 读取文件块，返回每行内容
-func ChunkRead(file *os.File, offset int64, size int, bufPool *sync.Pool) ([]string, error) {
+// FileChunkRead 读取文件块，返回每行内容
+func FileChunkRead(file *os.File, offset int64, size int, bufPool *sync.Pool) ([]string, error) {
 	buf := bufPool.Get().([]byte)[:size] // 从Pool获取缓冲区并调整大小
 	n, err := file.ReadAt(buf, offset)   // 从指定偏移读取数据到缓冲区
 	if err != nil && err != io.EOF {
@@ -847,12 +840,12 @@ func ChunkRead(file *os.File, offset int64, size int, bufPool *sync.Pool) ([]str
 	return lines, nil
 }
 
-// ParallelChunkRead 读取文件块并并发处理，返回每行内容
+// FileParallelChunkRead 读取文件块并并发处理，返回每行内容
 // filePath 文件路径
 // chunkSizeMB 分块的大小（单位MB，设置为0时使用默认100MB）,设置过大反而不利，视情调整
 // maxGoroutine 并发读取分块的数量，设置为0时使用CPU核心数
 // linesCh用于接收返回结果的通道。
-func ParallelChunkRead(filePath string, linesCh chan<- []string, chunkSizeMB, maxGoroutine int) error {
+func FileParallelChunkRead(filePath string, linesCh chan<- []string, chunkSizeMB, maxGoroutine int) error {
 	if chunkSizeMB == 0 {
 		chunkSizeMB = 100
 	}
@@ -896,7 +889,7 @@ func ParallelChunkRead(filePath string, linesCh chan<- []string, chunkSizeMB, ma
 		wg.Add(1)
 		go func() {
 			for chunkOffset := range chunkOffsetCh {
-				chunk, err := ChunkRead(f, chunkOffset, chunkSize, &bufPool)
+				chunk, err := FileChunkRead(f, chunkOffset, chunkSize, &bufPool)
 				if err == nil {
 					linesCh <- chunk
 				}
