@@ -21,17 +21,10 @@ type Consistent struct {
 // New 创建一个 Consistent 的新实例
 // 用于无状态的节点分配，具体可看测试用例
 // replicasCount 表示每个节点的虚拟节点数量
-func New(elts ...string) *Consistent {
-	if len(elts) == 0 {
-		panic("empty circle")
-	}
+func New(replicasCount int) *Consistent {
 	c := new(Consistent)
-	c.NumberOfReplicas = len(elts)
+	c.NumberOfReplicas = replicasCount
 	c.circle = make(map[uint32]string)
-
-	for _, elt := range elts {
-		c.Add(elt)
-	}
 	return c
 }
 
