@@ -54,7 +54,7 @@ var ZapLogLevel = map[string]zapcore.Level{
 type Logger struct {
 }
 
-func NewZap() {
+func init() {
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  LogLevel[gconfig.SC.SConfigure.GormLogLevel],

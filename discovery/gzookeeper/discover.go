@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/go-zookeeper/zk"
 	"github.com/qiafan666/gotato/commons/gerr"
-	"github.com/qiafan666/gotato/commons/glog"
+	"github.com/qiafan666/gotato/service/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/resolver"
 	"strings"

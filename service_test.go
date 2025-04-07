@@ -3,7 +3,7 @@ package gotato
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/qiafan666/gotato/commons/glog"
+	"github.com/qiafan666/gotato/service/glog"
 	"testing"
 )
 

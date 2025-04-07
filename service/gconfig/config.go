@@ -14,7 +14,7 @@ var SC ServerConfig
 var Configs Config
 var YamlFile []byte
 
-func ReadConfig() {
+func init() {
 	yamlFile, err := os.ReadFile("application.yaml")
 	if err != nil {
 		panic(fmt.Errorf("load application.yaml error, will exit,please fix the application"))

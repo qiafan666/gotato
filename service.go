@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/qiafan666/gotato/commons/ggin"
-	"github.com/qiafan666/gotato/commons/glog"
 	"github.com/qiafan666/gotato/service/gconfig"
+	"github.com/qiafan666/gotato/service/glog"
 	"github.com/qiafan666/gotato/service/gotatodb"
 	"github.com/qiafan666/gotato/service/oss"
 	"github.com/qiafan666/gotato/service/redis"
@@ -63,9 +63,6 @@ func init() {
 		ctx:    ctx,
 		cancel: cancel,
 	}
-
-	gconfig.ReadConfig()
-	glog.NewZap()
 }
 
 func (slf *Server) GetCtx() context.Context {
