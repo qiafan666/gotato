@@ -2,7 +2,7 @@ package gzookeeper
 
 import (
 	"context"
-	"github.com/qiafan666/gotato/service/glog"
+	"github.com/qiafan666/gotato/commons/glog"
 	"google.golang.org/grpc/resolver"
 	"strings"
 )
