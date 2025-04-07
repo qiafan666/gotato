@@ -73,11 +73,6 @@ func (slf *Server) GetCancel() context.CancelFunc {
 	return slf.cancel
 }
 
-func (slf *Server) SetMysqlLogCallerSkip(skip int) {
-	glog.GormSkip = skip
-	glog.ReInit()
-}
-
 // GetGotato create the single object
 func GetGotato() *Server {
 	return instance
@@ -85,6 +80,12 @@ func GetGotato() *Server {
 
 func (slf *Server) ReadConfig() {
 	gconfig.ReadConfig()
+	glog.NewZap()
+}
+
+func (slf *Server) SetMysqlLogCallerSkip(skip int) {
+	glog.GormSkip = skip
+	glog.ReNewZap()
 }
 
 func (slf *Server) RegisterErrorCodeAndMsg(language string, arr map[int]string) {

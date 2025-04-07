@@ -13,7 +13,7 @@ func TestTask(t *testing.T) {
 	// 初始化任务池
 	taskNum := 5
 	chanNum := 50
-	InitDefaultPool(taskNum, chanNum, gface.NewLogger("task", nil))
+	DefaultPool(taskNum, chanNum, gface.NewLogger("task", nil))
 
 	// 添加任务
 	for i := 0; i < 10; i++ {

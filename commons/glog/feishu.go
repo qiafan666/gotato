@@ -39,6 +39,7 @@ func NewFeiShuHook(groupID, url string) *FeiShuHook {
 		stats:   make(map[string]int64),
 	}
 	hook.wg.Add(1)
+	hook.defaultRegisterHook()
 	go hook.worker()
 	return hook
 }
@@ -59,7 +60,7 @@ func (hook *FeiShuHook) Close() {
 }
 
 // DefaultRegisterHook 默认注册日志钩子，发送日志到 FeiShu
-func (hook *FeiShuHook) DefaultRegisterHook() {
+func (hook *FeiShuHook) defaultRegisterHook() {
 	FeiShuRegisterEntryFunc = func(entry zapcore.Entry) error {
 		if entry.Level < zapcore.ErrorLevel {
 			return nil

@@ -11,7 +11,7 @@ import (
 
 var defaultPool *Pool
 
-func InitDefaultPool(taskNum, chanNum int, logger gface.ILogger) {
+func DefaultPool(taskNum, chanNum int, logger gface.ILogger) {
 	if defaultPool == nil {
 		defaultPool = NewTaskPool(taskNum, chanNum, logger)
 	}

@@ -30,13 +30,14 @@ func ReadConfig() {
 	}
 	if len(SC.SConfigure.Profile) == 0 {
 		// load dev profile application-dev.yaml
-		Configs = initAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), "dev"))
+		Configs = readAllYaml(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), "dev"))
 	} else {
-		Configs = initAllConfig(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), SC.SConfigure.Profile))
+		Configs = readAllYaml(filepath.Join(filepath.Clean(SC.SConfigure.ConfigPath), SC.SConfigure.Profile))
 	}
 }
 
-func initAllConfig(fileName string) Config {
+// 读取目录下所有yaml文件
+func readAllYaml(fileName string) Config {
 	dir, err := os.ReadDir(fileName)
 	if err != nil {
 		log.Panicf("load config error %s %s", err, fileName)

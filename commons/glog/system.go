@@ -54,7 +54,7 @@ var ZapLogLevel = map[string]zapcore.Level{
 type Logger struct {
 }
 
-func init() {
+func NewZap() {
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  LogLevel[gconfig.SC.SConfigure.GormLogLevel],
@@ -82,7 +82,7 @@ func init() {
 	ZapLog = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).Sugar()
 }
 
-func ReInit() {
+func ReNewZap() {
 	Slog = Logger{}
 	Gorm = GormLogger{
 		LogLevel:                  LogLevel[gconfig.SC.SConfigure.GormLogLevel],
@@ -122,6 +122,7 @@ func DevEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encoderConfig.LineEnding = zapcore.DefaultLineEnding
 	// 自定义 EncodeCaller 方法，提取方法名
 	encoderConfig.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 		if caller.Defined {
