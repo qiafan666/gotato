@@ -63,6 +63,9 @@ func init() {
 		ctx:    ctx,
 		cancel: cancel,
 	}
+
+	gconfig.ReadConfig()
+	glog.NewZap()
 }
 
 func (slf *Server) GetCtx() context.Context {
@@ -76,11 +79,6 @@ func (slf *Server) GetCancel() context.CancelFunc {
 // GetGotato create the single object
 func GetGotato() *Server {
 	return instance
-}
-
-func (slf *Server) ReadConfig() {
-	gconfig.ReadConfig()
-	glog.NewZap()
 }
 
 func (slf *Server) SetMysqlLogCallerSkip(skip int) {
