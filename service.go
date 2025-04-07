@@ -222,7 +222,7 @@ func (slf *Server) gin() {
 	})
 
 	//插入中间件
-	slf.app.Use(slf.Default)
+	slf.app.Use(slf.trace)
 
 	slf.httpServer = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", gconfig.SC.SConfigure.Addr, gconfig.SC.SConfigure.Port),
@@ -342,7 +342,7 @@ func (slf *Server) StartServer(opt ...ServerOption) {
 
 var ignoreRequestMap sync.Map
 
-// RegisterIgnoreRequest 忽略打印当前路径的接口日志
+// RegisterIgnoreRequest 忽略打印当前路径的接口日志,支持/*通配符
 func (slf *Server) RegisterIgnoreRequest(paths ...string) {
 	for _, path := range paths {
 		// 如果路径中包含通配符 /*，则将其替换为正则表达式中的通配符 .*
@@ -358,7 +358,7 @@ func (slf *Server) RegisterIgnoreRequest(paths ...string) {
 }
 
 // IsIgnoredRequest 判断请求路径是否应该被忽略
-func (slf *Server) IsIgnoredRequest(requestPath string) bool {
+func (slf *Server) isIgnoredRequest(requestPath string) bool {
 	var isIgnored bool
 	ignoreRequestMap.Range(func(key, value interface{}) bool {
 		pathPattern := key.(string)
@@ -401,15 +401,15 @@ func (w *cstomResponseWriter) WriteString(s string) (int, error) {
 	return w.ResponseWriter.WriteString(s)
 }
 
-func (slf *Server) Default(ctx *gin.Context) {
-	header := ctx.GetHeader("trace_id")
+func (slf *Server) trace(ctx *gin.Context) {
+	header := ctx.GetHeader("request_id")
 	if header != "" {
-		ctx.Set("trace_id", header)
-		ctx.Set("ctx", context.WithValue(ctx, "trace_id", header))
+		ctx.Set("request_id", header)
+		ctx.Set("ctx", context.WithValue(ctx, "request_id", header))
 	} else {
 		uuid := gcommon.GenerateUUID()
-		value := context.WithValue(ctx, "trace_id", uuid)
-		ctx.Set("trace_id", uuid)
+		value := context.WithValue(ctx, "request_id", uuid)
+		ctx.Set("request_id", uuid)
 		ctx.Set("ctx", value)
 	}
 
@@ -437,7 +437,7 @@ func (slf *Server) Default(ctx *gin.Context) {
 	blw := &cstomResponseWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
 	ctx.Writer = blw
 
-	if !slf.IsIgnoredRequest(ctx.Request.URL.Path) {
+	if !slf.isIgnoredRequest(ctx.Request.URL.Path) {
 		var bodyBytes []byte
 		var err error
 		var requestBody *bytes.Buffer
