@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/jinzhu/copier"
+	"github.com/qiafan666/gotato/commons/gcast"
 	"golang.org/x/exp/constraints"
 	"gorm.io/gorm"
 	"math"
@@ -112,19 +113,19 @@ func StructToMap(inputStruct interface{}, JumpString ...string) map[string]inter
 }
 
 // Paginate 分页
-func Paginate(pageNum int, pageSize int) func(db *gorm.DB) *gorm.DB {
+func Paginate(pageNum interface{}, pageSize interface{}) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if pageNum <= 0 {
+		if gcast.ToInt(pageNum) <= 0 {
 			pageNum = 1
 		}
 		switch {
-		case pageSize > 1000:
+		case gcast.ToInt(pageSize) > 1000:
 			pageSize = 100
-		case pageSize <= 0:
+		case gcast.ToInt(pageSize) <= 0:
 			pageSize = 1
 		}
-		offset := (pageNum - 1) * pageSize
-		return db.Offset(offset).Limit(pageSize)
+		offset := (gcast.ToInt(pageNum) - 1) * gcast.ToInt(pageSize)
+		return db.Offset(offset).Limit(gcast.ToInt(pageSize))
 	}
 }
 
