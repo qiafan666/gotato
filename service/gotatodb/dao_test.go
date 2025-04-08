@@ -12,7 +12,7 @@ type IDao interface {
 	Rollback()
 	Commit() error
 	Db() *gorm.DB
-	WithContext(ctx context.Context) IDao
+	WithCtx(ctx context.Context) IDao
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
@@ -96,28 +96,6 @@ func (i imp) Update(info interface{}, table string, where map[string]interface{}
 	rows = updateTx.RowsAffected
 	return
 }
-
-// UpdateMap 更新map结构体
-// info 要更新的结构体
-// table 要更新的表名
-// where 更新条件
-// scope 事务作用域
-// jumpStrings 跳过结构体中的字段名
-func (i imp) UpdateMap(info map[string]interface{}, table string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
-
-	if len(i.defaultWhere) > 0 {
-		where = gcommon.MapMergeUnique(where, i.defaultWhere)
-	}
-	if scope != nil {
-		i.db = i.db.Scopes(scope)
-	}
-
-	updateTx := i.db.Table(table).Where(where).Updates(info)
-
-	err = updateTx.Error
-	rows = updateTx.RowsAffected
-	return
-}
 func (i imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
 
 	if len(i.defaultWhere) > 0 {
@@ -143,7 +121,7 @@ func (i imp) Tx() IDao {
 	i.db = i.db.Begin()
 	return IDao(&i)
 }
-func (i imp) WithContext(ctx context.Context) IDao {
+func (i imp) WithCtx(ctx context.Context) IDao {
 	i.db = i.db.WithContext(ctx)
 	return IDao(&i)
 }
