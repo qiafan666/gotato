@@ -70,10 +70,9 @@ func TestProducer(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		time.Sleep(time.Second)
 		err = produce.Publish(context.Background(), msgChannel, "msg")
-
-	}
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
 	}
 }
 
