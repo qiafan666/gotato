@@ -16,6 +16,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 type TestOrder struct {
@@ -33,8 +34,8 @@ func (t *TestOrder) Handle(tag, msg string) error {
 func TestConsumer(t *testing.T) {
 
 	options := []consumer.Option{
-		consumer.WithGroupName("SPOT_FEE_FLOW_CONSUMER_GROUP"),
-		consumer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.0.0.222:9876"})),
+		consumer.WithGroupName("NING_GROUP"),
+		consumer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.254.3.87:9876"})),
 	}
 
 	consume, err := NewConsumer(context.Background(), gface.NewLogger("grocketmq.consumer", nil), false, options...)
@@ -45,8 +46,7 @@ func TestConsumer(t *testing.T) {
 
 	testOrder := NewTestOrder()
 	msgChannel := &MsgChannel{
-		Topic: "SPOT_FEE_FLOW_TOPIC",
-		Tag:   "*",
+		Topic: "ning",
 	}
 	go consume.Consume(context.Background(), msgChannel, testOrder)
 	select {}
@@ -55,8 +55,8 @@ func TestConsumer(t *testing.T) {
 func TestProducer(t *testing.T) {
 
 	options := []producer.Option{
-		producer.WithGroupName("SPOT_FEE_FLOW_CONSUMER_GROUP"),
-		producer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.0.0.222:9876"})),
+		producer.WithGroupName("NING_GROUP"),
+		producer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.254.3.87:9876"})),
 	}
 	produce, err := NewProducer(context.Background(), gface.NewLogger("grocketmq.producer", nil), options...)
 	if err != nil {
@@ -65,10 +65,13 @@ func TestProducer(t *testing.T) {
 	defer produce.Close()
 
 	msgChannel := &MsgChannel{
-		Topic: "SPOT_FEE_FLOW_TOPIC",
-		Tag:   "",
+		Topic: "ning",
 	}
-	err = produce.Publish(context.Background(), msgChannel, "msg")
+	for i := 0; i < 100; i++ {
+		time.Sleep(time.Second)
+		err = produce.Publish(context.Background(), msgChannel, "msg")
+
+	}
 	if err != nil {
 		return
 	}

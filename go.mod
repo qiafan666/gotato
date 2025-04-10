@@ -13,7 +13,6 @@ require (
 	github.com/frankban/quicktest v1.14.6
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.8.0
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-version v1.7.0

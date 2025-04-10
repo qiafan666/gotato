@@ -104,8 +104,11 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 			return
 		}
 	} else {
-		// Pull 模式，启动一个 Goroutine 进行轮询
-		go c.pollMessages(ctx, handler)
+		if err = c.pullConsumer.Start(); err != nil {
+			c.logger.ErrorF(nil, "pullConsumer start fail. err: %+v", err)
+			time.Sleep(5 * time.Second)
+			go c.Consume(ctx, msgChannel, handler)
+		}
 	}
 
 	<-ctx.Done()
