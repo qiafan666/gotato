@@ -7,9 +7,13 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"github.com/qiafan666/gotato/commons/gface"
+	"github.com/sirupsen/logrus"
+	"log"
 	"sync"
 	"time"
 )
+
+const RefreshPersistOffsetDuration = 5 * time.Second
 
 type Consumer struct {
 	pushConsumer      rocketmq.PushConsumer
@@ -131,6 +135,19 @@ func (c *Consumer) subscribe(msgChannel *MsgChannel, handler IHandler) error {
 			c.logger.ErrorF(nil, "subscribe fail. topic=%s, tag=%s, err=%+v", msgChannel.Topic, msgChannel.Tag, err)
 			return err
 		}
+
+		timer := time.NewTimer(RefreshPersistOffsetDuration)
+		go func() {
+			for ; true; <-timer.C {
+				err = c.pullConsumer.PersistOffset(context.TODO(), msgChannel.Topic)
+				if err != nil {
+					log.Printf("[pullConsumer.PersistOffset] err=%v", err)
+				}
+				timer.Reset(RefreshPersistOffsetDuration)
+			}
+		}()
+
+		go c.pullMessages(context.Background(), handler)
 	} else {
 		err := c.pushConsumer.Subscribe(msgChannel.Topic, selector,
 			func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
@@ -158,7 +175,7 @@ func (c *Consumer) subscribe(msgChannel *MsgChannel, handler IHandler) error {
 }
 
 // Pull 模式消息轮询
-func (c *Consumer) pollMessages(ctx context.Context, handler IHandler) {
+func (c *Consumer) pullMessages(ctx context.Context, handler IHandler) {
 
 	batchSize := 10 // 初始拉取数量
 
@@ -169,25 +186,52 @@ func (c *Consumer) pollMessages(ctx context.Context, handler IHandler) {
 		default:
 			startTime := time.Now()
 
-			msgs, err := c.pullConsumer.Pull(ctx, batchSize)
+			resp, err := c.pullConsumer.Pull(ctx, batchSize)
 			if err != nil {
-				c.logger.ErrorF(nil, "pollMessages pull fail. err: %+v", err)
+				c.logger.ErrorF(nil, "pullMessages pull fail. err: %+v", err)
 				time.Sleep(5 * time.Second) // 避免频繁请求
 				continue
 			}
 
-			if len(msgs.GetMessages()) == 0 {
+			if len(resp.GetMessages()) == 0 {
 				time.Sleep(500 * time.Millisecond) // 没有消息，稍作等待
 				continue
 			}
 
-			c.logger.DebugF(nil, "pollMessages success: msgs=%s",
-				gcommon.Bytes2Str(msgs.GetBody()))
-
-			for _, msg := range msgs.GetMessages() {
-				if err := handler.Handle(msg.GetTags(), gcommon.Bytes2Str(msg.Body)); err != nil {
-					c.logger.ErrorF(nil, "handle msg fail. err=%+v", err)
+			switch resp.Status {
+			case primitive.PullFound:
+				logrus.Debugf("[pull message successfully] MinOffset:%d, MaxOffset:%d, nextOffset: %d, len:%d\n", resp.MinOffset, resp.MaxOffset, resp.NextBeginOffset, len(resp.GetMessages()))
+				var queue *primitive.MessageQueue
+				if len(resp.GetMessages()) <= 0 {
+					return
 				}
+				for _, msg := range resp.GetMessages() {
+					queue = msg.Queue
+					if err = handler.Handle(msg.GetTags(), gcommon.Bytes2Str(msg.Body)); err != nil {
+						c.logger.ErrorF(nil, "handle msg fail.err=%+v", err)
+					}
+				}
+
+				err = c.pullConsumer.UpdateOffset(queue, resp.NextBeginOffset)
+				if err != nil {
+					c.logger.ErrorF(nil, "updates offset fail. err: %+v", err)
+					return
+				}
+
+			case primitive.PullNoNewMsg, primitive.PullNoMsgMatched:
+				c.logger.ErrorF(nil, "pullMessages no new message. status: %d", resp.Status)
+				time.Sleep(500 * time.Millisecond)
+				return
+			case primitive.PullBrokerTimeout:
+				c.logger.ErrorF(nil, "pullBrokerTimeout")
+
+				time.Sleep(500 * time.Millisecond)
+				return
+			case primitive.PullOffsetIllegal:
+				c.logger.ErrorF(nil, "pull offset illegal")
+				return
+			default:
+				c.logger.ErrorF(nil, "pullMessages unknown status: %d", resp.Status)
 			}
 
 			elapsed := time.Since(startTime)

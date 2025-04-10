@@ -38,7 +38,7 @@ func TestConsumer(t *testing.T) {
 		consumer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.254.3.87:9876"})),
 	}
 
-	consume, err := NewConsumer(context.Background(), gface.NewLogger("grocketmq.consumer", nil), false, options...)
+	consume, err := NewConsumer(context.Background(), gface.NewLogger("grocketmq.consumer", nil), true, options...)
 	if err != nil {
 		return
 	}
@@ -67,9 +67,9 @@ func TestProducer(t *testing.T) {
 	msgChannel := &MsgChannel{
 		Topic: "ning",
 	}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		time.Sleep(time.Second)
-		err = produce.Publish(context.Background(), msgChannel, "msg")
+		err = produce.Publish(context.Background(), msgChannel, gcast.ToString(i))
 		if err != nil {
 			return
 		}
