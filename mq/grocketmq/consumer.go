@@ -214,13 +214,13 @@ func (c *Consumer) pullMessages(ctx context.Context, handler IHandler) {
 					queue = msg.Queue
 					if err = handler.Handle(msg.GetTags(), gcommon.Bytes2Str(msg.Body)); err != nil {
 						c.logger.ErrorF(nil, "handle msg fail.err=%+v", err)
+					} else {
+						err = c.pullConsumer.UpdateOffset(queue, resp.NextBeginOffset)
+						if err != nil {
+							c.logger.ErrorF(nil, "updates offset fail. err: %+v", err)
+							continue
+						}
 					}
-				}
-
-				err = c.pullConsumer.UpdateOffset(queue, resp.NextBeginOffset)
-				if err != nil {
-					c.logger.ErrorF(nil, "updates offset fail. err: %+v", err)
-					continue
 				}
 
 			case primitive.PullNoNewMsg, primitive.PullNoMsgMatched:
