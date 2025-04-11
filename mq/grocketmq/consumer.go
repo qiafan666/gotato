@@ -13,7 +13,11 @@ import (
 	"time"
 )
 
-const RefreshPersistOffsetDuration = 5 * time.Second
+const (
+	PUSH                         = false
+	PULL                         = true
+	RefreshPersistOffsetDuration = 5 * time.Second
+)
 
 type Consumer struct {
 	pushConsumer      rocketmq.PushConsumer
@@ -90,7 +94,7 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 		return
 	}
 
-	err = c.subscribe(msgChannel, handler)
+	err = c.subscribe(ctx, msgChannel, handler)
 	if err != nil {
 		c.logger.ErrorF(nil, "subscribe fail. retry after 5 seconds, err=%+v", err)
 		<-time.After(5 * time.Second)
@@ -118,7 +122,7 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 	<-ctx.Done()
 }
 
-func (c *Consumer) subscribe(msgChannel *MsgChannel, handler IHandler) error {
+func (c *Consumer) subscribe(ctx context.Context, msgChannel *MsgChannel, handler IHandler) error {
 	id := msgChannel.Id()
 	if _, ok := c.msgChannelDeclare.Load(id); ok {
 		return nil
@@ -139,7 +143,7 @@ func (c *Consumer) subscribe(msgChannel *MsgChannel, handler IHandler) error {
 		timer := time.NewTimer(RefreshPersistOffsetDuration)
 		go func() {
 			for ; true; <-timer.C {
-				err = c.pullConsumer.PersistOffset(context.TODO(), msgChannel.Topic)
+				err = c.pullConsumer.PersistOffset(ctx, msgChannel.Topic)
 				if err != nil {
 					log.Printf("[pullConsumer.PersistOffset] err=%v", err)
 				}
@@ -147,7 +151,7 @@ func (c *Consumer) subscribe(msgChannel *MsgChannel, handler IHandler) error {
 			}
 		}()
 
-		go c.pullMessages(context.Background(), handler)
+		go c.pullMessages(ctx, handler)
 	} else {
 		err := c.pushConsumer.Subscribe(msgChannel.Topic, selector,
 			func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
@@ -194,7 +198,7 @@ func (c *Consumer) pullMessages(ctx context.Context, handler IHandler) {
 			}
 
 			if len(resp.GetMessages()) == 0 {
-				time.Sleep(500 * time.Millisecond) // 没有消息，稍作等待
+				time.Sleep(time.Second) // 没有消息，稍作等待
 				continue
 			}
 
@@ -203,7 +207,8 @@ func (c *Consumer) pullMessages(ctx context.Context, handler IHandler) {
 				logrus.Debugf("[pull message successfully] MinOffset:%d, MaxOffset:%d, nextOffset: %d, len:%d\n", resp.MinOffset, resp.MaxOffset, resp.NextBeginOffset, len(resp.GetMessages()))
 				var queue *primitive.MessageQueue
 				if len(resp.GetMessages()) <= 0 {
-					return
+					time.Sleep(time.Second)
+					continue
 				}
 				for _, msg := range resp.GetMessages() {
 					queue = msg.Queue
@@ -215,17 +220,17 @@ func (c *Consumer) pullMessages(ctx context.Context, handler IHandler) {
 				err = c.pullConsumer.UpdateOffset(queue, resp.NextBeginOffset)
 				if err != nil {
 					c.logger.ErrorF(nil, "updates offset fail. err: %+v", err)
-					return
+					continue
 				}
 
 			case primitive.PullNoNewMsg, primitive.PullNoMsgMatched:
 				c.logger.ErrorF(nil, "pullMessages no new message. status: %d", resp.Status)
-				time.Sleep(500 * time.Millisecond)
+				time.Sleep(time.Second)
 				return
 			case primitive.PullBrokerTimeout:
 				c.logger.ErrorF(nil, "pullBrokerTimeout")
 
-				time.Sleep(500 * time.Millisecond)
+				time.Sleep(time.Second)
 				return
 			case primitive.PullOffsetIllegal:
 				c.logger.ErrorF(nil, "pull offset illegal")

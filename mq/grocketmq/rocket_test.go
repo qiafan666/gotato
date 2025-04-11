@@ -36,9 +36,11 @@ func TestConsumer(t *testing.T) {
 	options := []consumer.Option{
 		consumer.WithGroupName("NING_GROUP"),
 		consumer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.254.3.87:9876"})),
+		consumer.WithMaxReconsumeTimes(2),
 	}
 
-	consume, err := NewConsumer(context.Background(), gface.NewLogger("grocketmq.consumer", nil), true, options...)
+	consume, err := NewConsumer(context.Background(),
+		gface.NewLogger("grocketmq.consumer", nil), PULL, options...)
 	if err != nil {
 		return
 	}
@@ -58,7 +60,8 @@ func TestProducer(t *testing.T) {
 		producer.WithGroupName("NING_GROUP"),
 		producer.WithNsResolver(primitive.NewPassthroughResolver([]string{"10.254.3.87:9876"})),
 	}
-	produce, err := NewProducer(context.Background(), gface.NewLogger("grocketmq.producer", nil), options...)
+	produce, err := NewProducer(context.Background(),
+		gface.NewLogger("grocketmq.producer", nil), options...)
 	if err != nil {
 		return
 	}
