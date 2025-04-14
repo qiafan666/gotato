@@ -68,7 +68,17 @@ func (p *Producer) Close() {
 }
 
 func (p *Producer) Publish(ctx context.Context, msgChannel *MsgChannel, msg interface{}) error {
-	marshal, err := gson.Marshal(msg)
+
+	var marshal []byte
+	var err error
+	switch msg.(type) {
+	case string:
+		marshal = []byte(msg.(string))
+	case []byte:
+		marshal = msg.([]byte)
+	default:
+		marshal, err = gson.Marshal(msg)
+	}
 	if err != nil {
 		p.logger.ErrorF(nil, "Marshal fail. topic=%s, msg=%+v, err=%+v",
 			msgChannel.Topic, msg, err)
