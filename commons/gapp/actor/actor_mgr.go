@@ -65,12 +65,9 @@ func (m *Mgr) StartActor(actorID int64, initData any, syncInit bool) error {
 			return fmt.Errorf(gcommon.Kv2Str("StartActor already exist", "actorId", actorID))
 		}
 	}
-	a := &Actor{
-		id:       actorID,
-		closeSig: make(chan bool, 1),
-		state:    StateNone,
-		delegate: m.creator(actorID),
-	}
+
+	a := NewActor(actorID, m.creator(actorID))
+
 	_, exist := m.Actors.LoadOrStore(actorID, a)
 	if exist {
 		return fmt.Errorf(gcommon.Kv2Str("StartActor already exist", "actorId", actorID))

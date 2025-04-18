@@ -3,6 +3,7 @@ package gcache
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/qiafan666/gotato/commons/gson"
 	"sync"
 )
 
@@ -208,7 +209,7 @@ func (m *ShardLockMap[K, V]) Items() map[K]V {
 // MarshalJSON 序列化当前并发Map为JSON格式
 func (m *ShardLockMap[K, V]) MarshalJSON() ([]byte, error) {
 	items := m.Items()
-	return json.Marshal(items)
+	return gson.Marshal(items)
 }
 
 func strFnv32[K fmt.Stringer](key K) uint32 {

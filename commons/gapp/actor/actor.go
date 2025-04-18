@@ -34,6 +34,15 @@ type Actor struct {
 	wg       sync.WaitGroup
 }
 
+func NewActor(id int64, delegate IActor) *Actor {
+	return &Actor{
+		id:       id,
+		delegate: delegate,
+		state:    StateNone,
+		closeSig: make(chan bool),
+	}
+}
+
 // InitAndRun Actor运行入口
 func (a *Actor) InitAndRun(initData any, syncInitChan chan error) {
 	a.state = StateInit
