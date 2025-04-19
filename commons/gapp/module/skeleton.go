@@ -11,8 +11,6 @@ import (
 
 // ISkeleton 骨架接口
 type ISkeleton interface {
-	// TimerAPI 定时器
-	TimerAPI() timer.ITimerAPI
 
 	// Run 生命周期
 	Run(closeSig chan bool)
@@ -26,6 +24,9 @@ type ISkeleton interface {
 
 	// MsgStat 消息状态统计
 	MsgStat() map[string]string
+
+	// TimerAPI 定时器
+	TimerAPI() timer.ITimerAPI
 
 	// Logger 日志
 	Logger() gface.ILogger
@@ -67,35 +68,35 @@ func NewSkeleton(goLen, chanrpcLen, asyncCallLen int, logger gface.ILogger) ISke
 func (s *skeleton) Run(closeSig chan bool) {
 	for {
 		select {
-		case <-closeSig:
-			s.close()
-			return
 		case ackCtx := <-s.chanCli.ChanAck():
-			ts1 := time.Now().UnixMicro()
+			now := time.Now()
 			s.chanCli.Exec(ackCtx)
 			if s.stat != nil {
-				cost := time.Now().UnixMicro() - ts1
+				cost := time.Since(now).Milliseconds()
 				s.stat.Add(ackCtx.GetStatName(), cost)
 			}
 		case reqCtx := <-s.chanSrv.ChanReq():
-			ts1 := time.Now().UnixMicro()
+			now := time.Now()
 			s.chanSrv.Exec(reqCtx)
 			if s.stat != nil {
-				cost := time.Now().UnixMicro() - ts1
+				cost := time.Since(now).Milliseconds()
 				s.stat.Add(reqCtx.GetStatName(), cost)
-				if cost > 300000 { // 大于300毫秒的warn log
-					s.logger.DebugF(nil, "skeleton exec too long cost:%v stat name:%s len:%v", cost, reqCtx.GetStatName(), s.chanSrv.Len())
+				if cost > 300 { // 大于300毫秒的warn log
+					s.logger.WarnF(nil, "skeleton exec too long cost:%v stat name:%s len:%v", cost, reqCtx.GetStatName(), s.chanSrv.Len())
 				}
 			}
 		case cb := <-s.Go.ChanCb:
 			s.Go.Cb(cb)
 		case t := <-s.timerDelegate.ChanTimer():
-			ts1 := time.Now().UnixMicro()
+			now := time.Now()
 			s.timerDelegate.Exec(t)
 			if s.stat != nil {
-				cost := time.Now().UnixMicro() - ts1
+				cost := time.Since(now).Milliseconds()
 				s.stat.Add(t.GetStatName(), cost)
 			}
+		case <-closeSig:
+			s.close()
+			return
 		}
 	}
 }

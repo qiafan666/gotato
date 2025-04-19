@@ -18,10 +18,11 @@ type Creator func(int64) IActor
 
 // IActor 逻辑层需要实现的接口
 type IActor interface {
-	ChanSrv() chanrpc.IServer
 	OnInit(initData any) error
 	Run(closeSig chan bool)
 	OnDestroy()
+	ChanSrv() chanrpc.IServer
+	ChanCli() chanrpc.IClient
 }
 
 type Actor struct {

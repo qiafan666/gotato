@@ -22,10 +22,6 @@ func (ta *testActor) OnInit(initData any) error {
 	return nil
 }
 
-func (ta *testActor) ChanSrv() chanrpc.IServer {
-	return ta.skeleton.Server()
-}
-
 func (ta *testActor) Run(closeSig chan bool) {
 	ta.skeleton.Logger().ErrorF(nil, "actor%d Run", ta.id)
 	ta.skeleton.Run(closeSig)
@@ -33,6 +29,14 @@ func (ta *testActor) Run(closeSig chan bool) {
 
 func (ta *testActor) OnDestroy() {
 	log.Printf("actor%d OnDestroy", ta.id)
+}
+
+func (ta *testActor) ChanSrv() chanrpc.IServer {
+	return ta.skeleton.Server()
+}
+
+func (ta *testActor) ChanCli() chanrpc.IClient {
+	return ta.skeleton.Client()
 }
 
 func (ta *testActor) onTestMsg(ctx context.Context, reqCtx *chanrpc.ReqCtx) {

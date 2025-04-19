@@ -32,13 +32,13 @@ func (m *Module1) OnInit() error {
 	return nil
 }
 
-// OnDestroy 销毁
-func (m *Module1) OnDestroy() {
-}
-
 // Run 启动
 func (m *Module1) Run(closeSig chan bool) {
 	m.skeleton.Run(closeSig)
+}
+
+// OnDestroy 销毁
+func (m *Module1) OnDestroy() {
 }
 
 // Name 模块名字
