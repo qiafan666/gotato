@@ -5,22 +5,16 @@ import (
 	"sync"
 )
 
-type IWaitGroup interface {
-	Go(f func())
-	Wait()
-	WaitAndRecover() *panics.Recovered
+func NewWaitGroup() *WaitGroup {
+	return &WaitGroup{}
 }
 
-func NewWaitGroup() IWaitGroup {
-	return &waitGroup{}
-}
-
-type waitGroup struct {
+type WaitGroup struct {
 	wg sync.WaitGroup
 	pc panics.Catcher
 }
 
-func (h *waitGroup) Go(f func()) {
+func (h *WaitGroup) Go(f func()) {
 	h.wg.Add(1)
 	go func() {
 		defer h.wg.Done()
@@ -28,13 +22,13 @@ func (h *waitGroup) Go(f func()) {
 	}()
 }
 
-func (h *waitGroup) Wait() {
+func (h *WaitGroup) Wait() {
 	h.wg.Wait()
 
 	h.pc.Repanic()
 }
 
-func (h *waitGroup) WaitAndRecover() *panics.Recovered {
+func (h *WaitGroup) WaitAndRecover() *panics.Recovered {
 	h.wg.Wait()
 
 	return h.pc.Recovered()

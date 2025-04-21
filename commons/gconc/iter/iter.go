@@ -40,7 +40,7 @@ func (iter Iterator[T]) ForEachIdx(input []T, f func(int, *T)) {
 		}
 	}
 
-	var wg gconc.IWaitGroup
+	var wg gconc.WaitGroup
 	for i := 0; i < iter.MaxGoroutines; i++ {
 		wg.Go(task)
 	}

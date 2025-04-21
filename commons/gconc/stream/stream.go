@@ -15,7 +15,7 @@ func New() *Stream {
 
 type Stream struct {
 	pool             pool.Pool
-	callbackerHandle gconc.IWaitGroup
+	callbackerHandle gconc.WaitGroup
 	queue            chan callbackCh
 
 	initOnce sync.Once

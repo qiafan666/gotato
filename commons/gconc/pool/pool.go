@@ -11,7 +11,7 @@ func New() *Pool {
 }
 
 type Pool struct {
-	handle   gconc.IWaitGroup
+	handle   gconc.WaitGroup
 	limiter  limiter
 	tasks    chan func()
 	initOnce sync.Once
