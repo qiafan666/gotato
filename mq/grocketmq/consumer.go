@@ -94,14 +94,6 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 		return
 	}
 
-	err = c.subscribe(ctx, msgChannel, handler)
-	if err != nil {
-		c.logger.ErrorF(nil, "subscribe fail. retry after 5 seconds, err=%+v", err)
-		<-time.After(5 * time.Second)
-		go c.Consume(ctx, msgChannel, handler)
-		return
-	}
-
 	// 启动消费者
 	if !c.mode {
 		// Push 模式
@@ -117,6 +109,14 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 			time.Sleep(5 * time.Second)
 			go c.Consume(ctx, msgChannel, handler)
 		}
+	}
+
+	err = c.subscribe(ctx, msgChannel, handler)
+	if err != nil {
+		c.logger.ErrorF(nil, "subscribe fail. retry after 5 seconds, err=%+v", err)
+		<-time.After(5 * time.Second)
+		go c.Consume(ctx, msgChannel, handler)
+		return
 	}
 
 	<-ctx.Done()
