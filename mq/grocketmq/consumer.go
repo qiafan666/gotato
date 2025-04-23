@@ -120,6 +120,7 @@ func (c *Consumer) Consume(ctx context.Context, msgChannel *MsgChannel, handler 
 	}
 
 	<-ctx.Done()
+	c.msgChannelDeclare.Delete(msgChannel.Id())
 }
 
 func (c *Consumer) subscribe(ctx context.Context, msgChannel *MsgChannel, handler IHandler) error {
