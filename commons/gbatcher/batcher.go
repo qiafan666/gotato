@@ -19,12 +19,11 @@ var (
 )
 
 type Config struct {
-	size       int           // 消息聚合的数量（每个批次的最大数据量）
-	buffer     int           // 单个协程中运行的缓存数量（每个工作协程通道的缓冲区大小）
-	dataBuffer int           // 主数据通道的大小（用于接收数据的通道缓冲区大小）
-	worker     int           // 并行处理的工作协程数量
-	interval   time.Duration // 消息聚合的时间间隔（批次处理的时间间隔）
-	syncWait   bool          // 分发消息后是否同步等待消息被消费完成
+	size     int           // 消息聚合的数量（每个批次的最大数据量）
+	buffer   int           // 单个协程中运行的缓存数量（每个工作协程通道的缓冲区大小）
+	worker   int           // 并行处理的工作协程数量
+	interval time.Duration // 消息聚合的时间间隔（批次处理的时间间隔）
+	syncWait bool          // 分发消息后是否同步等待消息被消费完成
 }
 
 type Option func(c *Config)
@@ -56,12 +55,6 @@ func WithInterval(i time.Duration) Option {
 func WithSyncWait(wait bool) Option {
 	return func(c *Config) {
 		c.syncWait = wait
-	}
-}
-
-func WithDataBuffer(size int) Option {
-	return func(c *Config) {
-		c.dataBuffer = size
 	}
 }
 

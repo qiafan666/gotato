@@ -14,18 +14,16 @@ import (
 func TestBatcher(t *testing.T) {
 
 	config := Config{
-		size:       500,
-		worker:     50,
-		interval:   100 * time.Millisecond,
-		dataBuffer: 500,
-		syncWait:   true,
-		buffer:     50,
+		size:     1000,
+		worker:   20,
+		interval: 100 * time.Millisecond,
+		syncWait: true,
+		buffer:   50,
 	}
 	b := New[string](
 		WithSize(config.size),
 		WithWorker(config.worker),
 		WithInterval(config.interval),
-		WithDataBuffer(config.dataBuffer),
 		WithSyncWait(config.syncWait),
 		WithBuffer(config.buffer),
 	)
