@@ -67,11 +67,11 @@ func VersionCompare(rangeVer, curVer string) (bool, error) {
 	orVers := strings.Split(rangeVer, "|")
 	for _, ver := range orVers {
 		andVers := strings.Split(ver, "&")
-		constraints, err := version.NewConstraint(strings.Join(andVers, ","))
+		constraint, err := version.NewConstraint(strings.Join(andVers, ","))
 		if err != nil {
 			return false, err
 		}
-		if constraints.Check(semVer) {
+		if constraint.Check(semVer) {
 			return true, nil
 		}
 	}
