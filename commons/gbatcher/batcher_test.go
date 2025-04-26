@@ -37,7 +37,7 @@ func TestBatcher(t *testing.T) {
 
 	//分片函数，将数据分片到不同的worker中进行处理
 	b.Sharding = func(key string) int {
-		hashCode := gcommon.HashString(key)
+		hashCode := gcommon.StrHash(key)
 		return (int(hashCode) + rand.Intn(config.worker)) % config.worker
 	}
 

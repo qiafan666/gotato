@@ -25,7 +25,7 @@ func TestStructToMap(t *testing.T) {
 		Age:  30,
 	}
 
-	toMap := StructToMap(test)
+	toMap := Struct2Map(test)
 	marshal, err := gson.Marshal(toMap)
 	if err != nil {
 		return
@@ -80,16 +80,6 @@ func TestSliceSort(t *testing.T) {
 			return i.Score > j.Score
 		})
 	t.Log("成绩排序后的sliceStruct:", sliceStruct)
-
-	t.Log(SliceToMap(sliceStruct, func(val TestStruct) int {
-		return val.Id
-	}))
-
-	t.Log(SliceToMapAny(sliceStruct, func(val TestStruct) (string, TestStruct2) {
-		return gcast.ToString(val.Age), TestStruct2{Id: val.Id, Score: val.Score}
-	}))
-
-	t.Log(SliceToNilMap(sliceStruct))
 }
 
 func TestIf(t *testing.T) {
@@ -118,8 +108,8 @@ func TestSliceConvert(t *testing.T) {
 
 	var sliceStruct = []TestStruct{struct1, struct2, struct3}
 
-	toMap := SliceToMap(sliceStruct, func(val TestStruct) int {
-		return val.Id
+	toMap := Slice2Map(sliceStruct, func(val TestStruct) (int, interface{}) {
+		return val.Id, val.Score
 	})
 
 	keys := MapKeys(toMap)

@@ -289,8 +289,8 @@ func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
 	return result
 }
 
-// sliceToMapOkAny 切片转映射（自定义类型，过滤器）
-func sliceToMapOkAny[E any, K comparable, V any](es []E, fn func(e E) (K, V, bool)) map[K]V {
+// slice2MapOkAny 切片转映射（自定义类型，过滤器）
+func slice2MapOkAny[E any, K comparable, V any](es []E, fn func(e E) (K, V, bool)) map[K]V {
 	kv := make(map[K]V)
 	for i := 0; i < len(es); i++ {
 		t := es[i]
@@ -301,33 +301,21 @@ func sliceToMapOkAny[E any, K comparable, V any](es []E, fn func(e E) (K, V, boo
 	return kv
 }
 
-// SliceToMapAny 切片转映射（自定义类型）
-func SliceToMapAny[E any, K comparable, V any](es []E, fn func(e E) (K, V)) map[K]V {
-	return sliceToMapOkAny(es, func(e E) (K, V, bool) {
+// Slice2Map 切片转映射（自定义类型）
+func Slice2Map[E any, K comparable, V any](es []E, fn func(e E) (K, V)) map[K]V {
+	return slice2MapOkAny(es, func(e E) (K, V, bool) {
 		k, v := fn(e)
 		return k, v, true
 	})
 }
 
-// SliceToMap 只处理键，值和数组元素相同
-func SliceToMap[E any, K comparable](es []E, fn func(e E) K) map[K]E {
-	return sliceToMapOkAny(es, func(e E) (K, E, bool) {
-		k := fn(e)
-		return k, e, true
-	})
-}
-
-func SliceSetAny[E any, K comparable](es []E, fn func(e E) K) map[K]struct{} {
-	return SliceToMapAny(es, func(e E) (K, struct{}) {
-		return fn(e), struct{}{}
-	})
-}
-
-// SliceToNilMap 切片转换为空对象的map
-func SliceToNilMap[E comparable](es []E) map[E]struct{} {
-	return SliceSetAny(es, func(e E) E {
-		return e
-	})
+// Slice2MapNil 将切片转成 map[E]struct{}，表示集合
+func Slice2MapNil[E comparable](es []E) map[E]struct{} {
+	m := make(map[E]struct{}, len(es))
+	for _, e := range es {
+		m[e] = struct{}{}
+	}
+	return m
 }
 
 func SliceFilter[E, T any](es []E, fn func(e E) (T, bool)) []T {
@@ -350,8 +338,8 @@ func SliceConvert[E any, T any](es []E, fn func(e E) T) []T {
 	return v
 }
 
-// SlicePaginate 分页
-func SlicePaginate[E any](es []E, pageNumber int, pageSize int) []E {
+// SlicePage 分页
+func SlicePage[E any](es []E, pageNumber int, pageSize int) []E {
 	if pageNumber < 0 {
 		pageNumber = 0
 	}
@@ -435,8 +423,8 @@ func SliceBatch[T any, V any](ts []T, fn func(T) V, numWorkers ...int) []V {
 	}
 }
 
-// Equal 比较两个切片是否相等，元素顺序相关
-func Equal[E comparable](a []E, b []E) bool {
+// SliceEq 比较两个切片是否相等，元素顺序相关
+func SliceEq[E comparable](a []E, b []E) bool {
 	if len(a) != len(b) {
 		return false
 	}

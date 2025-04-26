@@ -168,8 +168,8 @@ func ContainsEmoji(s string) bool {
 	return re.MatchString(s)
 }
 
-// HashString 计算字符串的哈希值 常用于分片的哈希值计算
-func HashString(s string) uint32 {
+// StrHash 计算字符串的哈希值 常用于分片的哈希值计算
+func StrHash(s string) uint32 {
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(s))
 	return h.Sum32()

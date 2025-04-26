@@ -164,3 +164,30 @@ func MapSortUrl(m map[string]any) string {
 	}
 	return queryString.String()
 }
+
+// MapKv2Slice 将map的键值对转换成切片
+func MapKv2Slice[K comparable, V any](m map[K]V) []any {
+	var slice []any
+	for k, v := range m {
+		slice = append(slice, k, v)
+	}
+	return slice
+}
+
+// MapK2Slice 将map的键转换成切片
+func MapK2Slice[K comparable, V any](m map[K]V) []K {
+	var slice []K
+	for k := range m {
+		slice = append(slice, k)
+	}
+	return slice
+}
+
+// MapV2Slice 将map的值转换成切片
+func MapV2Slice[K comparable, V any](m map[K]V) []V {
+	var slice []V
+	for _, v := range m {
+		slice = append(slice, v)
+	}
+	return slice
+}
