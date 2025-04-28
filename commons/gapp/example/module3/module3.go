@@ -7,6 +7,7 @@ import (
 	"github.com/qiafan666/gotato/commons/gapp/module"
 	"github.com/qiafan666/gotato/commons/gface"
 	"log"
+	"time"
 )
 
 var (
@@ -48,7 +49,22 @@ func (m *Module3) onHandleTest1(ci *chanrpc.ReqCtx) {
 
 // Run 启动
 func (m *Module3) Run(closeSig chan bool) {
-	m.skeleton.Run(closeSig)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case msg := <-m.skeleton.Server().ChanReq():
+			m.skeleton.Server().Exec(msg)
+		case ackCtx := <-m.skeleton.Client().ChanAck():
+			m.skeleton.Client().Exec(ackCtx)
+		case <-ticker.C:
+			m.Logger().InfoF(nil, "module3 run")
+		case <-closeSig:
+			m.skeleton.Server().Close()
+			m.skeleton.Client().Close()
+			return
+		}
+	}
 }
 
 // OnDestroy 销毁

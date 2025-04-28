@@ -89,7 +89,7 @@ func main() {
 
 		log.Printf("call actor ret:%+v", ack)
 	}
-	time.Sleep(3 * time.Second)
+	time.Sleep(10 * time.Second)
 	timer.Stop()
 	fmt.Println("test end")
 }

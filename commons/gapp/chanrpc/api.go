@@ -26,7 +26,10 @@ type IServer interface {
 	Call(ctx context.Context, req any) *AckCtx
 	CallT(ctx context.Context, req any, timeout time.Duration) *AckCtx
 	PendReq(reqCtx *ReqCtx, block bool)
+	ChanReq() chan *ReqCtx
+	Exec(reqCtx *ReqCtx)
 	Len() int // 当前消息队列长度
+	Close()
 }
 
 // IClient chanrpc client接口
@@ -37,4 +40,6 @@ type IClient interface {
 	AsyncCall(s IServer, ctx context.Context, req any, cb Callback, m sval.M)
 	AsyncCallT(s IServer, ctx context.Context, req any, cb Callback, m sval.M, timeout time.Duration)
 	ChanAck() chan *AckCtx
+	Exec(ackCtx *AckCtx)
+	Close()
 }
