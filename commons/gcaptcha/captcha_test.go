@@ -8,7 +8,7 @@ import (
 )
 
 func TestCaptcha(t *testing.T) {
-	client, err := gredis.NewRedisClient(context.Background(), &gredis.Config{
+	client, err := gredis.NewClient(context.Background(), &gredis.Config{
 		ClusterMode: false,
 		Address:     []string{"127.0.0.1:6379"},
 		Username:    "",
