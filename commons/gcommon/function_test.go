@@ -391,7 +391,8 @@ func TestSliceDelete(t *testing.T) {
 }
 
 func TestHideStr(t *testing.T) {
-	hideStr := HideStr("hg2gggwwwdwvw")
+	fmt.Println(StrSub("1234567890", 0, 3))
+	hideStr := StrHide("hg2gggwwwdwvw")
 	t.Log(hideStr)
 	t.Log(RandRedPacket(10, 100))
 	t.Log(RandByWeight([]int32{14121, 21130, 30}))

@@ -289,8 +289,8 @@ func SliceDeleteIndex[T any](list []T, indexes ...int) []T {
 	return result
 }
 
-// slice2MapOkAny 切片转映射（自定义类型，过滤器）
-func slice2MapOkAny[E any, K comparable, V any](es []E, fn func(e E) (K, V, bool)) map[K]V {
+// slice2MapAny 切片转映射（自定义类型，过滤器）
+func slice2MapAny[E any, K comparable, V any](es []E, fn func(e E) (K, V, bool)) map[K]V {
 	kv := make(map[K]V)
 	for i := 0; i < len(es); i++ {
 		t := es[i]
@@ -303,7 +303,7 @@ func slice2MapOkAny[E any, K comparable, V any](es []E, fn func(e E) (K, V, bool
 
 // Slice2Map 切片转映射（自定义类型）
 func Slice2Map[E any, K comparable, V any](es []E, fn func(e E) (K, V)) map[K]V {
-	return slice2MapOkAny(es, func(e E) (K, V, bool) {
+	return slice2MapAny(es, func(e E) (K, V, bool) {
 		k, v := fn(e)
 		return k, v, true
 	})
