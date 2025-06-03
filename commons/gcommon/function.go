@@ -209,14 +209,22 @@ func FetchPageData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.
 	return result, nil
 }
 
-// FetchAllData 泛型分页查询所有数据，由 scopeFn 生成每一页的 scope（含 Offset 和 Limit）
-func FetchAllData[T any](db *gorm.DB, table string, scopeFn func(page int, pageSize int) func(*gorm.DB) *gorm.DB) ([]T, error) {
+// FetchAllData 泛型分页查询所有数据，分页大小固定为 1000，由 scope 控制过滤逻辑
+func FetchAllData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
 	const pageSize = 1000
 	var allData []T
+	offset := 0
 
-	for page := 1; ; page++ {
-		scope := scopeFn(page, pageSize)
-		batch, err := FetchPageData[T](db, table, scope)
+	for {
+		pageScope := func(db *gorm.DB) *gorm.DB {
+			q := db.Offset(offset).Limit(pageSize)
+			if scope != nil {
+				q = scope(q)
+			}
+			return q
+		}
+
+		batch, err := FetchPageData[T](db, table, pageScope)
 		if err != nil {
 			return nil, err
 		}
@@ -227,6 +235,7 @@ func FetchAllData[T any](db *gorm.DB, table string, scopeFn func(page int, pageS
 		if len(batch) < pageSize {
 			break
 		}
+		offset += pageSize
 	}
 
 	return allData, nil
