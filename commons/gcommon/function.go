@@ -192,38 +192,34 @@ func IsDBError(err error) bool {
 	return err != nil && !IsDBNotFound(err)
 }
 
-// FetchPageData 泛型分页查询数据
-func FetchPageData[T any](db *gorm.DB, table string, pageNum int, pageSize int, where func(*gorm.DB) *gorm.DB) ([]T, error) {
-	var allData []T
-	offset := (pageNum - 1) * pageSize
-	query := db.Table(table).
-		Offset(offset).
-		Limit(pageSize)
+// FetchPageData 泛型分页查询数据，由 scope 控制 Offset 和 Limit
+func FetchPageData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
+	var result []T
 
-	if where != nil {
-		query = where(query)
+	query := db.Table(table)
+	if scope != nil {
+		query = query.Scopes(scope)
 	}
 
-	err := query.Find(&allData).Error
+	err := query.Find(&result).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return allData, nil
+	return result, nil
 }
 
-// FetchAllData 泛型分页查询所有数据
-func FetchAllData[T any](db *gorm.DB, table string, where func(*gorm.DB) *gorm.DB) ([]T, error) {
+// FetchAllData 泛型分页查询所有数据，由 scopeFn 生成每一页的 scope（含 Offset 和 Limit）
+func FetchAllData[T any](db *gorm.DB, table string, scopeFn func(page int, pageSize int) func(*gorm.DB) *gorm.DB) ([]T, error) {
 	const pageSize = 1000
 	var allData []T
-	offset := 0
 
-	for {
-		batch, err := FetchPageData[T](db, table, offset/pageSize+1, pageSize, where)
+	for page := 1; ; page++ {
+		scope := scopeFn(page, pageSize)
+		batch, err := FetchPageData[T](db, table, scope)
 		if err != nil {
 			return nil, err
 		}
-
 		if len(batch) == 0 {
 			break
 		}
@@ -231,7 +227,6 @@ func FetchAllData[T any](db *gorm.DB, table string, where func(*gorm.DB) *gorm.D
 		if len(batch) < pageSize {
 			break
 		}
-		offset += pageSize
 	}
 
 	return allData, nil
