@@ -8,7 +8,7 @@ import (
 
 // AlignIntervalTime 对齐时间，根据时间戳和是否是utc，返回对齐后的时间
 // ts 时间戳，秒
-// interval 格式：1min, 1h, 1day, 1week, 1month, 1year
+// interval 格式：3min, 5h 只支持1day, 1week, 1month
 func AlignIntervalTime(ts int64, interval string, isUTC bool) time.Time {
 	var t time.Time
 	if isUTC {
@@ -19,51 +19,26 @@ func AlignIntervalTime(ts int64, interval string, isUTC bool) time.Time {
 
 	switch {
 	case strings.HasSuffix(interval, "min"):
-		num := gcast.ToInt64(strings.TrimSuffix(interval, "min"))
+		num := gcast.ToInt(strings.TrimSuffix(interval, "min"))
 		step := time.Duration(num) * time.Minute
 		return t.Truncate(step)
 
 	case strings.HasSuffix(interval, "h"):
-		num := gcast.ToInt64(strings.TrimSuffix(interval, "h"))
+		num := gcast.ToInt(strings.TrimSuffix(interval, "h"))
 		step := time.Duration(num) * time.Hour
 		return t.Truncate(step)
 
 	case strings.HasSuffix(interval, "day"):
-		num := gcast.ToInt(strings.TrimSuffix(interval, "day"))
-		base := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		daysSinceEpoch := int(base.Unix() / 86400)
-		alignedDays := daysSinceEpoch / num * num
-		return time.Unix(int64(alignedDays)*86400, 0).In(t.Location())
-
+		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	case strings.HasSuffix(interval, "week"):
-		num := gcast.ToInt(strings.TrimSuffix(interval, "week"))
-		// 当前时间是第几周
-		// 先对齐到最近一个周一
 		offset := int(t.Weekday())
 		if offset == 0 {
 			offset = 7
 		}
-		monday := t.AddDate(0, 0, -offset+1)
-		// 距离 Unix 起始时间的“第几个星期一”
-		weeksSinceEpoch := int(monday.Unix() / 86400 / 7)
-		alignedWeeks := weeksSinceEpoch / num * num
-		return time.Unix(int64(alignedWeeks*7*86400), 0).In(t.Location())
-
+		aligned := t.AddDate(0, 0, -offset+1)
+		return time.Date(aligned.Year(), aligned.Month(), aligned.Day(), 0, 0, 0, 0, t.Location())
 	case strings.HasSuffix(interval, "month"):
-		num := gcast.ToInt(strings.TrimSuffix(interval, "month"))
-		// 当前时间所在的月份编号
-		monthIndex := t.Year()*12 + int(t.Month()) - 1
-		alignedMonthIndex := monthIndex / num * num
-		year := alignedMonthIndex / 12
-		month := time.Month(alignedMonthIndex%12 + 1)
-		return time.Date(year, month, 1, 0, 0, 0, 0, t.Location())
-
-	case strings.HasSuffix(interval, "year"):
-		num := gcast.ToInt(strings.TrimSuffix(interval, "year"))
-		year := t.Year()
-		alignedYear := year / num * num
-		return time.Date(alignedYear, 1, 1, 0, 0, 0, 0, t.Location())
-
+		return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	default:
 		return t
 	}
