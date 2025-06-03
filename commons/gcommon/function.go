@@ -191,3 +191,48 @@ func IsDBNotFound(err error) bool {
 func IsDBError(err error) bool {
 	return err != nil && !IsDBNotFound(err)
 }
+
+// FetchPageData 泛型分页查询数据
+func FetchPageData[T any](db *gorm.DB, table string, pageNum int, pageSize int, where func(*gorm.DB) *gorm.DB) ([]T, error) {
+	var allData []T
+	offset := (pageNum - 1) * pageSize
+	query := db.Table(table).
+		Offset(offset).
+		Limit(pageSize)
+
+	if where != nil {
+		query = where(query)
+	}
+
+	err := query.Find(&allData).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return allData, nil
+}
+
+// FetchAllData 泛型分页查询所有数据
+func FetchAllData[T any](db *gorm.DB, table string, where func(*gorm.DB) *gorm.DB) ([]T, error) {
+	const pageSize = 1000
+	var allData []T
+	offset := 0
+
+	for {
+		batch, err := FetchPageData[T](db, table, offset/pageSize+1, pageSize, where)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(batch) == 0 {
+			break
+		}
+		allData = append(allData, batch...)
+		if len(batch) < pageSize {
+			break
+		}
+		offset += pageSize
+	}
+
+	return allData, nil
+}
