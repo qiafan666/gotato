@@ -197,6 +197,13 @@ func (c *Client) ZRevRangeByScoreWithScores(key string, opt *redis.ZRangeBy) ([]
 	return res, err
 }
 
+// ZRangeByScoreWithScores 根据分数范围顺序获取有序集合中的成员及分数。
+// 返回成员及分数的列表，以及可能发生的错误。
+func (c *Client) ZRangeByScoreWithScores(key string, opt *redis.ZRangeBy) ([]redis.Z, error) {
+	res, err := c.redis.ZRangeByScoreWithScores(context.Background(), key, opt).Result()
+	return res, err
+}
+
 // ZRemRangeByScore 删除有序集合中指定分数范围的成员。
 // 返回布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) ZRemRangeByScore(key, min, max string) (bool, error) {
@@ -207,8 +214,7 @@ func (c *Client) ZRemRangeByScore(key, min, max string) (bool, error) {
 	return true, nil
 }
 
-// ZRevRangeWithScores 根据排名逆序获取有序集合中的成员及分数。
-// 返回成员及分数的列表，以及可能发生的错误。
+// ZRevRangeWithScores 根据index获取有序集合中指定范围的成员
 func (c *Client) ZRevRangeWithScores(key string, offset, limit int64) ([]redis.Z, error) {
 	res, err := c.redis.ZRevRangeWithScores(context.Background(), key, offset, offset+limit-1).Result()
 	return res, err
@@ -234,6 +240,16 @@ func (c *Client) ZRem(key, member string) (bool, error) {
 	return true, nil
 }
 
+// ZRevRank 返回成员在有序集合中的排名，从 0 开始，若成员不存在，则返回 -1。
+// 返回成员的排名，以及可能发生的错误。
+func (c *Client) ZRevRank(key string, member string) (int64, error) {
+	rank, err := c.redis.ZRevRank(context.Background(), key, member).Result()
+	if err != nil {
+		return -1, nil
+	}
+	return rank, nil
+}
+
 // Expire 设置指定键的过期时间。
 // 返回可能发生的错误。
 func (c *Client) Expire(key string, expiration time.Duration) error {
@@ -241,28 +257,7 @@ func (c *Client) Expire(key string, expiration time.Duration) error {
 	return status.Err()
 }
 
-// ZRangeByScoreWithScores 根据分数范围获取有序集合中的成员及分数。
-// 返回成员及分数的列表，以及可能发生的错误。
-func (c *Client) ZRangeByScoreWithScores(key string, min, max string) ([]redis.Z, error) {
-	res, err := c.redis.ZRangeByScoreWithScores(context.Background(), key, &redis.ZRangeBy{
-		Min: min,
-		Max: max,
-	}).Result()
-	return res, err
-}
-
-// ZRangeByScoreAndLimitWithScores 根据分数范围和限制条件获取有序集合中的成员及分数。
-// 返回成员及分数的列表，以及可能发生的错误。
-func (c *Client) ZRangeByScoreAndLimitWithScores(key string, min, max string, limit int64) ([]redis.Z, error) {
-	res, err := c.redis.ZRangeByScoreWithScores(context.Background(), key, &redis.ZRangeBy{
-		Min:   min,
-		Max:   max,
-		Count: limit,
-	}).Result()
-	return res, err
-}
-
-// RPush 将一个值推送到 Redis 列表的右端，值会被序列化为 JSON 格式。
+// RPush 将一个值推送到 Redis 列表的右端，值会被序列化为 JSON 格式，允许重复元素。
 // 返回布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) RPush(key string, val interface{}) (bool, error) {
 	marshal, err := gson.Marshal(val)
@@ -341,16 +336,6 @@ func (c *Client) RListIsContain(key string, target string) (bool, error) {
 	return false, nil
 }
 
-// ZRevRank 返回成员在有序集合中的排名，从 0 开始，若成员不存在，则返回 -1。
-// 返回成员的排名，以及可能发生的错误。
-func (c *Client) ZRevRank(key string, member string) (int64, error) {
-	rank, err := c.redis.ZRevRank(context.Background(), key, member).Result()
-	if err != nil {
-		return -1, nil
-	}
-	return rank, nil
-}
-
 // IncrBy 自增指定键的值，返回自增后的值。
 // 返回自增后的结果，以及可能发生的错误。
 func (c *Client) IncrBy(key string, incr int64) (int64, error) {
@@ -371,7 +356,7 @@ func (c *Client) DecrBy(key string, decr int64) (int64, error) {
 	return result, nil
 }
 
-// SAdd 将一个或多个元素添加到集合中。
+// SAdd 将一个或多个元素添加到集合中。Set集合，不允许重复元素。
 // 返回布尔值表示是否成功，以及可能发生的错误。
 func (c *Client) SAdd(key string, members ...interface{}) (bool, error) {
 	status := c.redis.SAdd(context.Background(), key, members...)
