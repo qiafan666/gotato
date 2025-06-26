@@ -24,13 +24,12 @@ func (slf *Redis) Name() string {
 func (slf *Redis) StartRedis(config gconfig.RedisConfig) error {
 
 	err := gredis.Check(context.Background(), &gredis.Config{
-		ClusterMode: config.ClusterMode,
-		Address:     config.Address,
-		Username:    config.Username,
-		Password:    config.Password,
-		MaxRetry:    config.MaxRetry,
-		DB:          config.DB,
-		PoolSize:    config.PoolSize,
+		Address:  config.Address,
+		Username: config.Username,
+		Password: config.Password,
+		MaxRetry: config.MaxRetry,
+		DB:       config.DB,
+		PoolSize: config.PoolSize,
 	})
 	if err != nil {
 		return err
@@ -38,13 +37,12 @@ func (slf *Redis) StartRedis(config gconfig.RedisConfig) error {
 
 	slf.name = config.Name
 	client, err := gredis.NewClient(context.Background(), &gredis.Config{
-		ClusterMode: config.ClusterMode,
-		Address:     config.Address,
-		Username:    config.Username,
-		Password:    config.Password,
-		MaxRetry:    config.MaxRetry,
-		DB:          config.DB,
-		PoolSize:    config.PoolSize,
+		Address:  config.Address,
+		Username: config.Username,
+		Password: config.Password,
+		MaxRetry: config.MaxRetry,
+		DB:       config.DB,
+		PoolSize: config.PoolSize,
 	})
 	if err != nil {
 		return err

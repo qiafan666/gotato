@@ -98,14 +98,13 @@ type DataBaseConfig struct {
 }
 
 type RedisConfig struct {
-	ClusterMode bool     `yaml:"cluster_mode"` // 是否启用集群模式。
-	Address     []string `yaml:"address"`      // 地址
-	Username    string   `yaml:"username"`     // 用户名
-	Password    string   `yaml:"password"`     // 密码
-	MaxRetry    int      `yaml:"max_retry"`    // 最大重试次数。
-	DB          int      `yaml:"db"`           // 数据库编号。
-	PoolSize    int      `yaml:"pool_size"`    // 连接池大小。
-	Name        string   `yaml:"name"`         // 名称
+	Address  []string `yaml:"address"`   // 地址
+	Username string   `yaml:"username"`  // 用户名
+	Password string   `yaml:"password"`  // 密码
+	MaxRetry int      `yaml:"max_retry"` // 最大重试次数。
+	DB       int      `yaml:"db"`        // 数据库编号。
+	PoolSize int      `yaml:"pool_size"` // 连接池大小。
+	Name     string   `yaml:"name"`      // 名称
 }
 
 type Config struct {

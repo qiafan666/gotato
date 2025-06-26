@@ -13,13 +13,12 @@ const defaultPoolSize = 100
 
 // Config 连接配置参数，包括单机模式和集群模式的连接配置参数。
 type Config struct {
-	ClusterMode bool     // 是否启用集群模式。
-	Address     []string // 地址
-	Username    string   // 用户名
-	Password    string   // 密码
-	MaxRetry    int      // 最大重试次数。
-	DB          int      // 数据库编号。
-	PoolSize    int      // 连接池大小。
+	Address  []string // 地址
+	Username string   // 用户名
+	Password string   // 密码
+	MaxRetry int      // 最大重试次数。
+	DB       int      // 数据库编号。
+	PoolSize int      // 连接池大小。
 }
 
 func NewClient(ctx context.Context, config *Config) (*Client, error) {
@@ -35,7 +34,7 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	}
 
 	var cli redis.UniversalClient
-	if config.ClusterMode || len(config.Address) > 1 {
+	if len(config.Address) > 1 {
 		opt := &redis.ClusterOptions{
 			Addrs:      config.Address,
 			Username:   config.Username,
