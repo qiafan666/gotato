@@ -192,8 +192,8 @@ func IsDBError(err error) bool {
 	return err != nil && !IsDBNotFound(err)
 }
 
-// FetchPageData 泛型分页查询数据，由 scope 控制 Offset 和 Limit
-func FetchPageData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
+// FetchData 泛型查询数据，由 scope 控制 Offset 和 Limit
+func FetchData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
 	var result []T
 
 	query := db.Table(table)
@@ -224,7 +224,7 @@ func FetchAllData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.D
 			return q
 		}
 
-		batch, err := FetchPageData[T](db, table, pageScope)
+		batch, err := FetchData[T](db, table, pageScope)
 		if err != nil {
 			return nil, err
 		}
