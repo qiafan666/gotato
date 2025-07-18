@@ -42,14 +42,9 @@ func StrCheck(input ...string) []int {
 // Str2Bytes 原地转换
 func Str2Bytes(s string) []byte {
 	if len(s) == 0 {
-		return nil
+		return []byte{}
 	}
-	return *(*[]byte)(unsafe.Pointer(
-		&struct {
-			string
-			Cap int
-		}{s, len(s)},
-	))
+	return *(*[]byte)(unsafe.Pointer(&s))
 }
 
 // Bytes2Str 高性能地将 []byte 转换成 string,但是存在风险，
