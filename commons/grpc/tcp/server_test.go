@@ -12,37 +12,17 @@ import (
 	"time"
 )
 
-type Handler interface {
-	Handle(*grpc.Message) *grpc.Message
-}
-
-type Router struct {
-	routes map[grpc.Command]Handler
-}
-
-func NewRouter() *Router {
-	r := &Router{routes: make(map[grpc.Command]Handler)}
-	r.Register(grpc.CmdTestLogic, &Test{})
-	return r
-}
-
-func (r *Router) Register(cmd grpc.Command, handler Handler) {
-	r.routes[cmd] = handler
-}
-
-func (r *Router) Handle(msg *grpc.Message, out chan<- *grpc.Message) {
-	if handler, ok := r.routes[msg.Command]; ok {
-		resp := handler.Handle(msg)
-		out <- resp
-	}
-}
-
 func TestServer(t *testing.T) {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 20*time.Minute)
 
-	server := NewServer(":10081", NewRouter(), &ServerOptions{
+	logger := gface.NewLogger("server", zapLog())
+	router := grpc.NewRouter(logger)
+
+	router.Register(grpc.CmdTestLogic, &Test{})
+
+	server := NewServer(":10081", router, &ServerOptions{
 		Timeout: 3 * time.Second,
-		Logger:  gface.NewLogger("server", zapLog()),
+		Logger:  logger,
 	})
 	server.Run(ctx)
 
