@@ -3,6 +3,7 @@ package tcp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/qiafan666/gotato/commons/gface"
 	"github.com/qiafan666/gotato/commons/gid"
 	"github.com/qiafan666/gotato/commons/grpc"
@@ -11,10 +12,35 @@ import (
 	"time"
 )
 
+type Handler interface {
+	Handle(*grpc.Message) *grpc.Message
+}
+
+type Router struct {
+	routes map[grpc.Command]Handler
+}
+
+func NewRouter() *Router {
+	r := &Router{routes: make(map[grpc.Command]Handler)}
+	r.Register(grpc.CmdTestLogic, &Test{})
+	return r
+}
+
+func (r *Router) Register(cmd grpc.Command, handler Handler) {
+	r.routes[cmd] = handler
+}
+
+func (r *Router) Handle(msg *grpc.Message, out chan<- *grpc.Message) {
+	if handler, ok := r.routes[msg.Command]; ok {
+		resp := handler.Handle(msg)
+		out <- resp
+	}
+}
+
 func TestServer(t *testing.T) {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 20*time.Minute)
 
-	server := NewServer(":10081", new(testServerHandler), &ServerOptions{
+	server := NewServer(":10081", NewRouter(), &ServerOptions{
 		Timeout: 3 * time.Second,
 		Logger:  gface.NewLogger("server", zapLog()),
 	})
@@ -58,15 +84,16 @@ func TestClient1(t *testing.T) {
 
 }
 
-type testServerHandler struct{}
+type Test struct{}
 
-func (h *testServerHandler) Handle(request *grpc.Message, ch chan<- *grpc.Message) {
+func (t *Test) Handle(request *grpc.Message) (resp *grpc.Message) {
 	params := make([]any, 0)
 	var market string
 	var side uint32
 	var off uint32
-	params = append(params, &market, &side, &off)
+	params = append(params, market, side, off)
 	gson.Unmarshal(request.Body, &params)
+	fmt.Println(params)
 	result := [2]any{
 		map[string]any{
 			"reqId": request.ReqId,
@@ -87,6 +114,5 @@ func (h *testServerHandler) Handle(request *grpc.Message, ch chan<- *grpc.Messag
 		Result:  0,
 		Body:    marshal,
 	}
-
-	ch <- response
+	return response
 }
