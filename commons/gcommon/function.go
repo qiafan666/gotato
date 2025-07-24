@@ -192,51 +192,31 @@ func IsDBError(err error) bool {
 	return err != nil && !IsDBNotFound(err)
 }
 
-// FetchData 泛型查询数据，由 scope 控制 Offset 和 Limit
-func FetchData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
+// FetchAllData 泛型分页查询所有数据，分页大小固定为 1000，由 scope 控制表名和过滤逻辑
+func FetchAllData[T any](db *gorm.DB, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
+	const pageSize = 1000
+	offset := 0
 	var result []T
 
-	query := db.Table(table)
-	if scope != nil {
-		query = query.Scopes(scope)
-	}
-
-	err := query.Find(&result).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-// FetchAllData 泛型分页查询所有数据，分页大小固定为 1000，由 scope 控制过滤逻辑
-func FetchAllData[T any](db *gorm.DB, table string, scope func(*gorm.DB) *gorm.DB) ([]T, error) {
-	const pageSize = 1000
-	var allData []T
-	offset := 0
-
 	for {
-		pageScope := func(db *gorm.DB) *gorm.DB {
-			q := db.Offset(offset).Limit(pageSize)
-			if scope != nil {
-				q = scope(q)
-			}
-			return q
+		var batch []T
+
+		err := scope(db).
+			Limit(pageSize).
+			Offset(offset).
+			Find(&batch).Error
+
+		if err != nil {
+			return nil, fmt.Errorf("查询失败: %w", err)
 		}
 
-		batch, err := FetchData[T](db, table, pageScope)
-		if err != nil {
-			return nil, err
-		}
 		if len(batch) == 0 {
 			break
 		}
-		allData = append(allData, batch...)
-		if len(batch) < pageSize {
-			break
-		}
+
+		result = append(result, batch...)
 		offset += pageSize
 	}
 
-	return allData, nil
+	return result, nil
 }

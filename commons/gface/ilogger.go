@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/qiafan666/gotato/commons/gcommon"
 	"go.uber.org/zap"
+	"log"
 )
 
 // ILogger 定义一个通用的业务日志接口
@@ -34,22 +35,30 @@ func NewLogger(module string, logger *zap.SugaredLogger) ILogger {
 	}
 }
 func (l *loggerImpl) ErrorF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() != nil {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[ERROR] %s ", l.Prefix())+gcommon.GetRequestIdFormat(ctx)+format, args...)
+	} else {
 		l.Logger().Errorf(l.Prefix()+gcommon.GetRequestIdFormat(ctx)+format, args...)
 	}
 }
 func (l *loggerImpl) WarnF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() != nil {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[WARN] %s ", l.Prefix())+gcommon.GetRequestIdFormat(ctx)+format, args...)
+	} else {
 		l.Logger().Warnf(l.Prefix()+gcommon.GetRequestIdFormat(ctx)+format, args...)
 	}
 }
 func (l *loggerImpl) InfoF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() != nil {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[INFO] %s ", l.Prefix())+gcommon.GetRequestIdFormat(ctx)+format, args...)
+	} else {
 		l.Logger().Infof(l.Prefix()+gcommon.GetRequestIdFormat(ctx)+format, args...)
 	}
 }
 func (l *loggerImpl) DebugF(ctx context.Context, format string, args ...interface{}) {
-	if l.Logger() != nil {
+	if l.Logger() == nil {
+		log.Printf(fmt.Sprintf("[DEBUG] %s ", l.Prefix())+gcommon.GetRequestIdFormat(ctx)+format, args...)
+	} else {
 		l.Logger().Debugf(l.Prefix()+gcommon.GetRequestIdFormat(ctx)+format, args...)
 	}
 }
