@@ -27,13 +27,14 @@ func (t *Ticker) addFunc(f func()) *Ticker {
 }
 
 func (t *Ticker) Run(ctx context.Context) {
-	ticker := time.NewTimer(t.duration)
+	t.f()
+
+	ticker := time.NewTicker(t.duration)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
 			t.f()
-			ticker.Reset(t.duration)
 		case <-ctx.Done():
 			return
 		}
