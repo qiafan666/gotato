@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -731,6 +732,16 @@ func FileWriteBytes(filepath string, content []byte) error {
 
 	_, err = f.Write(content)
 	return err
+}
+
+// FileWriteJson 写入json到文件并格式化，方便查看
+func FileWriteJson(filepath string, content any) error {
+	jsonBytes, err := json.MarshalIndent(content, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return FileWriteBytes(filepath, jsonBytes)
 }
 
 // FileRead 读取文件内容，返回io.ReadCloser, 关闭函数
